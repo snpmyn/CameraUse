@@ -1,24 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-/*
- * libcommon
- * utility/helper classes for myself
- *
- * Copyright (c) 2014-2018 saki t_saki@serenegiant.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
-*/
--->
 <resources>
     <!-- ARGBで指定　 -->
     <!-- for BarcodeView-detail text -->
@@ -36,10 +16,10 @@
     <color name="CLEAR">#00000000</color>
     <color name="HALF_CLEAR_WHITE">#7fffffff</color>
     <color name="QUARTER_CLEAR_WHITE">#3fffffff</color>
-	<color name="HALF_CLEAR_BLACK">#7f000000</color>
-	<color name="QUARTER_CLEAR_BLACK">#3f000000</color>
-	<color name="HALF_CLEAR_GRAY">#7f808080</color>
-	<color name="QUARTER_CLEAR_GRAY">#3f808080</color>
+    <color name="HALF_CLEAR_BLACK">#7f000000</color>
+    <color name="QUARTER_CLEAR_BLACK">#3f000000</color>
+    <color name="HALF_CLEAR_GRAY">#7f808080</color>
+    <color name="QUARTER_CLEAR_GRAY">#3f808080</color>
     <color name="TRANSPARENT">#00000000</color>
     <!-- Web colors -->
     <color name="BLACK">#ff000000</color>
@@ -183,5 +163,4 @@
     <color name="BEIGE">#fff5f5dc</color>
     <color name="LIGHTSALMON">#ffffa07a</color>
     <color name="MEDIUMSLATEBLUE">#ff7b68ee</color>
-
 </resources>
