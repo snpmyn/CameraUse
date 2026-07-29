@@ -3,17 +3,18 @@ apply plugin: 'com.android.library'
 import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
-	compileSdkVersion rootProject.ext.versionCompiler
-	buildToolsVersion rootProject.ext.versionBuildTool
+	compileSdkVersion rootProject.ext.compileSdkVersion
 
 	compileOptions {
-		sourceCompatibility rootProject.ext.javaSourceCompatibility
-		targetCompatibility rootProject.ext.javaTargetCompatibility
+		// 源代码兼容 Java 8 (可按需设)
+		sourceCompatibility = rootProject.ext.sourceCompatibility
+		// 生成的字节码兼容 Java 8 (可按需设)
+		targetCompatibility = rootProject.ext.targetCompatibility
 	}
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-		targetSdkVersion rootProject.ext.versionTarget
+		minSdkVersion rootProject.ext.minSdkVersion
+		targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
 	lintOptions {
@@ -69,7 +70,7 @@ clean.dependsOn 'ndkClean'
 
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
-	implementation "androidx.appcompat:appcompat:${androidXVersion}"
+	implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
 	implementation 'com.elvishew:xlog:1.11.0'
 	implementation project(path: ':libuvccommon')
 }

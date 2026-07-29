@@ -7,12 +7,12 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId "com.qtone.camerause"
-        minSdkVersion 26
-        targetSdkVersion 31
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -32,15 +32,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // 源代码兼容 Java 8 (可按需设)
+        sourceCompatibility = rootProject.ext.sourceCompatibility
+        // 生成的字节码兼容 Java 8 (可按需设)
+        targetCompatibility = rootProject.ext.targetCompatibility
     }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
+    implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
+    implementation "androidx.constraintlayout:constraintlayout:${androidxConstraintlayoutVersion}"
 
     implementation project(':libutils')
     // For debug online

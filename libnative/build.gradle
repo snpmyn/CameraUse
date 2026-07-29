@@ -4,15 +4,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 31
-        versionCode 2
-        versionName "1.0.1"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
         externalNativeBuild {
             cmake {
@@ -37,8 +36,10 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // 源代码兼容 Java 8 (可按需设)
+        sourceCompatibility = rootProject.ext.sourceCompatibility
+        // 生成的字节码兼容 Java 8 (可按需设)
+        targetCompatibility = rootProject.ext.targetCompatibility
     }
     kotlinOptions {
         jvmTarget = '1.8'
@@ -46,11 +47,7 @@ android {
 }
 
 dependencies {
-
     implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.3.0'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
+    implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
 }
