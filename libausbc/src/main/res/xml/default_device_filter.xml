@@ -5,7 +5,6 @@
         class="239"
         subclass="2" />
     <!-- a few android 9.0 -->
-
     <usb-device
         class="14"
         subclass="9" />
