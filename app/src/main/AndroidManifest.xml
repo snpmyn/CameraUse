@@ -2,12 +2,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.qtone.camerause">
 
-    <uses-feature android:name="android.hardware.usb.host" />
+    <!--硬件特性声明使用 USB-->
+    <!--必须支持 USB Host 模式 (外接 UVC 摄像头所必需)-->
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="true" />
+    <!--硬件特性声明使用摄像头-->
+    <!--required 设为 false (防止无内置摄像头的工业 Android 终端无法安装)-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
+        android:name=".application.App"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
