@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+// Kotlin - 插件
+apply plugin: 'kotlin-android'
+// Kotlin - 处理注解
+apply plugin: 'kotlin-kapt'
+// Kotlin - @Parcelize
+apply plugin: 'kotlin-parcelize'
+
+android {
+    compileSdkVersion 31
+
+    defaultConfig {
+        applicationId "com.qtone.camerause"
+        minSdkVersion 26
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+
+        multiDexEnabled true
+
+        // UVCCamera 包含底层 C++ NDK 架构
+        // UVC native 库通常没有 x86、x86_64
+        ndk {
+            abiFilters 'armeabi-v7a','arm64-v8a','x86','x86_64'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+
+    implementation project(':libutils')
+    // For debug online
+    implementation project(':libausbc')
+
+    // ZXing 核心解码算法库
+    implementation 'com.google.zxing:core:3.3.3'
+    // ML Kit 扫码
+    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+
+    /*Kotlin*/
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.6.21"
+}
