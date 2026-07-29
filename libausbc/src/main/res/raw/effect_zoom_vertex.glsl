@@ -6,8 +6,10 @@ const float PI = 3.1415926;
 
 void main()
 {
-    float duration = 0.9; // zoom period, 0.9s
-    float maxAmplitude = 0.3; // scale peak offset
+    // zoom period, 0.9s
+    float duration = 0.9;
+    // scale peak offset
+    float maxAmplitude = 0.3;
     float modTime = mod(timeStamps, duration);
     // zoom range [1.0f, 1.3f]
     float amplitude = 1.0 + maxAmplitude * abs(sin((modTime / duration) * PI));
