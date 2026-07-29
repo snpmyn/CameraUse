@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="CommonDialogStyle" parent="@android:style/Theme.Dialog">
         <!-- 边框 -->
         <item name="android:windowFrame">@null</item>
@@ -21,4 +22,5 @@
         <item name="behavior_hideable">true</item>
         <item name="behavior_skipCollapsed">false</item>
     </style>
+
 </resources>
