@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.widget
 
 import android.animation.*
@@ -31,7 +16,7 @@ import com.jiangdg.ausbc.utils.Logger
  * date: 2020/11/4 3:16 PM
  * description: Preview ImageView
  */
-class PreviewImageView: AppCompatImageView {
+class PreviewImageView : AppCompatImageView {
 
     private var isNewImageLoading: Boolean = false
     private var mProgressAnim: ValueAnimator? = null
@@ -45,7 +30,7 @@ class PreviewImageView: AppCompatImageView {
     private var mListener: OnLoadingFinishListener? = null
     private var mTheme = Theme.LIGHT
 
-    private val mSrcRadii =  FloatArray(8)
+    private val mSrcRadii = FloatArray(8)
     private val mBorderRadii = FloatArray(8)
 
     private val mBorderRectF: RectF = RectF()
@@ -69,9 +54,9 @@ class PreviewImageView: AppCompatImageView {
     constructor(context: Context?) : this(context, null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
-            context!!,
-            attrs,
-            defStyleAttr
+        context!!,
+        attrs,
+        defStyleAttr
     ) {
         init()
     }
@@ -96,7 +81,12 @@ class PreviewImageView: AppCompatImageView {
 
     private fun initBorderPath(w: Int, h: Int) {
         // 计算外边框的RectF
-        mBorderRectF.set(borderWidth/2.0f, borderWidth/2.0f, w - borderWidth / 2.0f, h - borderWidth / 2.0f)
+        mBorderRectF.set(
+            borderWidth / 2.0f,
+            borderWidth / 2.0f,
+            w - borderWidth / 2.0f,
+            h - borderWidth / 2.0f
+        )
         // 计算图片原始区域的RectF
         mSrcRectF.set(0.0f, 0.0f, w.toFloat(), h.toFloat())
     }
@@ -194,7 +184,7 @@ class PreviewImageView: AppCompatImageView {
         mPaint.color = Color.parseColor("#2E5BFF")
 
         mProgressDstPath?.let {
-            if (! it.isEmpty) {
+            if (!it.isEmpty) {
                 canvas?.drawPath(it, mPaint)
             }
         }
@@ -212,7 +202,8 @@ class PreviewImageView: AppCompatImageView {
                 mProgressAnim?.cancel()
                 mProgressAnim = null
             }
-            if (isNewImageLoading || getProgress() != 0.0f) {//解决setImageDrawable多次調用會闪动
+            if (isNewImageLoading || getProgress() != 0.0f) {
+                //解决 setImageDrawable 多次調用會闪动
                 if ((mBreathAnimation == null || mBreathAnimation?.isRunning == false)) {
                     showBreathAnimation()
                 }
@@ -238,7 +229,7 @@ class PreviewImageView: AppCompatImageView {
         if (isAnimationRunning()) {
             return
         }
-        if (! isShowFakeProgress) {
+        if (!isShowFakeProgress) {
             showBreathAnimation()
             return
         }
@@ -270,23 +261,25 @@ class PreviewImageView: AppCompatImageView {
         val scaleX = PropertyValuesHolder.ofFloat("scaleX", 1.0f, 1.2f, 1.0f)
         val scaleY = PropertyValuesHolder.ofFloat("scaleY", 1.0f, 1.2f, 1.0f)
         val progress = PropertyValuesHolder.ofFloat("progress", getProgress(), 1.0f)
-        mBreathAnimation = ObjectAnimator.ofPropertyValuesHolder(this,  scaleX,  scaleY, progress).apply {
-            addListener(object :AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    super.onAnimationEnd(animation)
-                    isNewImageLoading = false
-                    setProgress(0.0f)
-                    mBreathAnimation = null
-                    mListener?.onLoadingFinish()
-                }
-            })
-            duration = 150
-            interpolator = LinearInterpolator()
-            start()
-        }
+        mBreathAnimation =
+            ObjectAnimator.ofPropertyValuesHolder(this, scaleX, scaleY, progress).apply {
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        super.onAnimationEnd(animation)
+                        isNewImageLoading = false
+                        setProgress(0.0f)
+                        mBreathAnimation = null
+                        mListener?.onLoadingFinish()
+                    }
+                })
+                duration = 150
+                interpolator = LinearInterpolator()
+                start()
+            }
     }
 
-    private fun isAnimationRunning() =  mProgressAnim?.isRunning ==true || mBreathAnimation?.isRunning == true
+    private fun isAnimationRunning() =
+        mProgressAnim?.isRunning == true || mBreathAnimation?.isRunning == true
 
     private fun setProgress(progress: Float) {
         this.progress = progress
@@ -300,8 +293,10 @@ class PreviewImageView: AppCompatImageView {
     private fun updateBorderProgress() {
         mProgressDstPath?.let {
             it.reset()
-            mProgressPathMeasure.getSegment(0f,
-                    mProgressPathMeasure.length * progress, it, true)
+            mProgressPathMeasure.getSegment(
+                0f,
+                mProgressPathMeasure.length * progress, it, true
+            )
             invalidate()
         }
     }

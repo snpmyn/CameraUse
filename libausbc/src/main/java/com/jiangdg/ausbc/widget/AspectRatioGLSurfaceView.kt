@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.widget
 
 import android.content.Context
@@ -29,16 +14,16 @@ import android.view.Surface
 import com.jiangdg.ausbc.R
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.MediaUtils
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** 纵横比自适应GLSurfaceView
+/** 纵横比自适应 GLSurfaceView
  *
  * @author Created by jiangdg on 2021/12/23
  */
@@ -67,8 +52,9 @@ class AspectRatioGLSurfaceView : GLSurfaceView, GLSurfaceView.Renderer,
         setEGLContextClientVersion(2)
         setRenderer(this)
         renderMode = RENDERMODE_WHEN_DIRTY
-        mVertexBuffer = ByteBuffer.allocateDirect(VERTEX_DATA.size * 4).order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
+        mVertexBuffer =
+            ByteBuffer.allocateDirect(VERTEX_DATA.size * 4).order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
         mVertexBuffer?.put(VERTEX_DATA)?.position(0)
         Matrix.setIdentityM(mStMatrix, 0)
     }
@@ -200,12 +186,18 @@ class AspectRatioGLSurfaceView : GLSurfaceView, GLSurfaceView.Renderer,
 
     private fun createProgram(): Int {
         // 创建顶点、片段着色器
-        mVertexShader = loadShader(GLES20.GL_VERTEX_SHADER, MediaUtils.readRawTextFile(context, R.raw.camera_vertex))
+        mVertexShader = loadShader(
+            GLES20.GL_VERTEX_SHADER,
+            MediaUtils.readRawTextFile(context, R.raw.camera_vertex)
+        )
         if (mVertexShader == 0) {
             return 0
         }
         Logger.i(TAG, "load vertex shader success, id = $mVertexShader")
-        mFragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, MediaUtils.readRawTextFile(context, R.raw.camera_fragment))
+        mFragmentShader = loadShader(
+            GLES20.GL_FRAGMENT_SHADER,
+            MediaUtils.readRawTextFile(context, R.raw.camera_fragment)
+        )
         if (mFragmentShader == 0) {
             return 0
         }
@@ -264,10 +256,26 @@ class AspectRatioGLSurfaceView : GLSurfaceView, GLSurfaceView.Renderer,
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0])
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST.toFloat())
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR.toFloat())
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameterf(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MIN_FILTER,
+            GLES20.GL_NEAREST.toFloat()
+        )
+        GLES20.glTexParameterf(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MAG_FILTER,
+            GLES20.GL_LINEAR.toFloat()
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_S,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_T,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
         Logger.i(TAG, "create external texture success, texture id = " + textures[0])
         return textures[0]
     }
@@ -314,22 +322,22 @@ class AspectRatioGLSurfaceView : GLSurfaceView, GLSurfaceView.Renderer,
         val verticalPadding = paddingTop - paddingBottom
         initialWidth -= horizontalPadding
         initialHeight -= verticalPadding
-        // 比较预览与TextureView(内容)纵横比
-        // 如果有变化，重新设置TextureView尺寸
+        // 比较预览与 TextureView (内容) 纵横比
+        // 如有变化则重新设置 TextureView 尺寸
         val viewAspectRatio = initialWidth.toDouble() / initialHeight
         val diff = mAspectRatio / viewAspectRatio - 1
         var wMeasureSpec = widthMeasureSpec
         var hMeasureSpec = heightMeasureSpec
         if (mAspectRatio > 0 && abs(diff) > 0.01) {
-            // diff > 0， 按宽缩放
-            // diff < 0， 按高缩放
+            // diff > 0 按宽缩放
+            // diff < 0 按高缩放
             if (diff > 0) {
                 initialHeight = (initialWidth / mAspectRatio).toInt()
             } else {
                 initialWidth = (initialHeight * mAspectRatio).toInt()
             }
-            // 重新设置TextureView尺寸
-            // 注意加回padding大小
+            // 重新设置 TextureView 尺寸
+            // 注意加回 padding 大小
             initialWidth += horizontalPadding
             initialHeight += verticalPadding
             wMeasureSpec = MeasureSpec.makeMeasureSpec(initialWidth, MeasureSpec.EXACTLY)

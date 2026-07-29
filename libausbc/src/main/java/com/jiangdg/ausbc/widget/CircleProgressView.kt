@@ -1,33 +1,19 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.TypedArray
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import com.jiangdg.ausbc.R
-
 import java.text.DecimalFormat
 
 /**
- *
  * @author Created by jiangdg on 2022/2/8
  */
 class CircleProgressView : View {
@@ -112,7 +98,7 @@ class CircleProgressView : View {
         return state
     }
 
-    fun setProgressVaule(progress: Int) {
+    fun setProgressValue(progress: Int) {
         this.progress = progress
         // 重新绘制View
         this.invalidate()
@@ -129,7 +115,7 @@ class CircleProgressView : View {
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (listener == null || isDisabled()) return super.onTouchEvent(event)
-        when(event.action) {
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 isTouched = true
             }
@@ -138,7 +124,8 @@ class CircleProgressView : View {
                 // 松开手时，处理触摸事件
                 listener!!.onViewClick()
             }
-            else -> {}
+            else -> {
+            }
         }
         this.invalidate()
         return true
@@ -330,8 +317,8 @@ class CircleProgressView : View {
         mPaint?.isAntiAlias = true
         mPaint?.textSize = tipTextSize
         mPaint?.color = tipTextColor
-        //Paint.Align.CENTER , x表示字体中心位置；
-        // Paint.Align.LEFT ,x表示文本左边位置；
+        // Paint.Align.CENTER x 表示字体中心位置
+        // Paint.Align.LEFT x 表示文本左边位置
         mPaint?.textAlign = Paint.Align.CENTER
         val xCenter: Int = measuredHeight / 2
         val yBaseLine: Float =
@@ -348,11 +335,13 @@ class CircleProgressView : View {
     companion object {
         // 状态正在进行
         private const val STATE_DOING = 0
+
         // 状态操作完成
-        private const val  STATE_DONE = 1
+        private const val STATE_DONE = 1
+
         // 状态操作未完成或初始状态
-        private const val  STATE_UNDONE = 2
-        private const val  NONE = -1
+        private const val STATE_UNDONE = 2
+        private const val NONE = -1
 
         private const val MODEL_PICTURE = 0
         private const val MODEL_VIDEO = 1

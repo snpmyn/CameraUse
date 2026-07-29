@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc
 
 import android.content.Context
@@ -89,7 +74,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
             addLifecycleObserver(context)
             // listener camera status
             EventBus.with<CameraStatus>(BusKey.KEY_CAMERA_STATUS).observe(context, { status ->
-                when(status.code) {
+                when (status.code) {
                     CameraStatus.ERROR -> {
                         mCamera?.stopPreview()
                     }
@@ -100,12 +85,16 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
                             getSuitableSize(oldPreviewWidth, oldPreviewHeight).let {
                                 it ?: return@observe
                             }.also {
-                                Logger.i(TAG, "Automatically select the appropriate resolution (${it.width}x${it.height})")
+                                Logger.i(
+                                    TAG,
+                                    "Automatically select the appropriate resolution (${it.width}x${it.height})"
+                                )
                                 updateResolution(it.width, it.height)
                             }
                         }
                     }
-                    else -> { }
+                    else -> {
+                    }
                 }
             })
         }
@@ -114,10 +103,15 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
         }
     }
 
-    override fun onPreviewData(data: ByteArray?, width: Int, height: Int, format: IPreviewDataCallBack.DataFormat) {
+    override fun onPreviewData(
+        data: ByteArray?,
+        width: Int,
+        height: Int,
+        format: IPreviewDataCallBack.DataFormat
+    ) {
         data?.let {
             // avoid preview size changed
-            if (data.size != width * height * 3 /2) {
+            if (data.size != width * height * 3 / 2) {
                 return
             }
             mVideoProcess?.putRawData(RawData(it, it.size))
@@ -131,7 +125,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
      */
     fun openCamera(cameraView: IAspectRatio?, isReboot: Boolean = false) {
         if (mCtx != null && Utils.isTargetSdkOverP(mCtx) && !CameraUtils.hasCameraPermission(mCtx)) {
-            Logger.e(TAG,"open camera failed, need Manifest.permission.CAMERA permission")
+            Logger.e(TAG, "open camera failed, need Manifest.permission.CAMERA permission")
             return
         }
         initEncodeProcessor()
@@ -140,7 +134,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
         val previewHeight = mRequest!!.previewHeight
         when (cameraView) {
             is AspectRatioSurfaceView -> {
-                if (! isEnableGLEs) {
+                if (!isEnableGLEs) {
                     cameraView.postUITask {
                         mCamera?.startPreview(mRequest!!, cameraView.holder)
                         mCamera?.addPreviewDataCallBack(this)
@@ -150,7 +144,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
                 cameraView
             }
             is AspectRatioTextureView -> {
-                if (! isEnableGLEs) {
+                if (!isEnableGLEs) {
                     cameraView.postUITask {
                         mCamera?.startPreview(mRequest!!, cameraView.surfaceTexture)
                         mCamera?.addPreviewDataCallBack(this)
@@ -162,14 +156,14 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
             else -> {
                 cameraView
             }
-        }.also { view->
+        }.also { view ->
             // If view is null, should cache the last set
             // otherwise it can't recover the last status
             mCameraView = view ?: mCameraView
 
             // using opengl es
             // cameraView is null, means offscreen render
-            if (! isEnableGLEs) return
+            if (!isEnableGLEs) return
             view.apply {
                 val listener = object : RenderManager.CameraSurfaceTextureListener {
                     override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture?) {
@@ -195,7 +189,12 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
                     val surfaceWidth = getSurfaceWidth()
                     val surfaceHeight = getSurfaceHeight()
                     val surface = getSurface()
-                    mRenderManager?.startRenderScreen(surfaceWidth, surfaceHeight, surface, listener)
+                    mRenderManager?.startRenderScreen(
+                        surfaceWidth,
+                        surfaceHeight,
+                        surface,
+                        listener
+                    )
                     mRenderManager?.setRotateType(mDefaultRotateType)
                     if (isReboot) {
                         mRenderManager?.getCacheEffectList()?.forEach { effect ->
@@ -307,7 +306,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
         if (Utils.debugCamera) {
             Logger.i(TAG, "captureImage...")
         }
-        if (isEnableGLEs && ! rawImage) {
+        if (isEnableGLEs && !rawImage) {
             mRenderManager?.saveImage(callBack, path)
             return
         }
@@ -351,7 +350,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
      * @param mp3Path  mp3 save path
      * @param callBack record status, see [ICaptureCallBack]
      */
-    fun captureAudioStart(callBack: ICaptureCallBack, mp3Path: String?=null) {
+    fun captureAudioStart(callBack: ICaptureCallBack, mp3Path: String? = null) {
         val path = if (mp3Path.isNullOrEmpty()) {
             "${mCtx?.getExternalFilesDir(null)?.path}/${System.currentTimeMillis()}.mp3"
         } else {
@@ -410,14 +409,18 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
      * @param path video save path, default is DICM/Camera
      * @param durationInSec video file auto divide duration is seconds
      */
-    fun captureVideoStart(callBack: ICaptureCallBack, path: String ?= null, durationInSec: Long = 0L) {
-        mMediaMuxer = Mp4Muxer(mCtx, callBack,  path, durationInSec)
+    fun captureVideoStart(
+        callBack: ICaptureCallBack,
+        path: String? = null,
+        durationInSec: Long = 0L
+    ) {
+        mMediaMuxer = Mp4Muxer(mCtx, callBack, path, durationInSec)
         (mVideoProcess as? H264EncodeProcessor)?.apply {
             startEncode()
             setMp4Muxer(mMediaMuxer!!, true)
             setOnEncodeReadyListener(object : H264EncodeProcessor.OnEncodeReadyListener {
                 override fun onReady(surface: Surface?) {
-                    if (! isEnableGLEs) {
+                    if (!isEnableGLEs) {
                         return
                     }
                     if (surface == null) {
@@ -524,7 +527,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
 
     private fun initEncodeProcessor() {
         releaseEncodeProcessor()
-        val  encodeWidth = if (isEnableGLEs) {
+        val encodeWidth = if (isEnableGLEs) {
             mRequest!!.previewHeight
         } else {
             mRequest!!.previewWidth
@@ -554,7 +557,8 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
                         captureVideoStop()
                         closeCamera()
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
         })
@@ -735,4 +739,3 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
         fun build() = CameraClient(this)
     }
 }
-

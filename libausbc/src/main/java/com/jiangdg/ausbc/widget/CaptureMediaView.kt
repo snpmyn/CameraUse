@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.widget
 
 import android.animation.ObjectAnimator
@@ -28,7 +13,8 @@ import com.jiangdg.ausbc.R
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 
-/** Custom capture view
+/**
+ * Custom capture view
  *
  * @author Created by jiangdg on 2022/2/9
  */
@@ -92,7 +78,7 @@ class CaptureMediaView : View {
     /**
      * 设置视频录制进度
      *
-     * @param progress 进度值，<=mCaptureVideoDuration
+     * @param progress 进度值 <= mCaptureVideoDuration
      */
     fun setCaptureVideoProgress(progress: Int) {
         mCaptureVideoProgress = progress
@@ -102,8 +88,8 @@ class CaptureMediaView : View {
     /**
      * 设置视频录制总时长
      *
-     * @param duration 总时长，单位为秒
-     * 默认录制60s
+     * @param duration 总时长 单位为秒
+     * 默认录制 60s
      */
     fun setCaptureVideoDuration(duration: Int) {
         mCaptureVideoDuration = duration
@@ -212,7 +198,7 @@ class CaptureMediaView : View {
         circleY = mHeight / 2
         radius = mWidth / 2
     }
-    
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (mCaptureModel == CaptureMode.MODE_CAPTURE_VIDEO || mCaptureModel == CaptureMode.MODE_CAPTURE_AUDIO) {
