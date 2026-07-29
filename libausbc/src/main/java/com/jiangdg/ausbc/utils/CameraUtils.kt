@@ -19,11 +19,11 @@ object CameraUtils {
     fun transferYUV420ToNV21(image: Image, width: Int, height: Int): ByteArray {
         val nv21 = ByteArray(width * height * 3 / 2)
         val planes = image.planes
-        // Y通道
+        // Y 通道
         val yBuffer = planes[0].buffer
         val yLen = width * height
         yBuffer.get(nv21, 0, yLen)
-        // V通道
+        // V 通道
         val vBuffer = planes[2].buffer
         val vPixelStride = planes[2].pixelStride
         for ((index, i) in (0 until vBuffer.remaining() step vPixelStride).withIndex()) {
@@ -33,7 +33,7 @@ object CameraUtils {
             }
             nv21[vIndex] = vBuffer.get(i)
         }
-        // U通道
+        // U 通道
         val uBuffer = planes[1].buffer
         val uPixelStride = planes[1].pixelStride
         for ((index, i) in (0 until uBuffer.remaining() step uPixelStride).withIndex()) {
@@ -109,17 +109,18 @@ object CameraUtils {
             }
     }
 
-    fun hasAudioPermission(ctx: Context): Boolean{
+    fun hasAudioPermission(ctx: Context): Boolean {
         val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO)
         return locPermission == PackageManager.PERMISSION_GRANTED
     }
 
-    fun hasStoragePermission(ctx: Context): Boolean{
-        val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun hasStoragePermission(ctx: Context): Boolean {
+        val locPermission =
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         return locPermission == PackageManager.PERMISSION_GRANTED
     }
 
-    fun hasCameraPermission(ctx: Context): Boolean{
+    fun hasCameraPermission(ctx: Context): Boolean {
         val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA)
         return locPermission == PackageManager.PERMISSION_GRANTED
     }
