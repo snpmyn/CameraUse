@@ -7,7 +7,7 @@
     <!--严格遵循官方 Demo-->
     <!--使用 AspectRatioTextureView 作为预览渲染组件-->
     <com.jiangdg.ausbc.widget.AspectRatioTextureView
-        android:id="@+id/camera_render_view"
+        android:id="@+id/scanCodeFragmentArtv"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </FrameLayout>

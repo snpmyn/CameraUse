@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,13 +22,13 @@ import com.jiangdg.ausbc.widget.IAspectRatio;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @decs: 扫描碎片
+ * @decs: 扫码碎片
  * @author: 郑少鹏
  * @date: 2026/7/28 16:18
  * @version: v 1.0
  */
-public class ScanFragment extends CameraFragment implements IPreviewDataCallBack {
-    private static final String TAG = ScanFragment.class.getSimpleName();
+public class ScanCodeFragment extends CameraFragment implements IPreviewDataCallBack {
+    private static final String TAG = ScanCodeFragment.class.getSimpleName();
     private AspectRatioTextureView mTextureView;
     private ViewGroup mContainer;
     private UsbScanManager mScanManager;
@@ -43,7 +42,6 @@ public class ScanFragment extends CameraFragment implements IPreviewDataCallBack
             public void onSuccess(String result, Barcode barcode) {
                 Log.d(TAG, "扫码成功 || " + result);
                 ToastUtils.show("扫码成功 || " + result);
-                Toast.makeText(getContext(), "扫码成功 || " + result, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -56,8 +54,8 @@ public class ScanFragment extends CameraFragment implements IPreviewDataCallBack
     @Nullable
     @Override
     protected View getRootView(@NotNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        View root = inflater.inflate(R.layout.fragment_scan, container, false);
-        mTextureView = root.findViewById(R.id.camera_render_view);
+        View root = inflater.inflate(R.layout.fragment_scan_code, container, false);
+        mTextureView = root.findViewById(R.id.scanCodeFragmentArtv);
         mContainer = root.findViewById(R.id.camera_container);
         return root;
     }
