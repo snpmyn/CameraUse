@@ -1,40 +1,4 @@
-/*
- * Copyright (C) 2008 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * Copyright (C) 2011 The yanzm Custom View Project
- *      Yuki Anzai, uPhyca Inc.
- *      http://www.uphyca.com
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.jiangdg.widget;
-
-import java.util.Locale;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -53,38 +17,48 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.jiangdg.common.R;
 
-import androidx.annotation.NonNull;
+import java.util.Locale;
 
 /**
  * A view for selecting a number or string-array
  */
 public final class ItemPicker extends LinearLayout {
 
-    /**
-     * The callback interface used to indicate the item value has been adjusted.
-     */
-	public interface OnChangedListener {
-        /**
-         * @param picker The NumberPicker associated with this listener.
-         * @param oldVal The previous value.
-         * @param newVal The new value.
-         */
-        void onChanged(ItemPicker picker, int oldVal, int newVal);
-    }
-
-    /**
-     * Interface used to format the item into a string for presentation
-     */
-    public interface Formatter {
-        String toString(int value);
-    }
-
+    private static final char[] DIGIT_CHARACTERS = new char[]{
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
     private final Handler mHandler = new Handler();
+    private final EditText mText;
+    private final InputFilter mNumberInputFilter;
+    private String[] mDisplayedValues;
+    /**
+     * Lower value of the range of numbers allowed for the ItemPicker
+     */
+    private int mMinValue;
+    /**
+     * Upper value of the range of numbers allowed for the ItemPicker
+     */
+    private int mMaxValue;
+    /**
+     * Current value of this ItemPicker
+     */
+    private int mCurrentValue;
+    /**
+     * Previous value of this ItemPicker.
+     */
+    private int mPrevValue;
+    private OnChangedListener mListener;
+    private Formatter mFormatter;
+    private long mSpeed = 300;
+    private boolean mIncrement;
+    private boolean mDecrement;
     private final Runnable mRunnable = new Runnable() {
         @Override
-		public void run() {
+        public void run() {
             if (mIncrement) {
                 changeCurrent(mCurrentValue + 1);
                 mHandler.postDelayed(this, mSpeed);
@@ -94,41 +68,12 @@ public final class ItemPicker extends LinearLayout {
             }
         }
     };
-
-    private final EditText mText;
-    private final InputFilter mNumberInputFilter;
-
-    private String[] mDisplayedValues;
-
-    /**
-     * Lower value of the range of numbers allowed for the ItemPicker
-     */
-    private int mMinValue;
-
-    /**
-     * Upper value of the range of numbers allowed for the ItemPicker
-     */
-    private int mMaxValue;
-
-    /**
-     * Current value of this ItemPicker
-     */
-    private int mCurrentValue;
-
-    /**
-     * Previous value of this ItemPicker.
-     */
-    private int mPrevValue;
-
-    private OnChangedListener mListener;
-    private Formatter mFormatter;
-
-    private long mSpeed = 300;
-    private boolean mIncrement;
-    private boolean mDecrement;
+    private ItemPickerButton mIncrementButton;
+    private ItemPickerButton mDecrementButton;
 
     /**
      * Create a new item picker
+     *
      * @param context the application environment
      */
     public ItemPicker(final Context context) {
@@ -136,16 +81,17 @@ public final class ItemPicker extends LinearLayout {
     }
 
     public ItemPicker(final Context context, final AttributeSet attrs) {
-		this(context, attrs, 0);
-	}
+        this(context, attrs, 0);
+    }
 
-	/**
+    /**
      * Create a new item picker
-     * @param context the application environment
-     * @param attrs a collection of attributes
+     *
+     * @param context  the application environment
+     * @param attrs    a collection of attributes
      * @param defStyle
      */
-	public ItemPicker(final Context context, final AttributeSet attrs, final int defStyle) {
+    public ItemPicker(final Context context, final AttributeSet attrs, final int defStyle) {
         super(context, attrs);
         setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
@@ -154,13 +100,13 @@ public final class ItemPicker extends LinearLayout {
         inflater.inflate(R.layout.item_picker, this, true);
 
         TypedArray a = context.obtainStyledAttributes(
-        		attrs, R.styleable.ItemPicker, defStyle, 0);
+                attrs, R.styleable.ItemPicker, defStyle, 0);
 
         final int minValue = a.getInt(R.styleable.ItemPicker_ItemPickerMinItemValue, -1);
         final int maxValue = a.getInt(R.styleable.ItemPicker_ItemPickerMaxItemValue, -1);
         final int displayedValueId = a.getResourceId(R.styleable.ItemPicker_ItemPickerDisplayedValue, -1);
         final String[] displayedValue = (displayedValueId > -1) ?
-        		getResources().getStringArray(displayedValueId) : null;
+                getResources().getStringArray(displayedValueId) : null;
 
         final int incrementBackground = a.getResourceId(R.styleable.ItemPicker_ItemPickerIncrementBackground, -1);
         final int decrementBackground = a.getResourceId(R.styleable.ItemPicker_ItemPickerDecrementBackground, -1);
@@ -172,7 +118,7 @@ public final class ItemPicker extends LinearLayout {
         a.recycle();
 
         final OnClickListener clickListener = new OnClickListener() {
-        	@Override
+            @Override
             public void onClick(final View v) {
                 validateInput(mText);
                 if (!mText.hasFocus()) mText.requestFocus();
@@ -187,7 +133,7 @@ public final class ItemPicker extends LinearLayout {
         };
 
         final OnFocusChangeListener focusListener = new OnFocusChangeListener() {
-        	@Override
+            @Override
             public void onFocusChange(final View v, final boolean hasFocus) {
 
                 /* When focus is lost check that the text field
@@ -204,7 +150,7 @@ public final class ItemPicker extends LinearLayout {
              * We start the long click here but rely on the {@link ItemPickerButton}
              * to inform us when the long click has ended.
              */
-        	@Override
+            @Override
             public boolean onLongClick(final View v) {
                 /* The text view may still have focus so clear it's focus which will
                  * trigger the on focus changed and any typed values to be pulled.
@@ -229,44 +175,43 @@ public final class ItemPicker extends LinearLayout {
         mIncrementButton.setOnLongClickListener(longClickListener);
         mIncrementButton.setNumberPicker(this);
         if (incrementBackground != -1)
-        	mIncrementButton.setBackgroundResource(incrementBackground);
+            mIncrementButton.setBackgroundResource(incrementBackground);
         if (incrementSrc != -1)
-        	mIncrementButton.setImageResource(incrementSrc);
+            mIncrementButton.setImageResource(incrementSrc);
 
         mDecrementButton = findViewById(R.id.decrement);
         mDecrementButton.setOnClickListener(clickListener);
         mDecrementButton.setOnLongClickListener(longClickListener);
         mDecrementButton.setNumberPicker(this);
         if (decrementBackground != -1)
-        	mDecrementButton.setBackgroundResource(decrementBackground);
+            mDecrementButton.setBackgroundResource(decrementBackground);
         if (decrementSrc != -1)
-        	mDecrementButton.setImageResource(decrementSrc);
+            mDecrementButton.setImageResource(decrementSrc);
 
         mText = findViewById(R.id.input);
         mText.setOnFocusChangeListener(focusListener);
-        mText.setFilters(new InputFilter[] {inputFilter});
+        mText.setFilters(new InputFilter[]{inputFilter});
         mText.setRawInputType(InputType.TYPE_CLASS_NUMBER);
         if (editTextBackground != -1)
-        	mText.setBackgroundResource(editTextBackground);
+            mText.setBackgroundResource(editTextBackground);
 
         if (!isEnabled()) {
             setEnabled(false);
         }
 
         if (minValue > -1 && maxValue > -1) {
-        	if(displayedValue != null) {
-        		setRange(minValue, maxValue, displayedValue);
-        	}
-        	else {
-        		setRange(minValue, maxValue);
-        	}
+            if (displayedValue != null) {
+                setRange(minValue, maxValue, displayedValue);
+            } else {
+                setRange(minValue, maxValue);
+            }
         }
 
         if (currentValue > -1)
-        	setValue(currentValue);
+            setValue(currentValue);
 
         if (speed > -1)
-        	setSpeed(speed);
+            setSpeed(speed);
     }
 
     /**
@@ -283,17 +228,17 @@ public final class ItemPicker extends LinearLayout {
         mText.setEnabled(enabled);
     }
 
-
     @Override
-	public void setOnKeyListener(final OnKeyListener listener) {
-		super.setOnKeyListener(listener);
-		mIncrementButton.setOnKeyListener(listener);
-		mDecrementButton.setOnKeyListener(listener);
-		mText.setOnKeyListener(listener);
-	}
+    public void setOnKeyListener(final OnKeyListener listener) {
+        super.setOnKeyListener(listener);
+        mIncrementButton.setOnKeyListener(listener);
+        mDecrementButton.setOnKeyListener(listener);
+        mText.setOnKeyListener(listener);
+    }
 
-	/**
+    /**
      * Set the callback that indicates the item has been adjusted by the user.
+     *
      * @param listener the callback, should not be null.
      */
     public void setOnChangeListener(final OnChangedListener listener) {
@@ -302,8 +247,9 @@ public final class ItemPicker extends LinearLayout {
 
     /**
      * Set the formatter that will be used to format the item for presentation
+     *
      * @param formatter the formatter object.  If formatter is null, String.valueOf()
-     * will be used
+     *                  will be used
      */
     public void setFormatter(final Formatter formatter) {
         mFormatter = formatter;
@@ -325,8 +271,8 @@ public final class ItemPicker extends LinearLayout {
      * value will be automatically set to the start. Also provide a mapping
      * for values used to display to the user.
      *
-     * @param min the start of the range (inclusive)
-     * @param max the end of the range (inclusive)
+     * @param min             the start of the range (inclusive)
+     * @param max             the end of the range (inclusive)
      * @param displayedValues the values displayed to the user.
      */
     public void setRange(final int min, final int max, final String[] displayedValues) {
@@ -334,7 +280,7 @@ public final class ItemPicker extends LinearLayout {
         mMinValue = min;
         mMaxValue = max;
         if ((mCurrentValue < min) || (mCurrentValue > max))
-        	mCurrentValue = min;
+            mCurrentValue = min;
         updateView();
 
         if (displayedValues != null) {
@@ -345,31 +291,11 @@ public final class ItemPicker extends LinearLayout {
     }
 
     /**
-     * Set the current value for the item picker.
-     *
-     * @param value the current value the start of the range (inclusive)
-     * @throws IllegalArgumentException when current is not within the range
-     *         of of the item picker
-     */
-    public void setValue(int value) {
-        if (value < mMinValue || value > mMaxValue) {
-/*            throw new IllegalArgumentException(
-            	String.format("current(%d) should be >= start(%d) and <= end(%d)",
-            		value, mMinValue, mMaxValue)); */
-        	Log.w("ItemPicker", String.format("current(%d) should be between min(%d) to max(%d) changed to min",
-            		value, mMinValue, mMaxValue));
-        	value = mMinValue;
-        }
-        mCurrentValue = value;
-        updateView();
-    }
-
-    /**
      * Sets the speed at which the numbers will scroll when the +/-
      * buttons are longpressed
      *
      * @param speed The speed (in milliseconds) at which the numbers will scroll
-     * default 300ms
+     *              default 300ms
      */
     public void setSpeed(final long speed) {
         mSpeed = speed;
@@ -385,7 +311,7 @@ public final class ItemPicker extends LinearLayout {
      * Sets the current value of this ItemPicker, and sets mPrevious to the previous
      * value.  If current is greater than mEnd less than mStart, the value of mCurrent
      * is wrapped around.
-     *
+     * <p>
      * Subclasses can override this to change the wrapping behavior
      *
      * @param current the new value of the ItemPicker
@@ -471,81 +397,6 @@ public final class ItemPicker extends LinearLayout {
         mDecrement = false;
     }
 
-    private static final char[] DIGIT_CHARACTERS = new char[] {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    };
-
-    private ItemPickerButton mIncrementButton;
-    private ItemPickerButton mDecrementButton;
-
-    private class NumberPickerInputFilter implements InputFilter {
-        @Override
-		public CharSequence filter(final CharSequence source, final int start, final int end,
-                final Spanned dest, final int dstart, final int dend) {
-            if (mDisplayedValues == null) {
-                return mNumberInputFilter.filter(source, start, end, dest, dstart, dend);
-            }
-            final CharSequence filtered = String.valueOf(source.subSequence(start, end));
-            final String result = String.valueOf(dest.subSequence(0, dstart))
-                    + filtered
-                    + dest.subSequence(dend, dest.length());
-            final String str = String.valueOf(result).toLowerCase(Locale.US);
-            for (String val : mDisplayedValues) {
-                val = val.toLowerCase(Locale.US);
-                if (val.startsWith(str)) {
-                    return filtered;
-                }
-            }
-            return "";
-        }
-    }
-
-    private class NumberRangeKeyListener extends NumberKeyListener {
-
-        // XXX This doesn't allow for range limits when controlled by a
-        // soft input method!
-        @Override
-		public int getInputType() {
-            return InputType.TYPE_CLASS_NUMBER;
-        }
-
-        @NonNull
-        @Override
-        protected char[] getAcceptedChars() {
-            return DIGIT_CHARACTERS;
-        }
-
-        @Override
-        public CharSequence filter(final CharSequence source, final int start, final int end,
-                final Spanned dest, final int dstart, final int dend) {
-
-            CharSequence filtered = super.filter(source, start, end, dest, dstart, dend);
-            if (filtered == null) {
-                filtered = source.subSequence(start, end);
-            }
-
-            final String result = String.valueOf(dest.subSequence(0, dstart))
-                    + filtered
-                    + dest.subSequence(dend, dest.length());
-
-            if ("".equals(result)) {
-                return result;
-            }
-            final int val = getSelectedPos(result);
-
-            /* Ensure the user can't type in a value greater
-             * than the max allowed. We have to allow less than min
-             * as the user might want to delete some numbers
-             * and then type a new number.
-             */
-            if (val > mMaxValue) {
-                return "";
-            } else {
-                return filtered;
-            }
-        }
-    }
-
     private int getSelectedPos(String str) {
         if (mDisplayedValues == null) {
             try {
@@ -577,6 +428,7 @@ public final class ItemPicker extends LinearLayout {
 
     /**
      * Returns the current value of the ItemPicker
+     *
      * @return the current value.
      */
     public int getValue() {
@@ -584,7 +436,28 @@ public final class ItemPicker extends LinearLayout {
     }
 
     /**
+     * Set the current value for the item picker.
+     *
+     * @param value the current value the start of the range (inclusive)
+     * @throws IllegalArgumentException when current is not within the range
+     *                                  of of the item picker
+     */
+    public void setValue(int value) {
+        if (value < mMinValue || value > mMaxValue) {
+/*            throw new IllegalArgumentException(
+            	String.format("current(%d) should be >= start(%d) and <= end(%d)",
+            		value, mMinValue, mMaxValue)); */
+            Log.w("ItemPicker", String.format("current(%d) should be between min(%d) to max(%d) changed to min",
+                    value, mMinValue, mMaxValue));
+            value = mMinValue;
+        }
+        mCurrentValue = value;
+        updateView();
+    }
+
+    /**
      * Returns the upper value of the range of the ItemPicker
+     *
      * @return the uppper number of the range.
      */
     protected int getEndRange() {
@@ -593,9 +466,97 @@ public final class ItemPicker extends LinearLayout {
 
     /**
      * Returns the lower value of the range of the ItemPicker
+     *
      * @return the lower number of the range.
      */
     protected int getBeginRange() {
         return mMinValue;
+    }
+
+    /**
+     * The callback interface used to indicate the item value has been adjusted.
+     */
+    public interface OnChangedListener {
+        /**
+         * @param picker The NumberPicker associated with this listener.
+         * @param oldVal The previous value.
+         * @param newVal The new value.
+         */
+        void onChanged(ItemPicker picker, int oldVal, int newVal);
+    }
+
+    /**
+     * Interface used to format the item into a string for presentation
+     */
+    public interface Formatter {
+        String toString(int value);
+    }
+
+    private class NumberPickerInputFilter implements InputFilter {
+        @Override
+        public CharSequence filter(final CharSequence source, final int start, final int end,
+                                   final Spanned dest, final int dstart, final int dend) {
+            if (mDisplayedValues == null) {
+                return mNumberInputFilter.filter(source, start, end, dest, dstart, dend);
+            }
+            final CharSequence filtered = String.valueOf(source.subSequence(start, end));
+            final String result = String.valueOf(dest.subSequence(0, dstart))
+                    + filtered
+                    + dest.subSequence(dend, dest.length());
+            final String str = String.valueOf(result).toLowerCase(Locale.US);
+            for (String val : mDisplayedValues) {
+                val = val.toLowerCase(Locale.US);
+                if (val.startsWith(str)) {
+                    return filtered;
+                }
+            }
+            return "";
+        }
+    }
+
+    private class NumberRangeKeyListener extends NumberKeyListener {
+
+        // XXX This doesn't allow for range limits when controlled by a
+        // soft input method!
+        @Override
+        public int getInputType() {
+            return InputType.TYPE_CLASS_NUMBER;
+        }
+
+        @NonNull
+        @Override
+        protected char[] getAcceptedChars() {
+            return DIGIT_CHARACTERS;
+        }
+
+        @Override
+        public CharSequence filter(final CharSequence source, final int start, final int end,
+                                   final Spanned dest, final int dstart, final int dend) {
+
+            CharSequence filtered = super.filter(source, start, end, dest, dstart, dend);
+            if (filtered == null) {
+                filtered = source.subSequence(start, end);
+            }
+
+            final String result = String.valueOf(dest.subSequence(0, dstart))
+                    + filtered
+                    + dest.subSequence(dend, dest.length());
+
+            if ("".equals(result)) {
+                return result;
+            }
+            final int val = getSelectedPos(result);
+
+            /* Ensure the user can't type in a value greater
+             * than the max allowed. We have to allow less than min
+             * as the user might want to delete some numbers
+             * and then type a new number.
+             */
+            if (val > mMaxValue) {
+                return "";
+            } else {
+                return filtered;
+            }
+        }
     }
 }
