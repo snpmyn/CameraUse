@@ -2,7 +2,9 @@ package com.qtone.camerause;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,13 +15,16 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.utils.ToastUtils;
 
+import java.io.File;
+
 /**
  * @decs: 主页
  * @author: 郑少鹏
  * @date: 2026/7/28 16:14
  * @version: v 1.0
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ExamHeaderProcessor.OnHeaderCropCallback {
+    private static final String TAG = MainActivity.class.getSimpleName();
     /**
      * 请求相机权限码
      */
@@ -70,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
                 // 当前已在拍照碎片 -> 直接拍照
                 ((CaptureFragment) currentFragment).capture();
             } else {
-                // 切换至拍照碎片
-                switchFragment(new CaptureFragment());
+                // 加载拍照碎片
+                loadCaptureFragment();
             }
         });
         mainActivityMbScanCode.setOnClickListener(v -> {
@@ -80,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 // 切换至扫码碎片
                 switchFragment(new ScanCodeFragment());
             } else {
+                // 检查并请求权限
                 checkAndRequestPermission();
             }
         });
@@ -107,6 +113,15 @@ public class MainActivity extends AppCompatActivity {
         } else {
             loadScanCodeFragment();
         }
+    }
+
+    /**
+     * 加载拍照碎片
+     */
+    private void loadCaptureFragment() {
+        CaptureFragment captureFragment = new CaptureFragment();
+        captureFragment.setOnHeaderCropCallback(this);
+        switchFragment(captureFragment);
     }
 
     /**
@@ -144,5 +159,48 @@ public class MainActivity extends AppCompatActivity {
                 ToastUtils.show("需要相机权限才能使用 USB 相机");
             }
         }
+    }
+
+    /**
+     * 成功
+     *
+     * @param headerBitmap  头像素数据
+     * @param qrCodeContent 二维码内容
+     * @param cropFile      裁剪文件
+     *                      异步保存的本地图片文件
+     */
+    @Override
+    public void onSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile) {
+        String cropFilePath = ((cropFile != null) ? cropFile.getAbsolutePath() : "null");
+        Log.d(TAG, "成功" +
+                "\n二维码内容 = " + qrCodeContent +
+                "\n裁剪文件路径 = " + cropFilePath);
+        ToastUtils.show("成功 || " + cropFilePath);
+    }
+
+    /**
+     * 跳过
+     * <p>
+     * 业务过滤 (未在触发区、去重过滤、缝隙未识别到二维码等)
+     *
+     * @param reason 原因
+     */
+    @Override
+    public void onSkip(String reason) {
+        Log.d(TAG, "跳过 || " + reason);
+        ToastUtils.show("跳过 || " + reason);
+    }
+
+    /**
+     * 错误
+     * <p>
+     * 系统错误 (拍照失败、引擎崩溃、文件读取失败、图片裁剪失败等)
+     *
+     * @param errorMsg 错误消息
+     */
+    @Override
+    public void onError(String errorMsg) {
+        Log.e(TAG, "错误 || " + errorMsg);
+        ToastUtils.show("错误 || " + errorMsg);
     }
 }

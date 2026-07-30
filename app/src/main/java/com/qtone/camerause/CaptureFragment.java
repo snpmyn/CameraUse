@@ -1,5 +1,6 @@
 package com.qtone.camerause;
 
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +32,20 @@ public class CaptureFragment extends CameraFragment {
     private static final String TAG = CaptureFragment.class.getSimpleName();
     private AspectRatioTextureView aspectRatioTextureView;
     private ViewGroup mContainer;
+    /**
+     * 试卷头处理器
+     */
+    private ExamHeaderProcessor examHeaderProcessor;
+    private ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback;
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // 初始化 ExamHeaderProcessor
+        if (getContext() != null) {
+            examHeaderProcessor = new ExamHeaderProcessor(getContext());
+        }
+    }
 
     @Nullable
     @Override
@@ -85,8 +100,11 @@ public class CaptureFragment extends CameraFragment {
             return;
         }
         File mediaDir = (getContext() != null) ? getContext().getExternalFilesDir("Pictures") : null;
-        if ((mediaDir != null) && !mediaDir.exists()) {
-            mediaDir.mkdirs();
+        if (mediaDir != null && !mediaDir.exists()) {
+            boolean isCreated = mediaDir.mkdirs();
+            if (!isCreated) {
+                Log.w(TAG, "创建 Pictures 图片保存目录失败");
+            }
         }
         String savePath = new File(mediaDir, "IMG_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
         captureImage(new ICaptureCallBack() {
@@ -100,13 +118,38 @@ public class CaptureFragment extends CameraFragment {
             public void onError(@Nullable String msg) {
                 Log.e(TAG, "拍照错误 || " + msg);
                 ToastUtils.show("拍照错误 || " + msg);
+                if (onHeaderCropCallback != null) {
+                    onHeaderCropCallback.onError("拍照错误 || " + msg);
+                }
             }
 
             @Override
-            public void onComplete(@org.jetbrains.annotations.Nullable String path) {
+            public void onComplete(@Nullable String path) {
                 Log.d(TAG, "拍照成功 || " + path);
                 ToastUtils.show("拍照成功 || " + path);
+                // 拍照成功后直接将外部传入的回调透传给 ExamHeaderProcessor
+                if ((examHeaderProcessor != null) && (path != null)) {
+                    // 关闭二维码内容判定
+                    examHeaderProcessor.process(path, onHeaderCropCallback);
+                }
             }
         }, savePath);
+    }
+
+    /**
+     * 设置头裁剪回调
+     *
+     * @param onHeaderCropCallback 头裁剪回调
+     */
+    public void setOnHeaderCropCallback(ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback) {
+        this.onHeaderCropCallback = onHeaderCropCallback;
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (examHeaderProcessor != null) {
+            examHeaderProcessor.destroy();
+        }
+        super.onDestroyView();
     }
 }
