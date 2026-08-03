@@ -1,5 +1,6 @@
 package com.qtone.camerause;
 
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -37,11 +38,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CaptureFragment extends CameraFragment {
     private static final String TAG = CaptureFragment.class.getSimpleName();
     /**
-     * 默认请求的相机物理分辨率 (宽)
+     * 默认请求的相机物理分辨率
+     * <p>
+     * 宽
      */
     private static final int PREVIEW_WIDTH = 2592;
     /**
-     * 默认请求的相机物理分辨率 (高)
+     * 默认请求的相机物理分辨率
+     * <p>
+     * 高
      */
     private static final int PREVIEW_HEIGHT = 1944;
     /**
@@ -60,21 +65,31 @@ public class CaptureFragment extends CameraFragment {
      */
     private ViewGroup container;
     /**
-     * HQ 高清无损图片的磁盘最终目标路径
+     * 目标保存路径
+     * <p>
+     * 高清无损图片磁盘最终目标路径
      */
     private String targetSavePath = null;
     /**
-     * 试卷头处理器
+     * 试卷裁剪处理器
+     */
+    private ExamCropProcessor examCropProcessor;
+    /**
+     * 裁剪回调
+     */
+    private ExamCropProcessor.OnCropCallback onCropCallback;
+    /**
+     * 试卷头部处理器
      */
     private ExamHeaderProcessor examHeaderProcessor;
     /**
-     * 试卷头裁剪回调
+     * 头部裁剪回调
      */
     private ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback;
     /**
      * 动态保存当前相机生效的实际渲染分辨率
      * <p>
-     * 用于驱动 UI 渲染层（AspectRatioTextureView）实时调整宽高比，防止预览画面畸变。
+     * 用于驱动 UI 渲染层 (AspectRatioTextureView) 实时调整宽高比，防止预览画面畸变。
      */
     private int mCurrentWidth = PREVIEW_WIDTH;
     private int mCurrentHeight = PREVIEW_HEIGHT;
@@ -82,9 +97,46 @@ public class CaptureFragment extends CameraFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // 初始化试卷头处理器
+        // 初始化试卷头部处理器和四角黑块透视变换裁剪处理器
         if (getContext() != null) {
+            examCropProcessor = new ExamCropProcessor();
             examHeaderProcessor = new ExamHeaderProcessor(getContext());
+
+            examCropProcessor.processAsync(new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785734938447" + ".jpg").getAbsolutePath(), new File(getContext().getExternalFilesDir("Pictures"), "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath(), new ExamCropProcessor.OnCropCallback() {
+                @Override
+                public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + croppedPath);
+                            // 通知系统扫描新生成的图片文件
+                            // 更新 MediaStore
+                            MediaScannerConnection.scanFile(
+                                    requireContext(),
+                                    new String[]{croppedPath},
+                                    new String[]{"image/jpeg"},
+                                    (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                            );
+                            ToastUtils.show("试卷矫正裁剪成功");
+                            if (onCropCallback != null) {
+                                onCropCallback.onCropSuccess(croppedPath, resultBitmap);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onCropError(String errorMsg) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
+                            ToastUtils.show("试卷矫正失败: " + errorMsg);
+                            if (onCropCallback != null) {
+                                onCropCallback.onCropError(errorMsg);
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 
@@ -123,7 +175,7 @@ public class CaptureFragment extends CameraFragment {
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
-                // 开启硬件 RawPreviewData 数据输出，以便在回调中抓取 NV21 原始点阵数据
+                // 开启硬件 RawPreviewData 数据输出 (以便在回调中抓取 NV21 原始点阵数据)
                 .setRawPreviewData(true)
                 .create();
     }
@@ -153,7 +205,7 @@ public class CaptureFragment extends CameraFragment {
                     }
                     // 2. 无损拍照捕获逻辑
                     // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
-                    // compareAndSet(true, false) (检查当前值是否为 true，如果是，立刻将其修改为 false 并返回 true)
+                    // compareAndSet(true, false) (检查当前值是否为 true，是则立刻将其修改为 false 并返 true)
                     if (isCaptureRequested.compareAndSet(true, false) && (data != null)) {
                         Log.d(TAG, "成功捕获硬件底层 NV21 帧, 字节大小: " + data.length + " Byte | 帧尺寸: " + width + "x" + height);
                         // 开启后台异步子线程进行物理字节转换与写盘
@@ -189,7 +241,7 @@ public class CaptureFragment extends CameraFragment {
     }
 
     /**
-     * 执行拍照操作
+     * 拍照
      */
     public void capture() {
         if ((getCurrentCamera() == null) || !getCurrentCamera().isCameraOpened()) {
@@ -229,8 +281,11 @@ public class CaptureFragment extends CameraFragment {
                 ToastUtils.show("拍照错误 || " + msg);
                 // 异常时复位拍照标记
                 isCaptureRequested.set(false);
+                if (onCropCallback != null) {
+                    onCropCallback.onCropError("拍照错误 || " + msg);
+                }
                 if (onHeaderCropCallback != null) {
-                    onHeaderCropCallback.onError("拍照错误 || " + msg);
+                    onHeaderCropCallback.onHeaderCropError("拍照错误 || " + msg);
                 }
             }
 
@@ -263,8 +318,15 @@ public class CaptureFragment extends CameraFragment {
     private void processRawYuvToJpeg(byte[] nv21Data, int width, int height, String targetPath) {
         if ((nv21Data == null) || (nv21Data.length == 0)) {
             Log.e(TAG, "处理原始 YUV 数据失败: nv21Data 为空");
-            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
-                getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("YUV 数据为空"));
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (onCropCallback != null) {
+                        onCropCallback.onCropError("YUV 数据为空");
+                    }
+                    if (onHeaderCropCallback != null) {
+                        onHeaderCropCallback.onHeaderCropError("YUV 数据为空");
+                    }
+                });
             }
             return;
         }
@@ -272,8 +334,15 @@ public class CaptureFragment extends CameraFragment {
         // NV21 格式的总字节数必须不小于 (width * height * 1.5)
         if (nv21Data.length < (width * height * 3 / 2)) {
             Log.e(TAG, String.format("NV21 字节流长度异常: 实际长度 (%d Byte) 小于 %dx%d 所需的物理空间", nv21Data.length, width, height));
-            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
-                getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("YUV 数据帧截断或损坏"));
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (onCropCallback != null) {
+                        onCropCallback.onCropError("YUV 数据帧截断或损坏");
+                    }
+                    if (onHeaderCropCallback != null) {
+                        onHeaderCropCallback.onHeaderCropError("YUV 数据帧截断或损坏");
+                    }
+                });
             }
             return;
         }
@@ -297,27 +366,84 @@ public class CaptureFragment extends CameraFragment {
                 );
             }
             Log.d(TAG, "物理 1:1 无损图片生成成功！分辨率: " + width + "x" + height + " | 文件大小: " + (file.length() / 1024) + " KB");
-            // 3. 切回 UI 线程触发后续业务逻辑 (试卷头裁剪处理)
+            // 3. 切回 UI 线程触发后续业务逻辑 (试卷头裁剪处理与试卷四角透视矫正)
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     ToastUtils.show("拍照完成 || " + targetPath);
+                    // A. 执行试卷头裁剪处理
                     if (examHeaderProcessor != null) {
                         examHeaderProcessor.process(targetPath, onHeaderCropCallback);
+                    }
+                    // B. 执行试卷四角黑块透视变换裁剪处理
+                    if ((examCropProcessor != null) && (getContext() != null)) {
+                        File mediaDir = getContext().getExternalFilesDir("Pictures");
+                        String cropOutputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+                        examCropProcessor.processAsync(targetPath, cropOutputPath, new ExamCropProcessor.OnCropCallback() {
+                            @Override
+                            public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + croppedPath);
+                                        // 通知系统扫描新生成的图片文件
+                                        // 更新 MediaStore
+                                        MediaScannerConnection.scanFile(
+                                                requireContext(),
+                                                new String[]{croppedPath},
+                                                new String[]{"image/jpeg"},
+                                                (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                                        );
+                                        ToastUtils.show("试卷矫正裁剪成功");
+                                        if (onCropCallback != null) {
+                                            onCropCallback.onCropSuccess(croppedPath, resultBitmap);
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onCropError(String errorMsg) {
+                                if (getActivity() != null) {
+                                    getActivity().runOnUiThread(() -> {
+                                        Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
+                                        ToastUtils.show("试卷矫正失败: " + errorMsg);
+                                        if (onCropCallback != null) {
+                                            onCropCallback.onCropError(errorMsg);
+                                        }
+                                    });
+                                }
+                            }
+                        });
                     }
                 });
             }
         } catch (Exception e) {
             Log.e(TAG, "处理原始 YUV 数据并写盘时抛出异常", e);
-            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
-                getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("处理高清 YUV 帧失败"));
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (onCropCallback != null) {
+                        onCropCallback.onCropError("处理高清 YUV 帧失败");
+                    }
+                    if (onHeaderCropCallback != null) {
+                        onHeaderCropCallback.onHeaderCropError("处理高清 YUV 帧失败");
+                    }
+                });
             }
         }
     }
 
     /**
-     * 设置试卷头裁剪回调监听
+     * 设置裁剪回调
      *
-     * @param onHeaderCropCallback 试卷头裁剪回调
+     * @param onCropCallback 裁剪回调
+     */
+    public void setOnCropCallback(ExamCropProcessor.OnCropCallback onCropCallback) {
+        this.onCropCallback = onCropCallback;
+    }
+
+    /**
+     * 设置头部裁剪回调
+     *
+     * @param onHeaderCropCallback 头部裁剪回调
      */
     public void setOnHeaderCropCallback(ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback) {
         this.onHeaderCropCallback = onHeaderCropCallback;
@@ -327,6 +453,9 @@ public class CaptureFragment extends CameraFragment {
     public void onDestroyView() {
         if (examHeaderProcessor != null) {
             examHeaderProcessor.destroy();
+        }
+        if (examCropProcessor != null) {
+            examCropProcessor.destroy();
         }
         super.onDestroyView();
     }
