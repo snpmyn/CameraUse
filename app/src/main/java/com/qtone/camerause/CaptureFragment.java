@@ -146,14 +146,15 @@ public class CaptureFragment extends CameraFragment {
                 getCurrentCamera().addPreviewDataCallBack((data, width, height, format) -> {
                     // 1. UI 视角动态适配逻辑 (防止画面拉伸)
                     // 若硬件实际抛出的分辨率与当前记录的不一致，动态重设 AspectRatioTextureView 的显示比例。
-                    if (width > 0 && height > 0 && (width != mCurrentWidth || height != mCurrentHeight)) {
+                    if ((width > 0) && (height > 0) && ((width != mCurrentWidth) || (height != mCurrentHeight))) {
                         mCurrentWidth = width;
                         mCurrentHeight = height;
                         updateAspectRatio(mCurrentWidth, mCurrentHeight);
                     }
                     // 2. 无损拍照捕获逻辑
                     // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
-                    if (isCaptureRequested.compareAndSet(true, false) && data != null) {
+                    // compareAndSet(true, false) (检查当前值是否为 true，如果是，立刻将其修改为 false 并返回 true)
+                    if (isCaptureRequested.compareAndSet(true, false) && (data != null)) {
                         Log.d(TAG, "成功捕获硬件底层 NV21 帧, 字节大小: " + data.length + " Byte | 帧尺寸: " + width + "x" + height);
                         // 开启后台异步子线程进行物理字节转换与写盘
                         new Thread(() -> processRawYuvToJpeg(data, width, height, targetSavePath)).start();
@@ -174,12 +175,12 @@ public class CaptureFragment extends CameraFragment {
      * @param height 物理帧高度
      */
     private void updateAspectRatio(int width, int height) {
-        if (width <= 0 || height <= 0) {
+        if ((width <= 0) || (height <= 0)) {
             return;
         }
         float ratio = (float) width / (float) height;
         Log.d(TAG, String.format("动态更新预览比例: %d:%d (宽高比: %.2f)", width, height, ratio));
-        if (aspectRatioTextureView != null && getActivity() != null) {
+        if ((aspectRatioTextureView != null) && (getActivity() != null)) {
             getActivity().runOnUiThread(() -> {
                 // 通知 View 更新布局宽高比
                 aspectRatioTextureView.setAspectRatio(width, height);
@@ -191,13 +192,13 @@ public class CaptureFragment extends CameraFragment {
      * 执行拍照操作
      */
     public void capture() {
-        if (getCurrentCamera() == null || !getCurrentCamera().isCameraOpened()) {
+        if ((getCurrentCamera() == null) || !getCurrentCamera().isCameraOpened()) {
             ToastUtils.show("相机未准备就绪");
             return;
         }
         // 创建图片保存目录
         File mediaDir = (getContext() != null) ? getContext().getExternalFilesDir("Pictures") : null;
-        if (mediaDir != null && !mediaDir.exists()) {
+        if ((mediaDir != null) && !mediaDir.exists()) {
             boolean isCreated = mediaDir.mkdirs();
             if (!isCreated) {
                 Log.w(TAG, "创建 Pictures 图片保存目录失败");
@@ -260,18 +261,18 @@ public class CaptureFragment extends CameraFragment {
      * @param targetPath 无损图片输出路径
      */
     private void processRawYuvToJpeg(byte[] nv21Data, int width, int height, String targetPath) {
-        if (nv21Data == null || nv21Data.length == 0) {
+        if ((nv21Data == null) || (nv21Data.length == 0)) {
             Log.e(TAG, "处理原始 YUV 数据失败: nv21Data 为空");
-            if (onHeaderCropCallback != null && getActivity() != null) {
+            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
                 getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("YUV 数据为空"));
             }
             return;
         }
         // 基础内存物理安全校验
         // NV21 格式的总字节数必须不小于 (width * height * 1.5)
-        if (nv21Data.length < width * height * 3 / 2) {
+        if (nv21Data.length < (width * height * 3 / 2)) {
             Log.e(TAG, String.format("NV21 字节流长度异常: 实际长度 (%d Byte) 小于 %dx%d 所需的物理空间", nv21Data.length, width, height));
-            if (onHeaderCropCallback != null && getActivity() != null) {
+            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
                 getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("YUV 数据帧截断或损坏"));
             }
             return;
@@ -307,7 +308,7 @@ public class CaptureFragment extends CameraFragment {
             }
         } catch (Exception e) {
             Log.e(TAG, "处理原始 YUV 数据并写盘时抛出异常", e);
-            if (onHeaderCropCallback != null && getActivity() != null) {
+            if ((onHeaderCropCallback != null) && (getActivity() != null)) {
                 getActivity().runOnUiThread(() -> onHeaderCropCallback.onError("处理高清 YUV 帧失败"));
             }
         }

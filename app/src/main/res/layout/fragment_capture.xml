@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <!--建议将 width 和 height 设为 match_parent-->
+    <!--建议将 width 和 height 都设为 match_parent-->
     <!--1. AspectRatioTextureView 内部重写的 onMeasure 会根据 setAspectRatio 传入的宽高比自动缩放-->
-    <!--2. 配合 FrameLayout 黑色背景，当画面比例与屏幕不一致时，会自动呈现上下或左右的黑边 (Letterboxing)，保证画面 100% 完整且绝不拉伸变形-->
+    <!--2. 配合 FrameLayout 黑色背景，画面比例与屏幕不一致时会自动呈现上下或左右黑边 (Letterboxing)，保证画面 100% 完整且绝不拉伸变形-->
     <com.jiangdg.ausbc.widget.AspectRatioTextureView
         android:id="@+id/captureFragmentArtv"
         android:layout_width="match_parent"
