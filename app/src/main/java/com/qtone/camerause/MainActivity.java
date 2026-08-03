@@ -23,7 +23,7 @@ import java.io.File;
  * @date: 2026/7/28 16:14
  * @version: v 1.0
  */
-public class MainActivity extends AppCompatActivity implements ExamHeaderProcessor.OnHeaderCropCallback {
+public class MainActivity extends AppCompatActivity implements ExamCropProcessor.OnCropCallback, ExamHeaderProcessor.OnHeaderCropCallback {
     private static final String TAG = MainActivity.class.getSimpleName();
     /**
      * 请求相机权限码
@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements ExamHeaderProcess
      */
     private void loadCaptureFragment() {
         CaptureFragment captureFragment = new CaptureFragment();
+        captureFragment.setOnCropCallback(this);
         captureFragment.setOnHeaderCropCallback(this);
         switchFragment(captureFragment);
     }
@@ -162,7 +163,28 @@ public class MainActivity extends AppCompatActivity implements ExamHeaderProcess
     }
 
     /**
-     * 成功
+     * 裁剪成功
+     *
+     * @param croppedPath  已拷贝路径
+     * @param resultBitmap 结果像素数据
+     */
+    @Override
+    public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
+
+    }
+
+    /**
+     * 裁剪错误
+     *
+     * @param errorMsg 错误消息
+     */
+    @Override
+    public void onCropError(String errorMsg) {
+
+    }
+
+    /**
+     * 头部裁剪成功
      *
      * @param headerBitmap  头像素数据
      * @param qrCodeContent 二维码内容
@@ -170,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements ExamHeaderProcess
      *                      异步保存的本地图片文件
      */
     @Override
-    public void onSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile) {
+    public void onHeaderCropSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile) {
         String cropFilePath = ((cropFile != null) ? cropFile.getAbsolutePath() : "null");
         Log.d(TAG, "成功" +
                 "\n二维码内容 = " + qrCodeContent +
@@ -179,27 +201,27 @@ public class MainActivity extends AppCompatActivity implements ExamHeaderProcess
     }
 
     /**
-     * 跳过
+     * 头部裁剪跳过
      * <p>
-     * 业务过滤 (未在触发区、去重过滤、缝隙未识别到二维码等)
+     * 业务过滤 (未在触发区、缝隙未识别到二维码等)
      *
      * @param reason 原因
      */
     @Override
-    public void onSkip(String reason) {
+    public void onHeaderCropSkip(String reason) {
         Log.d(TAG, "跳过 || " + reason);
         ToastUtils.show("跳过 || " + reason);
     }
 
     /**
-     * 错误
+     * 头部裁剪错误
      * <p>
      * 系统错误 (拍照失败、引擎崩溃、文件读取失败、图片裁剪失败等)
      *
      * @param errorMsg 错误消息
      */
     @Override
-    public void onError(String errorMsg) {
+    public void onHeaderCropError(String errorMsg) {
         Log.e(TAG, "错误 || " + errorMsg);
         ToastUtils.show("错误 || " + errorMsg);
     }
