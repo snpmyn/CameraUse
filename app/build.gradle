@@ -48,6 +48,8 @@ dependencies {
     // For debug online
     implementation project(':libausbc')
 
+    /*opencv*/
+    implementation 'org.opencv:opencv:4.9.0'
     // ZXing 核心解码算法库
     implementation 'com.google.zxing:core:3.3.3'
     // ML Kit 扫码
