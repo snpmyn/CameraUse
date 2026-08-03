@@ -36,7 +36,7 @@ import java.util.List;
  * Created on 2026/7/30.
  *
  * @author 郑少鹏
- * @desc 试卷头处理器
+ * @desc 试卷头部处理器
  */
 public class ExamHeaderProcessor {
     private static final String TAG = ExamHeaderProcessor.class.getSimpleName();
@@ -69,7 +69,7 @@ public class ExamHeaderProcessor {
      * 处理
      *
      * @param imagePath            图像路径
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      */
     public void process(String imagePath, OnHeaderCropCallback onHeaderCropCallback) {
         if ((context == null) || (barcodeScanner == null)) {
@@ -82,42 +82,34 @@ public class ExamHeaderProcessor {
                 notifyError(onHeaderCropCallback, "图片文件不存在");
                 return;
             }
-
             // 1. 获取图片 Exif 旋转角度
             int exifDegrees = getExifRotationDegrees(imagePath);
-
             // 2. 针对低分辨率 / 远距离
             // 保留 100% 细节像素
             // 取消下采样 (inSampleSize = 1)
             BitmapFactory.Options decodeOptions = new BitmapFactory.Options();
             decodeOptions.inSampleSize = 1;
             Bitmap rawBitmap = BitmapFactory.decodeFile(imagePath, decodeOptions);
-
             if (rawBitmap == null) {
                 notifyError(onHeaderCropCallback, "解析图片 Bitmap 失败");
                 return;
             }
-
             int originalWidth = rawBitmap.getWidth();
             int originalHeight = rawBitmap.getHeight();
-
             // 3. 根据 Exif 进行初始方向校正
             Bitmap rotatedBitmap = rotateBitmapByAngle(rawBitmap, exifDegrees);
             if ((rotatedBitmap != rawBitmap) && !rawBitmap.isRecycled()) {
                 // 确保如果未旋转且生成了新 Bitmap 时，及时回收原始 rawBitmap 避免内存泄漏。
                 rawBitmap.recycle();
             }
-
             // 4. 灰度化 + 拉伸黑白对比度预处理
             // 解决低分辨率下小二维码特征模糊问题
             Bitmap enhancedBitmap = enhanceLowResImage(rotatedBitmap);
             if ((enhancedBitmap != rotatedBitmap) && !rotatedBitmap.isRecycled()) {
                 rotatedBitmap.recycle();
             }
-
             // 5. 开启多角度容错扫描模式
             tryRecognizeWithRotations(imagePath, enhancedBitmap, originalWidth, originalHeight, 0, onHeaderCropCallback);
-
         } catch (Exception e) {
             Log.e(TAG, "处理图片异常", e);
             notifyError(onHeaderCropCallback, "读取图片失败");
@@ -136,11 +128,9 @@ public class ExamHeaderProcessor {
         Bitmap bitmapGray = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmapGray);
         Paint paint = new Paint();
-
         ColorMatrix colorMatrix = new ColorMatrix();
         // 灰度化
         colorMatrix.setSaturation(0);
-
         // 提高 1.4 倍对比度
         float contrast = 1.4f;
         float translate = (-0.5f * contrast + 0.5f) * 255f;
@@ -151,7 +141,6 @@ public class ExamHeaderProcessor {
                 0, 0, 0, 1, 0
         };
         colorMatrix.postConcat(new ColorMatrix(matrix));
-
         paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
         canvas.drawBitmap(bitmap, 0, 0, paint);
         return bitmapGray;
@@ -168,7 +157,7 @@ public class ExamHeaderProcessor {
      * @param imageOriginalHeight  图像原始高
      * @param attemptStep          尝试步骤
      *                             依次尝试 0°、90°、180°、270° 旋转角度识别二维码
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      */
     private void tryRecognizeWithRotations(String imagePath, Bitmap bitmap, int imageOriginalWidth, int imageOriginalHeight, int attemptStep, OnHeaderCropCallback onHeaderCropCallback) {
         InputImage inputImage = InputImage.fromBitmap(bitmap, 0);
@@ -223,7 +212,7 @@ public class ExamHeaderProcessor {
      * @param imageOriginalHeight  图像原始高
      * @param scaleX               X方向采样缩放比
      * @param scaleY               Y方向采样缩放比
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      */
     private void handleDetectedBarcodes(String imagePath, @NotNull List<Barcode> barcodes, int imageOriginalWidth, int imageOriginalHeight, float scaleX, float scaleY, OnHeaderCropCallback onHeaderCropCallback) {
         List<Barcode> validBarcodes = new ArrayList<>();
@@ -317,21 +306,17 @@ public class ExamHeaderProcessor {
                 BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(imagePath, false);
                 bitmapRegionDecoder = decoder;
             }
-
             if (bitmapRegionDecoder == null) {
                 return null;
             }
-
             Rect validRect = new Rect(
                     Math.max(0, Math.min(cropRect.left, bitmapRegionDecoder.getWidth())),
                     Math.max(0, Math.min(cropRect.top, bitmapRegionDecoder.getHeight())),
                     Math.max(0, Math.min(cropRect.right, bitmapRegionDecoder.getWidth())),
                     Math.max(0, Math.min(cropRect.bottom, bitmapRegionDecoder.getHeight()))
             );
-
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.RGB_565;
-
             return bitmapRegionDecoder.decodeRegion(validRect, options);
         } catch (Exception e) {
             Log.e(TAG, "BitmapRegionDecoder 裁剪出错", e);
@@ -423,24 +408,26 @@ public class ExamHeaderProcessor {
     /**
      * 通知成功
      *
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      * @param bitmap               像素数据
      * @param content              内容
      * @param file                 文件
      */
     private void notifySuccess(OnHeaderCropCallback onHeaderCropCallback, Bitmap bitmap, String content, File file) {
-        if (onHeaderCropCallback == null) return;
+        if (onHeaderCropCallback == null) {
+            return;
+        }
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            onHeaderCropCallback.onSuccess(bitmap, content, file);
+            onHeaderCropCallback.onHeaderCropSuccess(bitmap, content, file);
         } else {
-            handler.post(() -> onHeaderCropCallback.onSuccess(bitmap, content, file));
+            handler.post(() -> onHeaderCropCallback.onHeaderCropSuccess(bitmap, content, file));
         }
     }
 
     /**
      * 通知跳过
      *
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      * @param reason               原因
      */
     private void notifySkip(OnHeaderCropCallback onHeaderCropCallback, String reason) {
@@ -448,16 +435,16 @@ public class ExamHeaderProcessor {
             return;
         }
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            onHeaderCropCallback.onSkip(reason);
+            onHeaderCropCallback.onHeaderCropSkip(reason);
         } else {
-            handler.post(() -> onHeaderCropCallback.onSkip(reason));
+            handler.post(() -> onHeaderCropCallback.onHeaderCropSkip(reason));
         }
     }
 
     /**
      * 通知错误
      *
-     * @param onHeaderCropCallback 头裁剪回调
+     * @param onHeaderCropCallback 头部裁剪回调
      * @param errorMsg             错误消息
      */
     private void notifyError(OnHeaderCropCallback onHeaderCropCallback, String errorMsg) {
@@ -465,9 +452,9 @@ public class ExamHeaderProcessor {
             return;
         }
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            onHeaderCropCallback.onError(errorMsg);
+            onHeaderCropCallback.onHeaderCropError(errorMsg);
         } else {
-            handler.post(() -> onHeaderCropCallback.onError(errorMsg));
+            handler.post(() -> onHeaderCropCallback.onHeaderCropError(errorMsg));
         }
     }
 
@@ -481,11 +468,11 @@ public class ExamHeaderProcessor {
     }
 
     /**
-     * 头裁剪回调
+     * 头部裁剪回调
      */
     public interface OnHeaderCropCallback {
         /**
-         * 成功
+         * 头部裁剪成功
          *
          * @param headerBitmap  头像素数据
          * @param qrCodeContent 二维码内容
@@ -493,25 +480,25 @@ public class ExamHeaderProcessor {
          *                      异步保存的本地图片文件
          *                      方便直接拿去上传接口
          */
-        void onSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile);
+        void onHeaderCropSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile);
 
         /**
-         * 跳过
+         * 头部裁剪跳过
          * <p>
          * 业务过滤 (未在触发区、缝隙未识别到二维码等)
          *
          * @param reason 原因
          */
-        void onSkip(String reason);
+        void onHeaderCropSkip(String reason);
 
         /**
-         * 错误
+         * 头部裁剪错误
          * <p>
          * 系统错误 (拍照失败、引擎崩溃、文件读取失败、图片裁剪失败等)
          *
          * @param errorMsg 错误消息
          */
-        void onError(String errorMsg);
+        void onHeaderCropError(String errorMsg);
     }
 
     /**
