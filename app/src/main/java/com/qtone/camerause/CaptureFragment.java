@@ -1,6 +1,5 @@
 package com.qtone.camerause;
 
-import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -89,7 +88,8 @@ public class CaptureFragment extends CameraFragment {
     /**
      * 动态保存当前相机生效的实际渲染分辨率
      * <p>
-     * 用于驱动 UI 渲染层 (AspectRatioTextureView) 实时调整宽高比，防止预览画面畸变。
+     * 防止预览画面畸变
+     * 用于驱动 UI 渲染层 (AspectRatioTextureView) 实时调整宽高比
      */
     private int mCurrentWidth = PREVIEW_WIDTH;
     private int mCurrentHeight = PREVIEW_HEIGHT;
@@ -97,46 +97,13 @@ public class CaptureFragment extends CameraFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // 初始化试卷头部处理器和四角黑块透视变换裁剪处理器
         if (getContext() != null) {
+            // 试卷裁剪处理器
             examCropProcessor = new ExamCropProcessor();
+            // 试卷头部处理器
             examHeaderProcessor = new ExamHeaderProcessor(getContext());
 
-            examCropProcessor.processAsync(new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785734938447" + ".jpg").getAbsolutePath(), new File(getContext().getExternalFilesDir("Pictures"), "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath(), new ExamCropProcessor.OnCropCallback() {
-                @Override
-                public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + croppedPath);
-                            // 通知系统扫描新生成的图片文件
-                            // 更新 MediaStore
-                            MediaScannerConnection.scanFile(
-                                    requireContext(),
-                                    new String[]{croppedPath},
-                                    new String[]{"image/jpeg"},
-                                    (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
-                            );
-                            ToastUtils.show("试卷矫正裁剪成功");
-                            if (onCropCallback != null) {
-                                onCropCallback.onCropSuccess(croppedPath, resultBitmap);
-                            }
-                        });
-                    }
-                }
-
-                @Override
-                public void onCropError(String errorMsg) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
-                            ToastUtils.show("试卷矫正失败: " + errorMsg);
-                            if (onCropCallback != null) {
-                                onCropCallback.onCropError(errorMsg);
-                            }
-                        });
-                    }
-                }
-            });
+            examCropProcessor.processAsync(getContext(), new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785734938447" + ".jpg").getAbsolutePath(), onCropCallback);
         }
     }
 
@@ -219,28 +186,6 @@ public class CaptureFragment extends CameraFragment {
     }
 
     /**
-     * 动态计算并更新预览控件的比率
-     * <p>
-     * 根据硬件实际输出的像素宽高，计算比例并触发 AspectRatioTextureView 重新布局，彻底解决视觉拉伸。
-     *
-     * @param width  物理帧宽度
-     * @param height 物理帧高度
-     */
-    private void updateAspectRatio(int width, int height) {
-        if ((width <= 0) || (height <= 0)) {
-            return;
-        }
-        float ratio = (float) width / (float) height;
-        Log.d(TAG, String.format("动态更新预览比例: %d:%d (宽高比: %.2f)", width, height, ratio));
-        if ((aspectRatioTextureView != null) && (getActivity() != null)) {
-            getActivity().runOnUiThread(() -> {
-                // 通知 View 更新布局宽高比
-                aspectRatioTextureView.setAspectRatio(width, height);
-            });
-        }
-    }
-
-    /**
      * 拍照
      */
     public void capture() {
@@ -302,6 +247,28 @@ public class CaptureFragment extends CameraFragment {
                 }
             }
         }, tempFramePath);
+    }
+
+    /**
+     * 动态计算并更新预览控件的比率
+     * <p>
+     * 根据硬件实际输出的像素宽高，计算比例并触发 AspectRatioTextureView 重新布局，彻底解决视觉拉伸。
+     *
+     * @param width  物理帧宽度
+     * @param height 物理帧高度
+     */
+    private void updateAspectRatio(int width, int height) {
+        if ((width <= 0) || (height <= 0)) {
+            return;
+        }
+        float ratio = (float) width / (float) height;
+        Log.d(TAG, String.format("动态更新预览比例: %d:%d (宽高比: %.2f)", width, height, ratio));
+        if ((aspectRatioTextureView != null) && (getActivity() != null)) {
+            getActivity().runOnUiThread(() -> {
+                // 通知 View 更新布局宽高比
+                aspectRatioTextureView.setAspectRatio(width, height);
+            });
+        }
     }
 
     /**
@@ -376,43 +343,7 @@ public class CaptureFragment extends CameraFragment {
                     }
                     // B. 执行试卷四角黑块透视变换裁剪处理
                     if ((examCropProcessor != null) && (getContext() != null)) {
-                        File mediaDir = getContext().getExternalFilesDir("Pictures");
-                        String cropOutputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
-                        examCropProcessor.processAsync(targetPath, cropOutputPath, new ExamCropProcessor.OnCropCallback() {
-                            @Override
-                            public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
-                                if (getActivity() != null) {
-                                    getActivity().runOnUiThread(() -> {
-                                        Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + croppedPath);
-                                        // 通知系统扫描新生成的图片文件
-                                        // 更新 MediaStore
-                                        MediaScannerConnection.scanFile(
-                                                requireContext(),
-                                                new String[]{croppedPath},
-                                                new String[]{"image/jpeg"},
-                                                (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
-                                        );
-                                        ToastUtils.show("试卷矫正裁剪成功");
-                                        if (onCropCallback != null) {
-                                            onCropCallback.onCropSuccess(croppedPath, resultBitmap);
-                                        }
-                                    });
-                                }
-                            }
-
-                            @Override
-                            public void onCropError(String errorMsg) {
-                                if (getActivity() != null) {
-                                    getActivity().runOnUiThread(() -> {
-                                        Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
-                                        ToastUtils.show("试卷矫正失败: " + errorMsg);
-                                        if (onCropCallback != null) {
-                                            onCropCallback.onCropError(errorMsg);
-                                        }
-                                    });
-                                }
-                            }
-                        });
+                        examCropProcessor.processAsync(getContext(), targetPath, onCropCallback);
                     }
                 });
             }
@@ -451,11 +382,11 @@ public class CaptureFragment extends CameraFragment {
 
     @Override
     public void onDestroyView() {
-        if (examHeaderProcessor != null) {
-            examHeaderProcessor.destroy();
-        }
         if (examCropProcessor != null) {
             examCropProcessor.destroy();
+        }
+        if (examHeaderProcessor != null) {
+            examHeaderProcessor.destroy();
         }
         super.onDestroyView();
     }
