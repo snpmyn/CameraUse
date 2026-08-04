@@ -22,6 +22,7 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.CameraAspectRatioHelper;
 import com.qtone.camerause.R;
 import com.qtone.camerause.wechat.WeChatCropEngine;
 
@@ -63,6 +64,10 @@ public class CaptureFragment extends CameraFragment {
      */
     private AspectRatioTextureView aspectRatioTextureView;
     /**
+     * 相机宽高比辅助者
+     */
+    private CameraAspectRatioHelper cameraAspectRatioHelper;
+    /**
      * 容器
      */
     private ViewGroup container;
@@ -80,18 +85,14 @@ public class CaptureFragment extends CameraFragment {
      * 裁剪回调
      */
     private ExamCropProcessor.OnCropCallback onCropCallback;
-    /**
-     * 动态保存当前相机生效的实际渲染分辨率
-     * <p>
-     * 防止预览画面畸变
-     * 用于驱动 UI 渲染层 (AspectRatioTextureView) 实时调整宽高比
-     */
-    private int mCurrentWidth = PREVIEW_WIDTH;
-    private int mCurrentHeight = PREVIEW_HEIGHT;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (aspectRatioTextureView != null) {
+            // 相机宽高比辅助者
+            cameraAspectRatioHelper = new CameraAspectRatioHelper(aspectRatioTextureView);
+        }
         if (getContext() != null) {
             // 试卷裁剪处理器
             examCropProcessor = new ExamCropProcessor();
@@ -126,12 +127,14 @@ public class CaptureFragment extends CameraFragment {
     @Nullable
     @Override
     protected IAspectRatio getCameraView() {
+        // 提供相机渲染组件
         return aspectRatioTextureView;
     }
 
     @Nullable
     @Override
     protected ViewGroup getCameraViewContainer() {
+        // 提供相机渲染容器
         return container;
     }
 
@@ -146,6 +149,8 @@ public class CaptureFragment extends CameraFragment {
         return new CameraRequest.Builder()
                 .setPreviewWidth(PREVIEW_WIDTH)
                 .setPreviewHeight(PREVIEW_HEIGHT)
+                // 若仅需扫码且无滤镜需求则设为 CameraRequest.RenderMode.NORMAL
+                // 可直接输出 NV21 数据，效率比 OPENGL (RGBA) 更高。
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
@@ -165,27 +170,35 @@ public class CaptureFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
         if (code == State.OPENED) {
             Log.d(TAG, "拍照相机打开成功");
-            // 初始时按照设定分辨率初始化预览 View 的展示比例
-            updateAspectRatio(mCurrentWidth, mCurrentHeight);
+            // 初始时按默认分辨率配置初始化预览控件展示比例
+            if (cameraAspectRatioHelper != null) {
+                cameraAspectRatioHelper.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            }
             // 监听底层 Raw 帧数据 (NV21 字节流)
             if (getCurrentCamera() != null) {
+                // 注册预览帧回调
                 getCurrentCamera().addPreviewDataCallBack((data, width, height, format) -> {
-                    // 1. UI 视角动态适配逻辑 (防止画面拉伸)
-                    // 若硬件实际抛出的分辨率与当前记录的不一致，动态重设 AspectRatioTextureView 的显示比例。
-                    if ((width > 0) && (height > 0) && ((width != mCurrentWidth) || (height != mCurrentHeight))) {
-                        mCurrentWidth = width;
-                        mCurrentHeight = height;
-                        updateAspectRatio(mCurrentWidth, mCurrentHeight);
+                    // 1. UI 视角动态适配逻辑
+                    // 通过 CameraAspectRatioHelper 去重处理并更新 AspectRatioTextureView
+                    // 防止画面拉伸
+                    if (cameraAspectRatioHelper != null) {
+                        cameraAspectRatioHelper.updateAspectRatio(getActivity(), width, height);
                     }
                     // 2. 无损拍照捕获逻辑
                     // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
-                    // compareAndSet(true, false) (检查当前值是否为 true，是则立刻将其修改为 false 并返 true)
+                    // compareAndSet(true, false) (检查当前值是否为 true，是则立刻将其修改为 false 并返回 true)
                     if (isCaptureRequested.compareAndSet(true, false) && (data != null)) {
                         Log.d(TAG, "成功捕获硬件底层 NV21 帧, 字节大小: " + data.length + " Byte | 帧尺寸: " + width + "x" + height);
                         // 开启后台异步子线程进行物理字节转换与写盘
                         new Thread(() -> processRawYuvToJpeg(data, width, height, targetSavePath)).start();
                     }
                 });
+            }
+        } else if (code == State.CLOSED) {
+            // 相机关闭或断开连接时
+            // 重置 CameraAspectRatioHelper 内缓存的分辨率记录
+            if (cameraAspectRatioHelper != null) {
+                cameraAspectRatioHelper.reset();
             }
         } else if (code == State.ERROR) {
             Log.e(TAG, "拍照相机打开错误 || " + msg);
@@ -251,28 +264,6 @@ public class CaptureFragment extends CameraFragment {
                 }
             }
         }, tempFramePath);
-    }
-
-    /**
-     * 动态计算并更新预览控件的比率
-     * <p>
-     * 根据硬件实际输出的像素宽高，计算比例并触发 AspectRatioTextureView 重新布局，彻底解决视觉拉伸。
-     *
-     * @param width  物理帧宽度
-     * @param height 物理帧高度
-     */
-    private void updateAspectRatio(int width, int height) {
-        if ((width <= 0) || (height <= 0)) {
-            return;
-        }
-        float ratio = (float) width / (float) height;
-        Log.d(TAG, String.format("动态更新预览比例: %d:%d (宽高比: %.2f)", width, height, ratio));
-        if ((aspectRatioTextureView != null) && (getActivity() != null)) {
-            getActivity().runOnUiThread(() -> {
-                // 通知 View 更新布局宽高比
-                aspectRatioTextureView.setAspectRatio(width, height);
-            });
-        }
     }
 
     /**
@@ -371,6 +362,10 @@ public class CaptureFragment extends CameraFragment {
     public void onDestroyView() {
         if (examCropProcessor != null) {
             examCropProcessor.destroy();
+        }
+        if (cameraAspectRatioHelper != null) {
+            cameraAspectRatioHelper.release();
+            cameraAspectRatioHelper = null;
         }
         super.onDestroyView();
     }

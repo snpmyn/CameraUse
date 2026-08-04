@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.capture;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -380,7 +380,7 @@ public class ExamCropProcessor {
     }
 
     /**
-     * 裁剪接口
+     * 裁剪回调
      */
     public interface OnCropCallback {
         /**
