@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,8 +11,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.baidu.ocr.sdk.model.GeneralParams;
 import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.capture.CaptureFragment;
+import com.qtone.camerause.capture.ExamCropProcessor;
+import com.qtone.camerause.scancode.ScanCodeFragment;
 
 import java.io.File;
 
@@ -23,8 +26,7 @@ import java.io.File;
  * @date: 2026/7/28 16:14
  * @version: v 1.0
  */
-public class MainActivity extends AppCompatActivity implements ExamCropProcessor.OnCropCallback, ExamHeaderProcessor.OnHeaderCropCallback {
-    private static final String TAG = MainActivity.class.getSimpleName();
+public class MainActivity extends AppCompatActivity implements ExamCropProcessor.OnCropCallback {
     /**
      * 请求相机权限码
      */
@@ -121,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
     private void loadCaptureFragment() {
         CaptureFragment captureFragment = new CaptureFragment();
         captureFragment.setOnCropCallback(this);
-        captureFragment.setOnHeaderCropCallback(this);
         switchFragment(captureFragment);
     }
 
@@ -170,7 +171,24 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
      */
     @Override
     public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
+        GeneralParams generalParams = new GeneralParams();
+        generalParams.setDetectDirection(true);
+        generalParams.setImageFile(new File(croppedPath));
+        // recognizeGeneral
+        /*OCR.getInstance(this).recognizeAccurateBasic(generalParams, new OnResultListener<GeneralResult>() {
+            @Override
+            public void onResult(GeneralResult generalResult) {
+                Log.d("通用文字识别 (含位置信息版)", generalResult.toString());
+            }
 
+            @Override
+            public void onError(OCRError ocrError) {
+                Log.d("通用文字识别 (含位置信息版)", ocrError.getMessage());
+            }
+        });*/
+
+        /*MlKitOcrHelper mlKitOcrHelper = new MlKitOcrHelper();
+        mlKitOcrHelper.recognizeTextFromPath(this, croppedPath);*/
     }
 
     /**
@@ -181,48 +199,5 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
     @Override
     public void onCropError(String errorMsg) {
 
-    }
-
-    /**
-     * 头部裁剪成功
-     *
-     * @param headerBitmap  头像素数据
-     * @param qrCodeContent 二维码内容
-     * @param cropFile      裁剪文件
-     *                      异步保存的本地图片文件
-     */
-    @Override
-    public void onHeaderCropSuccess(Bitmap headerBitmap, String qrCodeContent, File cropFile) {
-        String cropFilePath = ((cropFile != null) ? cropFile.getAbsolutePath() : "null");
-        Log.d(TAG, "成功" +
-                "\n二维码内容 = " + qrCodeContent +
-                "\n裁剪文件路径 = " + cropFilePath);
-        ToastUtils.show("成功 || " + cropFilePath);
-    }
-
-    /**
-     * 头部裁剪跳过
-     * <p>
-     * 业务过滤 (未在触发区、缝隙未识别到二维码等)
-     *
-     * @param reason 原因
-     */
-    @Override
-    public void onHeaderCropSkip(String reason) {
-        Log.d(TAG, "跳过 || " + reason);
-        ToastUtils.show("跳过 || " + reason);
-    }
-
-    /**
-     * 头部裁剪错误
-     * <p>
-     * 系统错误 (拍照失败、引擎崩溃、文件读取失败、图片裁剪失败等)
-     *
-     * @param errorMsg 错误消息
-     */
-    @Override
-    public void onHeaderCropError(String errorMsg) {
-        Log.e(TAG, "错误 || " + errorMsg);
-        ToastUtils.show("错误 || " + errorMsg);
     }
 }
