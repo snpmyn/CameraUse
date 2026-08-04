@@ -12,12 +12,12 @@ import androidx.annotation.Nullable;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.base.CameraFragment;
-import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.CameraAspectRatioHelper;
 import com.qtone.camerause.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,15 +28,44 @@ import org.jetbrains.annotations.NotNull;
  * @date: 2026/7/28 16:18
  * @version: v 1.0
  */
-public class ScanCodeFragment extends CameraFragment implements IPreviewDataCallBack {
+public class ScanCodeFragment extends CameraFragment {
     private static final String TAG = ScanCodeFragment.class.getSimpleName();
-    private AspectRatioTextureView mTextureView;
+    /**
+     * 默认请求的相机物理分辨率
+     * <p>
+     * 宽
+     */
+    private static final int PREVIEW_WIDTH = 2592;
+    /**
+     * 默认请求的相机物理分辨率
+     * <p>
+     * 高
+     */
+    private static final int PREVIEW_HEIGHT = 1944;
+    /**
+     * 渲染控件与容器
+     */
+    private AspectRatioTextureView aspectRatioTextureView;
+    /**
+     * 相机宽高比辅助者
+     */
+    private CameraAspectRatioHelper mCameraAspectRatioHelper;
+    /**
+     * 容器
+     */
+    private ViewGroup container;
+    /**
+     * 扫码处理器
+     */
     private ScanCodeProcessor scanCodeProcessor;
-    private ViewGroup mContainer;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (aspectRatioTextureView != null) {
+            // 相机宽高比辅助者
+            mCameraAspectRatioHelper = new CameraAspectRatioHelper(aspectRatioTextureView);
+        }
         // 初始化 MLKit 扫码分析器
         scanCodeProcessor = new ScanCodeProcessor(new ScanCodeProcessor.OnScanResultListener() {
             @Override
@@ -56,8 +85,8 @@ public class ScanCodeFragment extends CameraFragment implements IPreviewDataCall
     @Override
     protected View getRootView(@NotNull LayoutInflater inflater, @Nullable ViewGroup container) {
         View root = inflater.inflate(R.layout.fragment_scan_code, container, false);
-        mTextureView = root.findViewById(R.id.scanCodeFragmentArtv);
-        mContainer = root.findViewById(R.id.camera_container);
+        aspectRatioTextureView = root.findViewById(R.id.scanCodeFragmentArtv);
+        this.container = root.findViewById(R.id.camera_container);
         return root;
     }
 
@@ -65,64 +94,89 @@ public class ScanCodeFragment extends CameraFragment implements IPreviewDataCall
     @Override
     protected IAspectRatio getCameraView() {
         // 提供相机渲染组件
-        return mTextureView;
+        return aspectRatioTextureView;
     }
 
     @Nullable
     @Override
     protected ViewGroup getCameraViewContainer() {
         // 提供相机渲染容器
-        return mContainer;
+        return container;
     }
 
+    /**
+     * 构建 CameraRequest 相机配置参数
+     *
+     * @return CameraRequest 实体
+     */
     @NonNull
     @Override
     protected CameraRequest getCameraRequest() {
-        // 配置相机参数
         return new CameraRequest.Builder()
-                .setPreviewWidth(1280)
-                .setPreviewHeight(720)
+                .setPreviewWidth(PREVIEW_WIDTH)
+                .setPreviewHeight(PREVIEW_HEIGHT)
                 // 若仅需扫码且无滤镜需求则设为 CameraRequest.RenderMode.NORMAL
                 // 可直接输出 NV21 数据，效率比 OPENGL (RGBA) 更高。
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
-                // 必须开启以抛出原始 preview 帧
+                // 开启硬件 RawPreviewData 数据输出 (以便在回调中抓取 NV21 原始点阵数据)
                 .setRawPreviewData(true)
                 .create();
     }
 
+    /**
+     * 相机状态变更监听回调
+     *
+     * @param self 相机客户端对象
+     * @param code 相机当前状态枚举
+     * @param msg  异常或状态描述信息
+     */
     @Override
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
-        // 监听相机打开状态
         if (code == State.OPENED) {
-            Log.d(TAG, "相机打开成功，注册预览帧回调。");
-            // 注册预览帧回调
-            self.addPreviewDataCallBack(this);
+            Log.d(TAG, "扫码相机打开成功");
+            // 初始时按默认分辨率配置初始化预览控件展示比例
+            if (mCameraAspectRatioHelper != null) {
+                mCameraAspectRatioHelper.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            }
+            // 监听底层 Raw 帧数据 (NV21 字节流)
+            if (getCurrentCamera() != null) {
+                // 注册预览帧回调
+                self.addPreviewDataCallBack((data, width, height, format) -> {
+                    // 1. UI 视角动态适配逻辑
+                    // 通过 CameraAspectRatioHelper 去重处理并更新 AspectRatioTextureView
+                    // 防止画面拉伸
+                    if (mCameraAspectRatioHelper != null) {
+                        mCameraAspectRatioHelper.updateAspectRatio(getActivity(), width, height);
+                    }
+                    // 2. 实时扫码分析处理
+                    if ((data != null) && (scanCodeProcessor != null)) {
+                        // 将回调中的 format 准确透传给 UsbScanManager / ScanCodeProcessor
+                        scanCodeProcessor.processFrame(data, width, height, format, 0);
+                    }
+                });
+            }
+        } else if (code == State.CLOSED) {
+            // 相机关闭或断开连接时
+            // 重置 CameraAspectRatioHelper 内缓存的分辨率记录
+            if (mCameraAspectRatioHelper != null) {
+                mCameraAspectRatioHelper.reset();
+            }
         } else if (code == State.ERROR) {
-            Log.e(TAG, "相机打开错误 || " + msg);
-        }
-    }
-
-    @Override
-    public void onPreviewData(@Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
-        // 实时预览数据抛出回调
-        if ((data != null) && (scanCodeProcessor != null)) {
-            // 将回调中的 format 准确透传给 UsbScanManager
-            scanCodeProcessor.processFrame(data, width, height, format, 0);
+            Log.e(TAG, "扫码相机打开错误 || " + msg);
         }
     }
 
     @Override
     public void onDestroyView() {
-        // 解绑帧回调
-        // 防止内存泄漏和后台无效解析
-        if (getCurrentCamera() != null) {
-            getCurrentCamera().removePreviewDataCallBack(this);
-        }
         if (scanCodeProcessor != null) {
             scanCodeProcessor.release();
             scanCodeProcessor = null;
+        }
+        if (mCameraAspectRatioHelper != null) {
+            mCameraAspectRatioHelper.release();
+            mCameraAspectRatioHelper = null;
         }
         super.onDestroyView();
     }

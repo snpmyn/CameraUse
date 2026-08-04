@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.scancode;
 
 import android.graphics.Bitmap;
 
@@ -12,12 +12,12 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @decs: USB 扫描管理器
+ * @decs: 扫码处理器
  * @author: 郑少鹏
  * @date: 2026/7/28 16:16
  * @version: v 1.0
  */
-public class UsbScanManager {
+public class ScanCodeProcessor {
     /**
      * 成功后 1.5s 内不重复触发
      */
@@ -36,7 +36,7 @@ public class UsbScanManager {
      */
     private Bitmap reusableBitmap;
 
-    public UsbScanManager(OnScanResultListener onScanResultListener) {
+    public ScanCodeProcessor(OnScanResultListener onScanResultListener) {
         this.onScanResultListener = onScanResultListener;
         this.scanner = BarcodeScanning.getClient();
     }
