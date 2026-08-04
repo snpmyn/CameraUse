@@ -22,8 +22,8 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.CameraAspectRatioHelper;
 import com.qtone.camerause.R;
+import com.qtone.camerause.kit.CameraAspectRatioKit;
 import com.qtone.camerause.wechat.WeChatCropEngine;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,9 +64,9 @@ public class CaptureFragment extends CameraFragment {
      */
     private AspectRatioTextureView aspectRatioTextureView;
     /**
-     * 相机宽高比辅助者
+     * 相机宽高比配套原件
      */
-    private CameraAspectRatioHelper cameraAspectRatioHelper;
+    private CameraAspectRatioKit cameraAspectRatioKit;
     /**
      * 容器
      */
@@ -90,8 +90,8 @@ public class CaptureFragment extends CameraFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (aspectRatioTextureView != null) {
-            // 相机宽高比辅助者
-            cameraAspectRatioHelper = new CameraAspectRatioHelper(aspectRatioTextureView);
+            // 相机宽高比配套原件
+            cameraAspectRatioKit = new CameraAspectRatioKit(aspectRatioTextureView);
         }
         if (getContext() != null) {
             // 试卷裁剪处理器
@@ -171,18 +171,18 @@ public class CaptureFragment extends CameraFragment {
         if (code == State.OPENED) {
             Log.d(TAG, "拍照相机打开成功");
             // 初始时按默认分辨率配置初始化预览控件展示比例
-            if (cameraAspectRatioHelper != null) {
-                cameraAspectRatioHelper.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            if (cameraAspectRatioKit != null) {
+                cameraAspectRatioKit.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
             }
             // 监听底层 Raw 帧数据 (NV21 字节流)
             if (getCurrentCamera() != null) {
                 // 注册预览帧回调
                 getCurrentCamera().addPreviewDataCallBack((data, width, height, format) -> {
                     // 1. UI 视角动态适配逻辑
-                    // 通过 CameraAspectRatioHelper 去重处理并更新 AspectRatioTextureView
+                    // 通过 CameraAspectRatioKit 去重处理并更新 AspectRatioTextureView
                     // 防止画面拉伸
-                    if (cameraAspectRatioHelper != null) {
-                        cameraAspectRatioHelper.updateAspectRatio(getActivity(), width, height);
+                    if (cameraAspectRatioKit != null) {
+                        cameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
                     }
                     // 2. 无损拍照捕获逻辑
                     // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
@@ -196,9 +196,9 @@ public class CaptureFragment extends CameraFragment {
             }
         } else if (code == State.CLOSED) {
             // 相机关闭或断开连接时
-            // 重置 CameraAspectRatioHelper 内缓存的分辨率记录
-            if (cameraAspectRatioHelper != null) {
-                cameraAspectRatioHelper.reset();
+            // 重置 CameraAspectRatioKit 内缓存的分辨率记录
+            if (cameraAspectRatioKit != null) {
+                cameraAspectRatioKit.reset();
             }
         } else if (code == State.ERROR) {
             Log.e(TAG, "拍照相机打开错误 || " + msg);
@@ -363,9 +363,9 @@ public class CaptureFragment extends CameraFragment {
         if (examCropProcessor != null) {
             examCropProcessor.destroy();
         }
-        if (cameraAspectRatioHelper != null) {
-            cameraAspectRatioHelper.release();
-            cameraAspectRatioHelper = null;
+        if (cameraAspectRatioKit != null) {
+            cameraAspectRatioKit.release();
+            cameraAspectRatioKit = null;
         }
         super.onDestroyView();
     }

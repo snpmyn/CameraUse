@@ -17,8 +17,8 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.CameraAspectRatioHelper;
 import com.qtone.camerause.R;
+import com.qtone.camerause.kit.CameraAspectRatioKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -47,9 +47,9 @@ public class ScanCodeFragment extends CameraFragment {
      */
     private AspectRatioTextureView aspectRatioTextureView;
     /**
-     * 相机宽高比辅助者
+     * 相机宽高比配套原件
      */
-    private CameraAspectRatioHelper mCameraAspectRatioHelper;
+    private CameraAspectRatioKit mCameraAspectRatioKit;
     /**
      * 容器
      */
@@ -63,8 +63,8 @@ public class ScanCodeFragment extends CameraFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (aspectRatioTextureView != null) {
-            // 相机宽高比辅助者
-            mCameraAspectRatioHelper = new CameraAspectRatioHelper(aspectRatioTextureView);
+            // 相机宽高比配套原件
+            mCameraAspectRatioKit = new CameraAspectRatioKit(aspectRatioTextureView);
         }
         // 初始化 MLKit 扫码分析器
         scanCodeProcessor = new ScanCodeProcessor(new ScanCodeProcessor.OnScanResultListener() {
@@ -137,18 +137,18 @@ public class ScanCodeFragment extends CameraFragment {
         if (code == State.OPENED) {
             Log.d(TAG, "扫码相机打开成功");
             // 初始时按默认分辨率配置初始化预览控件展示比例
-            if (mCameraAspectRatioHelper != null) {
-                mCameraAspectRatioHelper.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
+            if (mCameraAspectRatioKit != null) {
+                mCameraAspectRatioKit.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
             }
             // 监听底层 Raw 帧数据 (NV21 字节流)
             if (getCurrentCamera() != null) {
                 // 注册预览帧回调
                 self.addPreviewDataCallBack((data, width, height, format) -> {
                     // 1. UI 视角动态适配逻辑
-                    // 通过 CameraAspectRatioHelper 去重处理并更新 AspectRatioTextureView
+                    // 通过 CameraAspectRatioKit 去重处理并更新 AspectRatioTextureView
                     // 防止画面拉伸
-                    if (mCameraAspectRatioHelper != null) {
-                        mCameraAspectRatioHelper.updateAspectRatio(getActivity(), width, height);
+                    if (mCameraAspectRatioKit != null) {
+                        mCameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
                     }
                     // 2. 实时扫码分析处理
                     if ((data != null) && (scanCodeProcessor != null)) {
@@ -159,9 +159,9 @@ public class ScanCodeFragment extends CameraFragment {
             }
         } else if (code == State.CLOSED) {
             // 相机关闭或断开连接时
-            // 重置 CameraAspectRatioHelper 内缓存的分辨率记录
-            if (mCameraAspectRatioHelper != null) {
-                mCameraAspectRatioHelper.reset();
+            // 重置 CameraAspectRatioKit 内缓存的分辨率记录
+            if (mCameraAspectRatioKit != null) {
+                mCameraAspectRatioKit.reset();
             }
         } else if (code == State.ERROR) {
             Log.e(TAG, "扫码相机打开错误 || " + msg);
@@ -174,9 +174,9 @@ public class ScanCodeFragment extends CameraFragment {
             scanCodeProcessor.release();
             scanCodeProcessor = null;
         }
-        if (mCameraAspectRatioHelper != null) {
-            mCameraAspectRatioHelper.release();
-            mCameraAspectRatioHelper = null;
+        if (mCameraAspectRatioKit != null) {
+            mCameraAspectRatioKit.release();
+            mCameraAspectRatioKit = null;
         }
         super.onDestroyView();
     }
