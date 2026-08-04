@@ -115,8 +115,8 @@ public class ScanCodeFragment extends CameraFragment {
         return new CameraRequest.Builder()
                 .setPreviewWidth(PREVIEW_WIDTH)
                 .setPreviewHeight(PREVIEW_HEIGHT)
-                // 若仅需扫码且无滤镜需求则设为 CameraRequest.RenderMode.NORMAL
-                // 可直接输出 NV21 数据，效率比 OPENGL (RGBA) 更高。
+                // CameraRequest.RenderMode.NORMAL 直接输出 NV21 数据
+                // 效率较 OPENGL (RGBA) 更高
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)

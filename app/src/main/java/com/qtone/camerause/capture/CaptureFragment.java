@@ -149,8 +149,8 @@ public class CaptureFragment extends CameraFragment {
         return new CameraRequest.Builder()
                 .setPreviewWidth(PREVIEW_WIDTH)
                 .setPreviewHeight(PREVIEW_HEIGHT)
-                // 若仅需扫码且无滤镜需求则设为 CameraRequest.RenderMode.NORMAL
-                // 可直接输出 NV21 数据，效率比 OPENGL (RGBA) 更高。
+                // CameraRequest.RenderMode.NORMAL 直接输出 NV21 数据
+                // 效率较 OPENGL (RGBA) 更高
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
@@ -232,7 +232,7 @@ public class CaptureFragment extends CameraFragment {
         captureImage(new ICaptureCallBack() {
             @Override
             public void onBegin() {
-                Log.d(TAG, "开始拍照...");
+                Log.d(TAG, "开始拍照");
                 ToastUtils.show("开始拍照");
             }
 
@@ -249,13 +249,13 @@ public class CaptureFragment extends CameraFragment {
 
             @Override
             public void onComplete(@Nullable String path) {
-                Log.d(TAG, "原生 captureImage 触发完成，临时文件路径: " + path);
+                Log.d(TAG, "拍照完整 - 临时文件路径 || " + path);
                 // 静默删除框架生成在 Cache 目录下的低清缓存图片
                 if (path != null) {
                     File tempFile = new File(path);
                     if (tempFile.exists()) {
                         boolean deleted = tempFile.delete();
-                        Log.d(TAG, "私有缓存临时文件清理状态: " + deleted);
+                        Log.d(TAG, "私有缓存临时文件清理状态 || " + deleted);
                     }
                 }
             }
