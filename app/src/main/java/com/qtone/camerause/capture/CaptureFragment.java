@@ -174,26 +174,22 @@ public class CaptureFragment extends CameraFragment {
             if (cameraAspectRatioKit != null) {
                 cameraAspectRatioKit.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
             }
-            // 监听底层 Raw 帧数据 (NV21 字节流)
-            if (getCurrentCamera() != null) {
-                // 注册预览帧回调
-                getCurrentCamera().addPreviewDataCallBack((data, width, height, format) -> {
-                    // 1. UI 视角动态适配逻辑
-                    // 通过 CameraAspectRatioKit 去重处理并更新 AspectRatioTextureView
-                    // 防止画面拉伸
-                    if (cameraAspectRatioKit != null) {
-                        cameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
-                    }
-                    // 2. 无损拍照捕获逻辑
-                    // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
-                    // compareAndSet(true, false) (检查当前值是否为 true，是则立刻将其修改为 false 并返回 true)
-                    if (isCaptureRequested.compareAndSet(true, false) && (data != null)) {
-                        Log.d(TAG, "成功捕获硬件底层 NV21 帧, 字节大小: " + data.length + " Byte | 帧尺寸: " + width + "x" + height);
-                        // 开启后台异步子线程进行物理字节转换与写盘
-                        new Thread(() -> processRawYuvToJpeg(data, width, height, targetSavePath)).start();
-                    }
-                });
-            }
+            // 注册预览帧回调
+            self.addPreviewDataCallBack((data, width, height, format) -> {
+                // 1. UI 视角动态适配逻辑
+                // 直接交由 CameraAspectRatioKit 处理 (内置分辨率去重与线程安全切换，防止界面拉伸或频繁 re-layout)
+                if (cameraAspectRatioKit != null) {
+                    cameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
+                }
+                // 2. 无损拍照捕获逻辑
+                // 通过原子操作判断并消费拍照标记，抢占当前唯一的原始硬件 YUV 帧。
+                // compareAndSet(true, false) (检查当前值是否为 true，是则立刻将其修改为 false 并返回 true)
+                if (isCaptureRequested.compareAndSet(true, false) && (data != null)) {
+                    Log.d(TAG, "成功捕获硬件底层 NV21 帧, 字节大小: " + data.length + " Byte | 帧尺寸: " + width + "x" + height);
+                    // 开启后台异步子线程进行物理字节转换与写盘
+                    new Thread(() -> processRawYuvToJpeg(data, width, height, targetSavePath)).start();
+                }
+            });
         } else if (code == State.CLOSED) {
             // 相机关闭或断开连接时
             // 重置 CameraAspectRatioKit 内缓存的分辨率记录
@@ -302,11 +298,9 @@ public class CaptureFragment extends CameraFragment {
             }
             return;
         }
-
         if (getContext() != null) {
             examCropProcessor.processNv21Async(getContext(), nv21Data, width, height, onCropCallback);
         }
-
         try {
             // 直接将 1:1 底层点阵转为 YuvImage 实体
             YuvImage yuvImage = new YuvImage(nv21Data, ImageFormat.NV21, width, height, null);

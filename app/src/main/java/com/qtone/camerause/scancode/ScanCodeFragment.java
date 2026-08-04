@@ -140,23 +140,19 @@ public class ScanCodeFragment extends CameraFragment {
             if (mCameraAspectRatioKit != null) {
                 mCameraAspectRatioKit.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
             }
-            // 监听底层 Raw 帧数据 (NV21 字节流)
-            if (getCurrentCamera() != null) {
-                // 注册预览帧回调
-                self.addPreviewDataCallBack((data, width, height, format) -> {
-                    // 1. UI 视角动态适配逻辑
-                    // 通过 CameraAspectRatioKit 去重处理并更新 AspectRatioTextureView
-                    // 防止画面拉伸
-                    if (mCameraAspectRatioKit != null) {
-                        mCameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
-                    }
-                    // 2. 实时扫码分析处理
-                    if ((data != null) && (scanCodeProcessor != null)) {
-                        // 将回调中的 format 准确透传给 UsbScanManager / ScanCodeProcessor
-                        scanCodeProcessor.processFrame(data, width, height, format, 0);
-                    }
-                });
-            }
+            // 注册预览帧回调
+            self.addPreviewDataCallBack((data, width, height, format) -> {
+                // 1. UI 视角动态适配逻辑
+                // 直接交由 CameraAspectRatioKit 处理 (内置分辨率去重与线程安全切换，防止界面拉伸或频繁 re-layout)
+                if (mCameraAspectRatioKit != null) {
+                    mCameraAspectRatioKit.updateAspectRatio(getActivity(), width, height);
+                }
+                // 2. 实时扫码分析处理
+                if ((data != null) && (scanCodeProcessor != null)) {
+                    // 将回调中的 format 准确透传给 UsbScanManager / ScanCodeProcessor
+                    scanCodeProcessor.processFrame(data, width, height, format, 0);
+                }
+            });
         } else if (code == State.CLOSED) {
             // 相机关闭或断开连接时
             // 重置 CameraAspectRatioKit 内缓存的分辨率记录
