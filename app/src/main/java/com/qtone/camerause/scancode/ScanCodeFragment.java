@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.scancode;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +18,7 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.R;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,14 +31,14 @@ import org.jetbrains.annotations.NotNull;
 public class ScanCodeFragment extends CameraFragment implements IPreviewDataCallBack {
     private static final String TAG = ScanCodeFragment.class.getSimpleName();
     private AspectRatioTextureView mTextureView;
+    private ScanCodeProcessor scanCodeProcessor;
     private ViewGroup mContainer;
-    private UsbScanManager mScanManager;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // 初始化 MLKit 扫码分析器
-        mScanManager = new UsbScanManager(new UsbScanManager.OnScanResultListener() {
+        scanCodeProcessor = new ScanCodeProcessor(new ScanCodeProcessor.OnScanResultListener() {
             @Override
             public void onSuccess(String result, Barcode barcode) {
                 Log.d(TAG, "扫码成功 || " + result);
@@ -106,9 +107,9 @@ public class ScanCodeFragment extends CameraFragment implements IPreviewDataCall
     @Override
     public void onPreviewData(@Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
         // 实时预览数据抛出回调
-        if ((data != null) && (mScanManager != null)) {
+        if ((data != null) && (scanCodeProcessor != null)) {
             // 将回调中的 format 准确透传给 UsbScanManager
-            mScanManager.processFrame(data, width, height, format, 0);
+            scanCodeProcessor.processFrame(data, width, height, format, 0);
         }
     }
 
@@ -119,9 +120,9 @@ public class ScanCodeFragment extends CameraFragment implements IPreviewDataCall
         if (getCurrentCamera() != null) {
             getCurrentCamera().removePreviewDataCallBack(this);
         }
-        if (mScanManager != null) {
-            mScanManager.release();
-            mScanManager = null;
+        if (scanCodeProcessor != null) {
+            scanCodeProcessor.release();
+            scanCodeProcessor = null;
         }
         super.onDestroyView();
     }
