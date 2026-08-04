@@ -1,7 +1,15 @@
 package com.qtone.camerause;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.jiangdg.ausbc.utils.ToastUtils;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +23,7 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +38,10 @@ import java.util.concurrent.Executors;
 public class ExamCropProcessor {
     private static final String TAG = ExamCropProcessor.class.getSimpleName();
     /**
+     * 线程消息调度器
+     */
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    /**
      * 增强实现
      */
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -38,13 +51,13 @@ public class ExamCropProcessor {
      * <p>
      * 异步处理本地图片文件的裁剪与透视矫正
      *
+     * @param context        上下文
+     *                       用于获取外部存储目录以及触发系统媒体库刷新
      * @param inputPath      输入路径
      *                       原始图像文件路径
-     * @param outputPath     输出路径
-     *                       裁剪后输出图像文件路径
      * @param onCropCallback 裁剪回调
      */
-    public void processAsync(String inputPath, String outputPath, OnCropCallback onCropCallback) {
+    public void processAsync(@NonNull Context context, String inputPath, OnCropCallback onCropCallback) {
         executorService.execute(() -> {
             Mat srcMat = Imgcodecs.imread(inputPath);
             if (srcMat.empty()) {
@@ -57,13 +70,34 @@ public class ExamCropProcessor {
                 notifyError(onCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
+            // 内部自动生成裁剪后的输出路径
+            File mediaDir = context.getExternalFilesDir("Pictures");
+            if ((mediaDir != null) && !mediaDir.exists()) {
+                boolean isCreated = mediaDir.mkdirs();
+                if (!isCreated) {
+                    Log.w(TAG, "创建 Pictures 图片保存目录失败");
+                }
+            }
+            String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
             boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
             if (saved && (resultBitmap != null)) {
-                if (onCropCallback != null) {
-                    onCropCallback.onCropSuccess(outputPath, resultBitmap);
-                }
+                // 内部自动触发系统 MediaScanner 媒体库刷新
+                MediaScannerConnection.scanFile(
+                        context,
+                        new String[]{outputPath},
+                        new String[]{"image/jpeg"},
+                        (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                );
+                // 切换到主线程处理成功逻辑
+                handler.post(() -> {
+                    Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
+                    ToastUtils.show("试卷矫正裁剪成功");
+                    if (onCropCallback != null) {
+                        onCropCallback.onCropSuccess(outputPath, resultBitmap);
+                    }
+                });
             } else {
                 notifyError(onCropCallback, "保存裁剪图像失败");
             }
@@ -75,15 +109,15 @@ public class ExamCropProcessor {
      * <p>
      * 异步处理摄像头实时采集的 NV21 数据帧的裁剪与透视矫正
      *
+     * @param context        上下文
+     *                       用于获取外部存储目录以及触发系统媒体库刷新
      * @param nv21Data       NV21 数据
      *                       NV21 格式的图像字节数组
      * @param width          宽
      * @param height         高
-     * @param outputPath     输出路径
-     *                       裁剪后输出图像文件路径
      * @param onCropCallback 裁剪回调
      */
-    public void processNv21Async(byte[] nv21Data, int width, int height, String outputPath, OnCropCallback onCropCallback) {
+    public void processNv21Async(@NonNull Context context, byte[] nv21Data, int width, int height, OnCropCallback onCropCallback) {
         executorService.execute(() -> {
             if ((nv21Data == null) || (nv21Data.length < width * height * 3 / 2)) {
                 notifyError(onCropCallback, "NV21 数据帧异常");
@@ -104,14 +138,33 @@ public class ExamCropProcessor {
                 return;
             }
 
+            File mediaDir = context.getExternalFilesDir("Pictures");
+            if ((mediaDir != null) && !mediaDir.exists()) {
+                boolean isCreated = mediaDir.mkdirs();
+                if (!isCreated) {
+                    Log.w(TAG, "创建 Pictures 图片保存目录失败");
+                }
+            }
+            String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+
             boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
 
             if (saved && (resultBitmap != null)) {
-                if (onCropCallback != null) {
-                    onCropCallback.onCropSuccess(outputPath, resultBitmap);
-                }
+                MediaScannerConnection.scanFile(
+                        context,
+                        new String[]{outputPath},
+                        new String[]{"image/jpeg"},
+                        (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                );
+                handler.post(() -> {
+                    Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
+                    ToastUtils.show("试卷矫正裁剪成功");
+                    if (onCropCallback != null) {
+                        onCropCallback.onCropSuccess(outputPath, resultBitmap);
+                    }
+                });
             } else {
                 notifyError(onCropCallback, "保存裁剪图像失败");
             }
@@ -306,9 +359,13 @@ public class ExamCropProcessor {
      * @param errorMsg       错误消息
      */
     private void notifyError(OnCropCallback onCropCallback, String errorMsg) {
-        if (onCropCallback != null) {
-            onCropCallback.onCropError(errorMsg);
-        }
+        handler.post(() -> {
+            Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
+            ToastUtils.show("试卷矫正失败: " + errorMsg);
+            if (onCropCallback != null) {
+                onCropCallback.onCropError(errorMsg);
+            }
+        });
     }
 
     /**
