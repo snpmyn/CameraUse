@@ -52,7 +52,7 @@ public class CameraAspectRatioKit {
         }
         // 状态检查
         // 只有当分辨率确实发生变化时才更新布局，避免高频触发 requestLayout() 造成卡顿。
-        if ((width != currentWidth) || (height != currentHeight)) {
+        if ((currentWidth != width) || (currentHeight != height)) {
             currentWidth = width;
             currentHeight = height;
             float ratio = (float) width / (float) height;
