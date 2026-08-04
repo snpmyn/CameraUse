@@ -10,7 +10,6 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatTextView
 
 class TipView : AppCompatTextView {
-
     private val mHandler = Handler(Looper.getMainLooper())
 
     private var showAnim = ObjectAnimator.ofFloat(this, "alpha", 0.08f, 0.8f)
@@ -32,19 +31,21 @@ class TipView : AppCompatTextView {
 
     private fun init(context: Context?) {
         hideAnim.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationRepeat(animation: Animator?) {
+            override fun onAnimationRepeat(animation: Animator) {
             }
 
-            override fun onAnimationEnd(animation: Animator?) {
+            override fun onAnimationEnd(animation: Animator) {
                 if (this@TipView.visibility == View.VISIBLE) {
                     this@TipView.visibility = View.GONE
                 }
             }
 
-            override fun onAnimationCancel(animation: Animator?) {
+            override fun onAnimationCancel(animation: Animator) {
+
             }
 
-            override fun onAnimationStart(animation: Animator?) {
+            override fun onAnimationStart(animation: Animator) {
+
             }
         })
     }

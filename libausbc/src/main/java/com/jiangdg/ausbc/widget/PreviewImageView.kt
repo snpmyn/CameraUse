@@ -17,7 +17,6 @@ import com.jiangdg.ausbc.utils.Logger
  * description: Preview ImageView
  */
 class PreviewImageView : AppCompatImageView {
-
     private var isNewImageLoading: Boolean = false
     private var mProgressAnim: ValueAnimator? = null
     private lateinit var mProgressPath: Path
@@ -264,7 +263,7 @@ class PreviewImageView : AppCompatImageView {
         mBreathAnimation =
             ObjectAnimator.ofPropertyValuesHolder(this, scaleX, scaleY, progress).apply {
                 addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator?) {
+                    override fun onAnimationEnd(animation: Animator) {
                         super.onAnimationEnd(animation)
                         isNewImageLoading = false
                         setProgress(0.0f)
