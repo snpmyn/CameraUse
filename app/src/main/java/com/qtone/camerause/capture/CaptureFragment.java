@@ -1,5 +1,6 @@
-package com.qtone.camerause;
+package com.qtone.camerause.capture;
 
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -21,6 +22,8 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.R;
+import com.qtone.camerause.wechat.WeChatCropEngine;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -78,14 +81,6 @@ public class CaptureFragment extends CameraFragment {
      */
     private ExamCropProcessor.OnCropCallback onCropCallback;
     /**
-     * 试卷头部处理器
-     */
-    private ExamHeaderProcessor examHeaderProcessor;
-    /**
-     * 头部裁剪回调
-     */
-    private ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback;
-    /**
      * 动态保存当前相机生效的实际渲染分辨率
      * <p>
      * 防止预览画面畸变
@@ -100,10 +95,22 @@ public class CaptureFragment extends CameraFragment {
         if (getContext() != null) {
             // 试卷裁剪处理器
             examCropProcessor = new ExamCropProcessor();
-            // 试卷头部处理器
-            examHeaderProcessor = new ExamHeaderProcessor(getContext());
 
-            examCropProcessor.processAsync(getContext(), new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785734938447" + ".jpg").getAbsolutePath(), onCropCallback);
+            //examCropProcessor.processAsync(getContext(), new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785734938447" + ".jpg").getAbsolutePath(), onCropCallback);
+            //examCropProcessor.processAsync(getContext(), new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785752165469" + ".jpg").getAbsolutePath(), onCropCallback);
+
+            WeChatCropEngine cropEngine = new WeChatCropEngine(getActivity());
+            cropEngine.process(getActivity(), new File(getContext().getExternalFilesDir("Pictures"), "HQ_RAW_" + "1785752165469" + ".jpg").getAbsolutePath(), true, new WeChatCropEngine.OnCropListener() {
+                @Override
+                public void onSuccess(Bitmap resultBitmap, String savedPath) {
+                    ToastUtils.show("裁剪成功 || " + savedPath);
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    ToastUtils.show(errorMessage);
+                }
+            });
         }
     }
 
@@ -229,9 +236,6 @@ public class CaptureFragment extends CameraFragment {
                 if (onCropCallback != null) {
                     onCropCallback.onCropError("拍照错误 || " + msg);
                 }
-                if (onHeaderCropCallback != null) {
-                    onHeaderCropCallback.onHeaderCropError("拍照错误 || " + msg);
-                }
             }
 
             @Override
@@ -290,9 +294,6 @@ public class CaptureFragment extends CameraFragment {
                     if (onCropCallback != null) {
                         onCropCallback.onCropError("YUV 数据为空");
                     }
-                    if (onHeaderCropCallback != null) {
-                        onHeaderCropCallback.onHeaderCropError("YUV 数据为空");
-                    }
                 });
             }
             return;
@@ -306,13 +307,15 @@ public class CaptureFragment extends CameraFragment {
                     if (onCropCallback != null) {
                         onCropCallback.onCropError("YUV 数据帧截断或损坏");
                     }
-                    if (onHeaderCropCallback != null) {
-                        onHeaderCropCallback.onHeaderCropError("YUV 数据帧截断或损坏");
-                    }
                 });
             }
             return;
         }
+
+        if (getContext() != null) {
+            examCropProcessor.processNv21Async(getContext(), nv21Data, width, height, onCropCallback);
+        }
+
         try {
             // 直接将 1:1 底层点阵转为 YuvImage 实体
             YuvImage yuvImage = new YuvImage(nv21Data, ImageFormat.NV21, width, height, null);
@@ -337,11 +340,7 @@ public class CaptureFragment extends CameraFragment {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     ToastUtils.show("拍照完成 || " + targetPath);
-                    // A. 执行试卷头裁剪处理
-                    if (examHeaderProcessor != null) {
-                        examHeaderProcessor.process(targetPath, onHeaderCropCallback);
-                    }
-                    // B. 执行试卷四角黑块透视变换裁剪处理
+                    // 试卷裁剪处理器工作
                     if ((examCropProcessor != null) && (getContext() != null)) {
                         examCropProcessor.processAsync(getContext(), targetPath, onCropCallback);
                     }
@@ -353,9 +352,6 @@ public class CaptureFragment extends CameraFragment {
                 getActivity().runOnUiThread(() -> {
                     if (onCropCallback != null) {
                         onCropCallback.onCropError("处理高清 YUV 帧失败");
-                    }
-                    if (onHeaderCropCallback != null) {
-                        onHeaderCropCallback.onHeaderCropError("处理高清 YUV 帧失败");
                     }
                 });
             }
@@ -371,22 +367,10 @@ public class CaptureFragment extends CameraFragment {
         this.onCropCallback = onCropCallback;
     }
 
-    /**
-     * 设置头部裁剪回调
-     *
-     * @param onHeaderCropCallback 头部裁剪回调
-     */
-    public void setOnHeaderCropCallback(ExamHeaderProcessor.OnHeaderCropCallback onHeaderCropCallback) {
-        this.onHeaderCropCallback = onHeaderCropCallback;
-    }
-
     @Override
     public void onDestroyView() {
         if (examCropProcessor != null) {
             examCropProcessor.destroy();
-        }
-        if (examHeaderProcessor != null) {
-            examHeaderProcessor.destroy();
         }
         super.onDestroyView();
     }
