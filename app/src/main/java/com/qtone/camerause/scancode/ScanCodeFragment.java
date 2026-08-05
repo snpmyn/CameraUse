@@ -19,6 +19,7 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.R;
 import com.qtone.camerause.kit.CameraAspectRatioKit;
+import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,17 +32,9 @@ import org.jetbrains.annotations.NotNull;
 public class ScanCodeFragment extends CameraFragment {
     private static final String TAG = ScanCodeFragment.class.getSimpleName();
     /**
-     * 默认请求的相机物理分辨率
-     * <p>
-     * 宽
+     * 默认分辨率
      */
-    private static final int PREVIEW_WIDTH = 2592;
-    /**
-     * 默认请求的相机物理分辨率
-     * <p>
-     * 高
-     */
-    private static final int PREVIEW_HEIGHT = 1944;
+    private static final CameraResolution DEFAULT_RESOLUTION = CameraResolution.RES_1280_720;
     /**
      * 渲染控件与容器
      */
@@ -113,8 +106,8 @@ public class ScanCodeFragment extends CameraFragment {
     @Override
     protected CameraRequest getCameraRequest() {
         return new CameraRequest.Builder()
-                .setPreviewWidth(PREVIEW_WIDTH)
-                .setPreviewHeight(PREVIEW_HEIGHT)
+                .setPreviewWidth(DEFAULT_RESOLUTION.getWidth())
+                .setPreviewHeight(DEFAULT_RESOLUTION.getHeight())
                 // CameraRequest.RenderMode.NORMAL 直接输出 NV21 数据
                 // 效率较 OPENGL (RGBA) 更高
                 .setRenderMode(CameraRequest.RenderMode.OPENGL)
@@ -136,9 +129,9 @@ public class ScanCodeFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
         if (code == State.OPENED) {
             Log.d(TAG, "扫码相机打开成功");
-            // 初始时按默认分辨率配置初始化预览控件展示比例
+            // 相机打开成功 -> 按默认分辨率设置预览区域比例
             if (mCameraAspectRatioKit != null) {
-                mCameraAspectRatioKit.updateAspectRatio(getActivity(), PREVIEW_WIDTH, PREVIEW_HEIGHT);
+                mCameraAspectRatioKit.updateAspectRatio(getActivity(), DEFAULT_RESOLUTION.getWidth(), DEFAULT_RESOLUTION.getHeight());
             }
             // 注册预览帧回调
             self.addPreviewDataCallBack((data, width, height, format) -> {
