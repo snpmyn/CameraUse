@@ -3,8 +3,12 @@ package com.qtone.camerause.capture;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.baidu.ocr.sdk.OnResultListener;
+import com.baidu.ocr.sdk.exception.OCRError;
+import com.baidu.ocr.sdk.model.GeneralResult;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.crop.ExamCropProcessor;
+import com.qtone.camerause.ocr.BaiDuOcrHelper;
 
 /**
  * Created on 2026/8/6.
@@ -86,6 +90,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
+        // 试卷裁剪处理器 - 异步处理 NV21
         if (examCropProcessor != null) {
             try {
                 examCropProcessor.processNv21Async(captureActivity, nv21Data, width, height, CaptureActivityKit.this);
@@ -111,6 +116,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         }
         Log.d(TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
         ToastUtils.show("拍照成功");
+        // 1. 试卷裁剪处理器 - 异步处理
         if (examCropProcessor != null) {
             try {
                 examCropProcessor.processAsync(captureActivity, savePath, CaptureActivityKit.this);
@@ -118,6 +124,54 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
                 Log.e(TAG, "processAsync 失败 || " + e.getMessage());
             }
         }
+        // 2. 百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版)
+        BaiDuOcrHelper.recognizeAccurate(captureActivity, savePath, new OnResultListener<GeneralResult>() {
+            @Override
+            public void onResult(GeneralResult generalResult) {
+                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
+            }
+
+            @Override
+            public void onError(OCRError ocrError) {
+                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
+            }
+        });
+        // 2. 百度 OCR 辅助者 - 通用文字识别 (含生僻字版)
+        /*BaiDuOcrHelper.recognizeGeneralEnhanced(captureActivity, savePath, new OnResultListener<GeneralResult>() {
+            @Override
+            public void onResult(GeneralResult generalResult) {
+                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (含生僻字版) 结果\n" + generalResult);
+            }
+
+            @Override
+            public void onError(OCRError ocrError) {
+                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
+            }
+        });*/
+        // 2. 百度 OCR 辅助者 - 试卷分析与识别
+        /*BaiDuOcrHelper.recognizeExampleDoc(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
+            @Override
+            public void onResult(OcrResponseResult ocrResponseResult) {
+                Log.e(TAG, "百度 OCR 辅助者 - 试卷分析与识别结果\n" + ocrResponseResult);
+            }
+
+            @Override
+            public void onError(OCRError ocrError) {
+                Log.e(TAG, "百度 OCR 辅助者 - 试卷分析与识别错误\n" + ocrError.getMessage());
+            }
+        });*/
+        // 2. 百度 OCR 辅助者 - 手写文字识别
+        /*BaiDuOcrHelper.recoginzeWrittenText(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
+            @Override
+            public void onResult(OcrResponseResult ocrResponseResult) {
+                Log.e(TAG, "百度 OCR 辅助者 - 手写文字识别结果\n" + ocrResponseResult);
+            }
+
+            @Override
+            public void onError(OCRError ocrError) {
+                Log.e(TAG, "百度 OCR 辅助者 - 手写文字识别错误\n" + ocrError.getMessage());
+            }
+        });*/
     }
 
     /**
