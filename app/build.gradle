@@ -21,7 +21,7 @@ android {
         // UVCCamera 包含底层 C++ NDK 架构
         // UVC native 库通常没有 x86、x86_64
         ndk {
-            abiFilters 'armeabi-v7a','arm64-v8a','x86','x86_64'
+            abiFilters 'armeabi-v7a','arm64-v8a'//,'x86','x86_64'
         }
     }
 
@@ -39,6 +39,12 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 dependencies {
     implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
     implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
@@ -48,12 +54,22 @@ dependencies {
     // For debug online
     implementation project(':libausbc')
 
+    /*BaiDu - ocrsdk*/
+    implementation(name: 'ocrsdk', ext: 'aar')
+
     /*opencv*/
-    implementation 'org.opencv:opencv:4.9.0'
-    // ZXing 核心解码算法库
+    /*implementation 'org.opencv:opencv:4.9.0'*/
+    /*opencv-contrib*/
+    implementation 'com.quickbirdstudios:opencv-contrib:4.5.3.0'
+
+    /*ZXing*/
     implementation 'com.google.zxing:core:3.3.3'
+
     // ML Kit 扫码
     implementation 'com.google.mlkit:barcode-scanning:17.2.0'
-    /*Kotlin*/
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.6.21"
+    // 独立离线包 (模型直接内置在 App 内)
+    // 识别拉丁字符、英文、数字等
+    /*implementation 'com.google.mlkit:text-recognition:16.0.1'*/
+    // 中文扩展包
+    /*implementation 'com.google.mlkit:text-recognition-chinese:16.0.1'*/
 }
