@@ -115,14 +115,15 @@ public class ScanCodeProcessor {
                 );
             } else if (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) {
                 // RGBA 数据
-                // 直接通过 ByteBuffer 传递给 ML Kit，避免操作 Bitmap 带来异步竞争崩溃和内存泄漏风险。
-                inputImage = InputImage.fromByteBuffer(
-                        ByteBuffer.wrap(data),
-                        width,
-                        height,
-                        rotationDegrees,
-                        InputImage.IMAGE_FORMAT_NV21
-                );
+                // 复用 Bitmap 避免操作与格式解析错误 (降低 GC 卡顿风险)
+                if ((reusableBitmap == null) || (reusableBitmap.getWidth() != width) || (reusableBitmap.getHeight() != height)) {
+                    if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
+                        reusableBitmap.recycle();
+                    }
+                    reusableBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                }
+                reusableBitmap.copyPixelsFromBuffer(ByteBuffer.wrap(data));
+                inputImage = InputImage.fromBitmap(reusableBitmap, rotationDegrees);
             }
             if (inputImage == null) {
                 isProcessing.set(false);

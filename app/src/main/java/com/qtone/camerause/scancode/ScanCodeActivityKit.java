@@ -22,8 +22,10 @@ public class ScanCodeActivityKit implements ScanCodeProcessor.OnScanCodeListener
      * constructor
      */
     public ScanCodeActivityKit() {
+        // 扫码处理器
         this.scanCodeProcessor = new ScanCodeProcessor(this);
-        this.scanCodeProcessor.setScanInterval(1);
+        // 设置扫描间隔
+        this.scanCodeProcessor.setScanInterval(1200);
     }
 
     /**
