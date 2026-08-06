@@ -1,24 +1,19 @@
 package com.qtone.camerause;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
-import com.baidu.ocr.sdk.model.GeneralParams;
 import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.capture.CaptureFragment;
-import com.qtone.camerause.capture.ExamCropProcessor;
-import com.qtone.camerause.scancode.ScanCodeFragment;
-
-import java.io.File;
+import com.qtone.camerause.capture.CaptureActivity;
+import com.qtone.camerause.scancode.ScanCodeActivity;
 
 /**
  * @decs: 主页
@@ -26,32 +21,37 @@ import java.io.File;
  * @date: 2026/7/28 16:14
  * @version: v 1.0
  */
-public class MainActivity extends AppCompatActivity implements ExamCropProcessor.OnCropCallback {
+public class MainActivity extends AppCompatActivity {
     /**
      * 请求相机权限码
      */
     private static final int REQUEST_CAMERA_PERMISSION_CODE = 100;
     /**
+     * 动作标识
+     */
+    private static final int ACTION_NONE = 0;
+    private static final int ACTION_GO_TO_CAPTURE_ACTIVITY = 1;
+    private static final int ACTION_GO_TO_SCAN_CODE_ACTIVITY = 2;
+    /**
+     * 当前待办动作标识
+     */
+    private int currentPendingAction = ACTION_NONE;
+    /**
      * 控件
      */
     private MaterialButton mainActivityMbCapture;
     private MaterialButton mainActivityMbScanCode;
-    /**
-     * 当前碎片
-     */
-    private Fragment currentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 布局包含 ID 为 R.id.mainActivityFl 的 FrameLayout
         setContentView(R.layout.activity_main);
         // 初始化视图
         initView();
         // 初始化监听
         initListener();
         // 检查并请求权限
-        checkAndRequestPermission();
+        checkAndRequestPermission(ACTION_NONE);
     }
 
     /**
@@ -68,27 +68,26 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
     private void initListener() {
         mainActivityMbCapture.setOnClickListener(v -> {
             // 1. 先检查权限
-            if (!hasCameraPermission()) {
-                checkAndRequestPermission();
-                return;
-            }
-            // 2. 有权限再进行相应操作
-            if (currentFragment instanceof CaptureFragment) {
-                // 当前已在拍照碎片 -> 直接拍照
-                ((CaptureFragment) currentFragment).capture();
+            if (hasCameraPermission()) {
+                // 2. 有权限
+                // 跳转拍照页
+                navigateToCaptureActivity();
             } else {
-                // 加载拍照碎片
-                loadCaptureFragment();
+                // 3. 无权限
+                // 检查并请求权限
+                checkAndRequestPermission(ACTION_GO_TO_CAPTURE_ACTIVITY);
             }
         });
         mainActivityMbScanCode.setOnClickListener(v -> {
-            // 检查权限
+            // 1. 先检查权限
             if (hasCameraPermission()) {
-                // 切换至扫码碎片
-                switchFragment(new ScanCodeFragment());
+                // 2. 有权限
+                // 跳转扫码页
+                navigateToScanCodeActivity();
             } else {
-                // 检查并请求权限
-                checkAndRequestPermission();
+                // 3. 无权限
+                //检查并请求权限
+                checkAndRequestPermission(ACTION_GO_TO_SCAN_CODE_ACTIVITY);
             }
         });
     }
@@ -104,51 +103,54 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
 
     /**
      * 检查并请求权限
+     *
+     * @param targetAction 目标动作标识
      */
-    private void checkAndRequestPermission() {
-        if (!hasCameraPermission()) {
+    private void checkAndRequestPermission(int targetAction) {
+        this.currentPendingAction = targetAction;
+        if (hasCameraPermission()) {
+            // 执行待办动作标识
+            executePendingAction();
+
+        } else {
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_CAMERA_PERMISSION_CODE
             );
-        } else {
-            loadScanCodeFragment();
         }
     }
 
     /**
-     * 加载拍照碎片
+     * 导航至拍照页
      */
-    private void loadCaptureFragment() {
-        CaptureFragment captureFragment = new CaptureFragment();
-        captureFragment.setOnCropCallback(this);
-        switchFragment(captureFragment);
+    private void navigateToCaptureActivity() {
+        startActivity(new Intent(this, CaptureActivity.class));
     }
 
     /**
-     * 加载扫码碎片
+     * 导航至扫码页
      */
-    private void loadScanCodeFragment() {
-        switchFragment(new ScanCodeFragment());
+    private void navigateToScanCodeActivity() {
+        startActivity(new Intent(this, ScanCodeActivity.class));
     }
 
     /**
-     * 切换碎片
-     * <p>
-     * 使用 replace 释放底层 USB 相机设备锁
-     * 保证硬件顺利重新占用
-     *
-     * @param targetFragment 目标碎片
+     * 执行待办动作标识
      */
-    private void switchFragment(Fragment targetFragment) {
-        if ((currentFragment != null) && (currentFragment.getClass().equals(targetFragment.getClass()))) {
-            return;
+    private void executePendingAction() {
+        switch (currentPendingAction) {
+            case ACTION_GO_TO_CAPTURE_ACTIVITY:
+                navigateToCaptureActivity();
+                break;
+            case ACTION_GO_TO_SCAN_CODE_ACTIVITY:
+                navigateToScanCodeActivity();
+                break;
+            case ACTION_NONE:
+            default:
+                break;
         }
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainActivityFl, targetFragment)
-                .commitAllowingStateLoss();
-        currentFragment = targetFragment;
+        currentPendingAction = ACTION_NONE;
     }
 
     @Override
@@ -156,48 +158,14 @@ public class MainActivity extends AppCompatActivity implements ExamCropProcessor
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                loadScanCodeFragment();
+                // 1. 权限申请成功
+                // 执行待办动作标识
+                executePendingAction();
             } else {
+                // 2. 权限申请拒绝
+                currentPendingAction = ACTION_NONE;
                 ToastUtils.show("需要相机权限才能使用 USB 相机");
             }
         }
-    }
-
-    /**
-     * 裁剪成功
-     *
-     * @param croppedPath  已拷贝路径
-     * @param resultBitmap 结果像素数据
-     */
-    @Override
-    public void onCropSuccess(String croppedPath, Bitmap resultBitmap) {
-        GeneralParams generalParams = new GeneralParams();
-        generalParams.setDetectDirection(true);
-        generalParams.setImageFile(new File(croppedPath));
-        // recognizeGeneral
-        /*OCR.getInstance(this).recognizeAccurateBasic(generalParams, new OnResultListener<GeneralResult>() {
-            @Override
-            public void onResult(GeneralResult generalResult) {
-                Log.d("通用文字识别 (含位置信息版)", generalResult.toString());
-            }
-
-            @Override
-            public void onError(OCRError ocrError) {
-                Log.d("通用文字识别 (含位置信息版)", ocrError.getMessage());
-            }
-        });*/
-
-        /*MlKitOcrHelper mlKitOcrHelper = new MlKitOcrHelper();
-        mlKitOcrHelper.recognizeTextFromPath(this, croppedPath);*/
-    }
-
-    /**
-     * 裁剪错误
-     *
-     * @param errorMsg 错误消息
-     */
-    @Override
-    public void onCropError(String errorMsg) {
-
     }
 }
