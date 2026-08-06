@@ -19,92 +19,146 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ScanCodeProcessor {
     /**
-     * 成功后 1.5s 内不重复触发
+     * 默认扫描间隔
+     * <p>
+     * 默认成功后 1.5s 内不重复触发
      */
-    private static final long SCAN_INTERVAL = 1500;
-    private final BarcodeScanner scanner;
+    private static final long DEFAULT_SCAN_INTERVAL = 1500;
+    /**
+     * BarcodeScanner
+     */
+    private final BarcodeScanner barcodeScanner;
+    /**
+     * 扫码监听
+     */
+    private final OnScanCodeListener onScanCodeListener;
+    /**
+     * 进行中状态锁
+     * <p>
+     * 防止多次连续抓帧
+     * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
+     */
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
-    private final OnScanResultListener onScanResultListener;
+    /**
+     * 扫描间隔
+     * <p>
+     * 扫码成功冷却时间
+     * 单位 毫秒
+     */
+    private volatile long scanInterval = DEFAULT_SCAN_INTERVAL;
     /**
      * 防抖
+     * <p>
      * 控制扫码成功后的冷却时间
      */
-    private long lastSuccessTime = 0;
+    private volatile long lastSuccessTime = 0;
     /**
      * 缓存 Bitmap 对象
+     * <p>
      * 避免 RGBA 模式下频繁创建对象导致 GC 卡顿
      */
     private Bitmap reusableBitmap;
 
-    public ScanCodeProcessor(OnScanResultListener onScanResultListener) {
-        this.onScanResultListener = onScanResultListener;
-        this.scanner = BarcodeScanning.getClient();
+    /**
+     * constructor
+     *
+     * @param onScanCodeListener 扫码监听
+     */
+    public ScanCodeProcessor(OnScanCodeListener onScanCodeListener) {
+        this.onScanCodeListener = onScanCodeListener;
+        this.barcodeScanner = BarcodeScanning.getClient();
     }
 
-    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat format, int rotationDegrees) {
+    /**
+     * 设置扫描间隔
+     *
+     * @param scanInterval 扫描间隔
+     *                     扫码成功冷却时间
+     *                     单位 毫秒
+     */
+    public void setScanInterval(long scanInterval) {
+        this.scanInterval = scanInterval;
+    }
+
+    /**
+     * 处理帧
+     *
+     * @param data            相机底层输出的原始 NV21 / RGBA 字节数组
+     * @param width           帧物理宽
+     * @param height          帧物理高
+     * @param dataFormat      数据格式
+     * @param rotationDegrees 旋转角度
+     */
+    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, int rotationDegrees) {
         if ((data == null) || (data.length == 0)) {
             return;
         }
         // 扫码防抖
-        if ((System.currentTimeMillis() - lastSuccessTime) < SCAN_INTERVAL) {
+        if ((System.currentTimeMillis() - lastSuccessTime) < scanInterval) {
             return;
         }
         // 丢帧机制
-        // 如果上一帧还在 MLKit 分析中
-        // 抛弃当前帧
+        // 上一帧还在 MLKit 分析中则抛弃当前帧
         if (!isProcessing.compareAndSet(false, true)) {
             return;
         }
         try {
-            InputImage image = null;
-            if (format == IPreviewDataCallBack.DataFormat.NV21) {
+            InputImage inputImage = null;
+            if (dataFormat == IPreviewDataCallBack.DataFormat.NV21) {
                 // NV21 数据
                 // 直接给 ML Kit 解析 (性能最高)
-                image = InputImage.fromByteArray(
+                inputImage = InputImage.fromByteArray(
                         data,
                         width,
                         height,
                         rotationDegrees,
                         InputImage.IMAGE_FORMAT_NV21
                 );
-            } else if (format == IPreviewDataCallBack.DataFormat.RGBA) {
+            } else if (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) {
                 // RGBA 数据
-                // 转换成 Bitmap 后传给 ML Kit
-                if ((reusableBitmap == null) || (reusableBitmap.getWidth() != width) || (reusableBitmap.getHeight() != height)) {
-                    reusableBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                }
-                reusableBitmap.copyPixelsFromBuffer(ByteBuffer.wrap(data));
-                image = InputImage.fromBitmap(reusableBitmap, rotationDegrees);
+                // 直接通过 ByteBuffer 传递给 ML Kit，避免操作 Bitmap 带来异步竞争崩溃和内存泄漏风险。
+                inputImage = InputImage.fromByteBuffer(
+                        ByteBuffer.wrap(data),
+                        width,
+                        height,
+                        rotationDegrees,
+                        InputImage.IMAGE_FORMAT_NV21
+                );
             }
-            if (image == null) {
+            if (inputImage == null) {
                 isProcessing.set(false);
                 return;
             }
-            scanner.process(image)
+            barcodeScanner.process(inputImage)
                     .addOnSuccessListener(barcodes -> {
                         if ((barcodes != null) && !barcodes.isEmpty()) {
                             Barcode barcode = barcodes.get(0);
                             String rawValue = barcode.getRawValue();
-                            if ((rawValue != null) && (onScanResultListener != null)) {
+                            if ((rawValue != null) && (onScanCodeListener != null)) {
                                 lastSuccessTime = System.currentTimeMillis();
-                                onScanResultListener.onSuccess(rawValue, barcode);
+                                onScanCodeListener.onScanCodeSuccess(rawValue, barcode);
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
-                        if (onScanResultListener != null) {
-                            onScanResultListener.onFailure(e);
+                        if (onScanCodeListener != null) {
+                            onScanCodeListener.onScanCodeFailure(e);
                         }
                     })
                     .addOnCompleteListener(task -> isProcessing.set(false));
-        } catch (Exception e) {
+        } catch (Throwable t) {
+            // 捕获所有运行时异常与 Error
+            // 确保出现异常时可重置标志位，防止线程卡死。
             isProcessing.set(false);
         }
     }
 
+    /**
+     * 释放
+     */
     public void release() {
-        if (scanner != null) {
-            scanner.close();
+        if (barcodeScanner != null) {
+            barcodeScanner.close();
         }
         if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
             reusableBitmap.recycle();
@@ -112,9 +166,23 @@ public class ScanCodeProcessor {
         }
     }
 
-    public interface OnScanResultListener {
-        void onSuccess(String result, Barcode barcode);
+    /**
+     * 扫码监听
+     */
+    public interface OnScanCodeListener {
+        /**
+         * 扫码成功
+         *
+         * @param result  结果
+         * @param barcode Barcode
+         */
+        void onScanCodeSuccess(String result, Barcode barcode);
 
-        void onFailure(Exception e);
+        /**
+         * 扫码失败
+         *
+         * @param e 异常
+         */
+        void onScanCodeFailure(Exception e);
     }
 }
