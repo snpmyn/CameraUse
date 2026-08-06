@@ -8,7 +8,7 @@
     <uses-feature
         android:name="android.hardware.usb.host"
         android:required="true" />
-    <!--硬件特性声明使用摄像头-->
+    <!--硬件特性声明使用 CAMERA-->
     <!--required 设为 false (防止无内置摄像头的工业 Android 终端无法安装)-->
     <uses-feature
         android:name="android.hardware.camera"
@@ -32,6 +32,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CameraUse"
         tools:replace="android:theme">
+        <activity android:name=".scancode.ScanCodeActivity" />
+        <activity android:name=".capture.CaptureActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
