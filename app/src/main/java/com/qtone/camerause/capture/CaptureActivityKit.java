@@ -9,6 +9,7 @@ import com.baidu.ocr.sdk.model.GeneralResult;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.crop.ExamCropProcessor;
 import com.qtone.camerause.ocr.BaiDuOcrHelper;
+import com.qtone.camerause.wechat.WeChatCropEngine;
 
 /**
  * Created on 2026/8/6.
@@ -172,6 +173,18 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
                 Log.e(TAG, "百度 OCR 辅助者 - 手写文字识别错误\n" + ocrError.getMessage());
             }
         });*/
+        // 3. 微信裁剪引擎 - 过程
+        WeChatCropEngine.getInstance(captureActivity).process(captureActivity, savePath, true, new WeChatCropEngine.OnCropListener() {
+            @Override
+            public void onSuccess(Bitmap resultBitmap, String savedPath) {
+                Log.e(TAG, "微信裁剪引擎 - 过程成功\n" + savedPath);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e(TAG, "微信裁剪引擎 - 过程错误\n" + errorMessage);
+            }
+        });
     }
 
     /**
