@@ -1,7 +1,12 @@
 package com.qtone.camerause.capture;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -87,6 +92,14 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
         findViewById(R.id.captureActivityMbSingleCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbBurstCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbStopBurstCapture).setOnClickListener(this);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 102);
+            }
+        }
     }
 
     /**
@@ -113,7 +126,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     public void startSingleCapture() {
         if (captureActivityKit.getCaptureProcessor() != null) {
-            captureActivityKit.getCaptureProcessor().startSingleCapture(this, getCurrentCamera(), this::captureImage, captureActivityKit);
+            captureActivityKit.getCaptureProcessor().startSingleCapture(this, getCurrentCamera(), captureActivityKit);
         }
     }
 
@@ -125,7 +138,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     public void startBurstCapture(long intervalMs) {
         if (captureActivityKit.getCaptureProcessor() != null) {
-            captureActivityKit.getCaptureProcessor().startBurstCapture(this, getCurrentCamera(), intervalMs, this::captureImage, captureActivityKit);
+            captureActivityKit.getCaptureProcessor().startBurstCapture(this, getCurrentCamera(), intervalMs, captureActivityKit);
         }
     }
 

@@ -10,7 +10,6 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
-import com.jiangdg.ausbc.callback.ICaptureCallBack;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -219,13 +218,12 @@ public class CaptureProcessor {
      *
      * @param context           上下文
      * @param camera            相机硬件实例
-     * @param captureInvoker    SDK 拍照触发器解耦接口
      * @param onCaptureCallBack 拍照结果监听
      */
-    public void startSingleCapture(Context context, MultiCameraClient.ICamera camera, CaptureInvoker captureInvoker, OnCaptureCallBack onCaptureCallBack) {
+    public void startSingleCapture(Context context, MultiCameraClient.ICamera camera, OnCaptureCallBack onCaptureCallBack) {
         currentCaptureMode = CaptureMode.SINGLE;
         isBurstModeActive.set(false);
-        triggerCaptureInternal(context, camera, captureInvoker, onCaptureCallBack);
+        triggerCaptureInternal(context, camera, onCaptureCallBack);
     }
 
     /**
@@ -236,10 +234,9 @@ public class CaptureProcessor {
      * @param intervalMs        连拍时间间隔
      *                          单位 毫秒
      *                          硬性限制下限为 150ms 以防硬件写盘过载
-     * @param captureInvoker    SDK 拍照触发器解耦接口
      * @param onCaptureCallBack 拍照回调
      */
-    public void startBurstCapture(Context context, MultiCameraClient.ICamera camera, long intervalMs, CaptureInvoker captureInvoker, OnCaptureCallBack onCaptureCallBack) {
+    public void startBurstCapture(Context context, MultiCameraClient.ICamera camera, long intervalMs, OnCaptureCallBack onCaptureCallBack) {
         currentCaptureMode = CaptureMode.BURST;
         // 限制硬件编码与 IO 安全下限不低于 150ms
         this.burstIntervalMs = Math.max(150L, intervalMs);
@@ -247,7 +244,7 @@ public class CaptureProcessor {
         burstSequence.set(0);
         isBurstModeActive.set(true);
         Log.d(TAG, "开启连续拍照模式 - 间隔 || " + this.burstIntervalMs + " ms");
-        triggerCaptureInternal(context, camera, captureInvoker, onCaptureCallBack);
+        triggerCaptureInternal(context, camera, onCaptureCallBack);
     }
 
     /**
@@ -264,10 +261,9 @@ public class CaptureProcessor {
      *
      * @param context           上下文
      * @param camera            相机硬件实例
-     * @param captureInvoker    SDK 拍照触发器解耦接口
      * @param onCaptureCallBack 拍照回调
      */
-    private void triggerCaptureInternal(Context context, MultiCameraClient.ICamera camera, CaptureInvoker captureInvoker, OnCaptureCallBack onCaptureCallBack) {
+    private void triggerCaptureInternal(Context context, MultiCameraClient.ICamera camera, OnCaptureCallBack onCaptureCallBack) {
         if ((camera == null) || !camera.isCameraOpened()) {
             notifyError(onCaptureCallBack, "相机未准备就绪");
             return;
@@ -276,41 +272,11 @@ public class CaptureProcessor {
             applicationContext = context.getApplicationContext();
         }
         isSingleModeActive.set(true);
-        if (captureInvoker != null) {
-            long timestamp = System.currentTimeMillis();
-            File cacheDir = (context != null) ? context.getCacheDir() : null;
-            String tempFramePath = (cacheDir != null) ? new File(cacheDir, "TEMP_" + timestamp + ".jpg").getAbsolutePath() : null;
-            captureInvoker.invoke(new ICaptureCallBack() {
-                @Override
-                public void onBegin() {
-                    handler.post(() -> {
-                        if (onCaptureCallBack != null) {
-                            onCaptureCallBack.onCaptureBegin();
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(String msg) {
-                    Log.e(TAG, "拍照错误 || " + msg);
-                    isSingleModeActive.set(false);
-                    isBurstModeActive.set(false);
-                    notifyError(onCaptureCallBack, "拍照错误 || " + msg);
-                }
-
-                @Override
-                public void onComplete(String path) {
-                    // 拍照完成后，静默删除 SDK 框架生成的低清缓存临时文件。
-                    if (path != null) {
-                        File tempFile = new File(path);
-                        if (tempFile.exists()) {
-                            boolean deleted = tempFile.delete();
-                            Log.d(TAG, "私有缓存临时文件清理状态 || " + deleted);
-                        }
-                    }
-                }
-            }, tempFramePath);
-        }
+        handler.post(() -> {
+            if (onCaptureCallBack != null) {
+                onCaptureCallBack.onCaptureBegin();
+            }
+        });
     }
 
     /**
@@ -378,19 +344,5 @@ public class CaptureProcessor {
          * @param errorMsg 错误消息
          */
         void onCaptureError(String errorMsg);
-    }
-
-    /**
-     * SDK 拍照触发器解耦接口
-     */
-    @FunctionalInterface
-    public interface CaptureInvoker {
-        /**
-         * 执行 SDK 底层拍照逻辑
-         *
-         * @param iCaptureCallBack 拍照回调
-         * @param path             临时文件缓存路径
-         */
-        void invoke(ICaptureCallBack iCaptureCallBack, String path);
     }
 }

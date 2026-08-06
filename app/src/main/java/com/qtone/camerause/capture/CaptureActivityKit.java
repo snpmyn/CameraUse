@@ -115,7 +115,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        Log.d(TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
+        Log.e(TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
         ToastUtils.show("拍照成功");
         // 1. 试卷裁剪处理器 - 异步处理
         if (examCropProcessor != null) {
