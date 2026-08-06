@@ -17,7 +17,7 @@
 // * Created on 2026/8/3.
 // *
 // * @author 郑少鹏
-// * @desc ML Kit OCR 帮助者
+// * @desc ML Kit OCR 辅助者
 // */
 //public class MlKitOcrHelper {
 //    private static final String TAG = MlKitOcrHelper.class.getSimpleName();
