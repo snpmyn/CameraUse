@@ -51,23 +51,23 @@ public class ExamCropProcessor {
      * <p>
      * 异步处理本地图片文件的裁剪与透视矫正
      *
-     * @param context        上下文
-     *                       用于获取外部存储目录以及触发系统媒体库刷新
-     * @param inputPath      输入路径
-     *                       原始图像文件路径
-     * @param onCropCallback 裁剪回调
+     * @param context            上下文
+     *                           用于获取外部存储目录以及触发系统媒体库刷新
+     * @param inputPath          输入路径
+     *                           原始图像文件路径
+     * @param onExamCropCallback 试卷裁剪回调
      */
-    public void processAsync(@NonNull Context context, String inputPath, OnCropCallback onCropCallback) {
+    public void processAsync(@NonNull Context context, String inputPath, OnExamCropCallback onExamCropCallback) {
         executorService.execute(() -> {
             Mat srcMat = Imgcodecs.imread(inputPath);
             if (srcMat.empty()) {
-                notifyError(onCropCallback, "加载原图失败");
+                notifyError(onExamCropCallback, "加载原图失败");
                 return;
             }
             Mat croppedMat = cropPaperBody(srcMat);
             srcMat.release();
             if ((croppedMat == null) || croppedMat.empty()) {
-                notifyError(onCropCallback, "未能精确识别到试卷白纸主体");
+                notifyError(onExamCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
             // 内部自动生成裁剪后的输出路径
@@ -94,12 +94,12 @@ public class ExamCropProcessor {
                 handler.post(() -> {
                     Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
                     ToastUtils.show("试卷矫正裁剪成功");
-                    if (onCropCallback != null) {
-                        onCropCallback.onCropSuccess(outputPath, resultBitmap);
+                    if (onExamCropCallback != null) {
+                        onExamCropCallback.onExamCropSuccess(outputPath, resultBitmap);
                     }
                 });
             } else {
-                notifyError(onCropCallback, "保存裁剪图像失败");
+                notifyError(onExamCropCallback, "保存裁剪图像失败");
             }
         });
     }
@@ -109,18 +109,18 @@ public class ExamCropProcessor {
      * <p>
      * 异步处理摄像头实时采集的 NV21 数据帧的裁剪与透视矫正
      *
-     * @param context        上下文
-     *                       用于获取外部存储目录以及触发系统媒体库刷新
-     * @param nv21Data       NV21 数据
-     *                       NV21 格式的图像字节数组
-     * @param width          宽
-     * @param height         高
-     * @param onCropCallback 裁剪回调
+     * @param context            上下文
+     *                           用于获取外部存储目录以及触发系统媒体库刷新
+     * @param nv21Data           NV21 数据
+     *                           NV21 格式的图像字节数组
+     * @param width              宽
+     * @param height             高
+     * @param onExamCropCallback 试卷裁剪回调
      */
-    public void processNv21Async(@NonNull Context context, byte[] nv21Data, int width, int height, OnCropCallback onCropCallback) {
+    public void processNv21Async(@NonNull Context context, byte[] nv21Data, int width, int height, OnExamCropCallback onExamCropCallback) {
         executorService.execute(() -> {
             if ((nv21Data == null) || (nv21Data.length < width * height * 3 / 2)) {
-                notifyError(onCropCallback, "NV21 数据帧异常");
+                notifyError(onExamCropCallback, "NV21 数据帧异常");
                 return;
             }
             Mat yuvMat = new Mat(height + height / 2, width, CvType.CV_8UC1);
@@ -134,7 +134,7 @@ public class ExamCropProcessor {
             bgrMat.release();
 
             if ((croppedMat == null) || croppedMat.empty()) {
-                notifyError(onCropCallback, "未能精确识别到试卷白纸主体");
+                notifyError(onExamCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
 
@@ -161,12 +161,12 @@ public class ExamCropProcessor {
                 handler.post(() -> {
                     Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
                     ToastUtils.show("试卷矫正裁剪成功");
-                    if (onCropCallback != null) {
-                        onCropCallback.onCropSuccess(outputPath, resultBitmap);
+                    if (onExamCropCallback != null) {
+                        onExamCropCallback.onExamCropSuccess(outputPath, resultBitmap);
                     }
                 });
             } else {
-                notifyError(onCropCallback, "保存裁剪图像失败");
+                notifyError(onExamCropCallback, "保存裁剪图像失败");
             }
         });
     }
@@ -355,15 +355,15 @@ public class ExamCropProcessor {
     /**
      * 通知错误
      *
-     * @param onCropCallback 裁剪回调
-     * @param errorMsg       错误消息
+     * @param onExamCropCallback 试卷裁剪回调
+     * @param errorMsg           错误消息
      */
-    private void notifyError(OnCropCallback onCropCallback, String errorMsg) {
+    private void notifyError(OnExamCropCallback onExamCropCallback, String errorMsg) {
         handler.post(() -> {
             Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
             ToastUtils.show("试卷矫正失败: " + errorMsg);
-            if (onCropCallback != null) {
-                onCropCallback.onCropError(errorMsg);
+            if (onExamCropCallback != null) {
+                onExamCropCallback.onExamCropError(errorMsg);
             }
         });
     }
@@ -380,22 +380,22 @@ public class ExamCropProcessor {
     }
 
     /**
-     * 裁剪回调
+     * 试卷裁剪回调
      */
-    public interface OnCropCallback {
+    public interface OnExamCropCallback {
         /**
-         * 裁剪成功
+         * 试卷裁剪成功
          *
          * @param croppedPath  已拷贝路径
          * @param resultBitmap 结果像素数据
          */
-        void onCropSuccess(String croppedPath, Bitmap resultBitmap);
+        void onExamCropSuccess(String croppedPath, Bitmap resultBitmap);
 
         /**
-         * 裁剪错误
+         * 试卷裁剪错误
          *
          * @param errorMsg 错误消息
          */
-        void onCropError(String errorMsg);
+        void onExamCropError(String errorMsg);
     }
 }
