@@ -1,14 +1,11 @@
 package com.qtone.camerause.scancode;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraActivity;
 import com.qtone.camerause.value.CameraResolution;
@@ -20,15 +17,14 @@ import com.qtone.camerause.value.CameraResolution;
  * @desc 扫码页
  */
 public class ScanCodeActivity extends BaseCameraActivity {
-    private static final String TAG = ScanCodeActivity.class.getSimpleName();
     /**
      * 默认分辨率
      */
     private static final CameraResolution DEFAULT_RESOLUTION = CameraResolution.RES_1280_720;
     /**
-     * 扫码处理器
+     * 扫码页配套原件
      */
-    private ScanCodeProcessor scanCodeProcessor;
+    private ScanCodeActivityKit scanCodeActivityKit;
 
     /**
      * 获取布局 ID
@@ -71,20 +67,7 @@ public class ScanCodeActivity extends BaseCameraActivity {
     @Override
     protected void startLogic(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.startLogic(savedInstanceState);
-        scanCodeProcessor = new ScanCodeProcessor(new ScanCodeProcessor.OnScanCodeListener() {
-            @Override
-            public void onScanCodeSuccess(String result, Barcode barcode) {
-                Log.d(TAG, "扫码成功 || " + result);
-                ToastUtils.show("扫码成功 || " + result);
-            }
-
-            @Override
-            public void onScanCodeFailure(Exception e) {
-                Log.e(TAG, "扫码失败 || ", e);
-                ToastUtils.show("扫码成功 || " + e.getMessage());
-            }
-        });
-        scanCodeProcessor.setScanInterval(1);
+        scanCodeActivityKit = new ScanCodeActivityKit();
     }
 
     /**
@@ -97,18 +80,15 @@ public class ScanCodeActivity extends BaseCameraActivity {
      */
     @Override
     protected void onPreviewFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat) {
-        if ((data != null) && (scanCodeProcessor != null)) {
+        if ((data != null) && (scanCodeActivityKit.getScanCodeProcessor() != null)) {
             // 处理帧
-            scanCodeProcessor.processFrame(data, width, height, dataFormat, 0);
+            scanCodeActivityKit.getScanCodeProcessor().processFrame(data, width, height, dataFormat, 0);
         }
     }
 
     @Override
     protected void onDestroy() {
-        if (scanCodeProcessor != null) {
-            scanCodeProcessor.release();
-            scanCodeProcessor = null;
-        }
+        scanCodeActivityKit.release();
         super.onDestroy();
     }
 }

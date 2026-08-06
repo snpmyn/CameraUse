@@ -35,7 +35,6 @@ public class ScanCodeProcessor {
     /**
      * 进行中状态锁
      * <p>
-     * 防止多次连续抓帧
      * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
      */
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);

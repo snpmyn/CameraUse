@@ -110,7 +110,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
             return;
         }
         Log.d(TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
-        ToastUtils.show("拍照完成");
+        ToastUtils.show("拍照成功");
         if (examCropProcessor != null) {
             try {
                 examCropProcessor.processAsync(captureActivity, savePath, CaptureActivityKit.this);
