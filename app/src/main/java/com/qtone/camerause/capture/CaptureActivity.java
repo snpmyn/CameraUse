@@ -13,6 +13,7 @@ import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraActivity;
+import com.qtone.camerause.crop.ExamCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.Contract;

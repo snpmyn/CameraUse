@@ -1,4 +1,4 @@
-package com.qtone.camerause.capture;
+package com.qtone.camerause.crop;
 
 import android.content.Context;
 import android.graphics.Bitmap;
