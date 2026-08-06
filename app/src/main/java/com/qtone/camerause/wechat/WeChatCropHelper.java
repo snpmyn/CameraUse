@@ -64,21 +64,16 @@ public class WeChatCropHelper {
         if (!isInitialized || (weChatQRCode == null) || (srcMat == null) || srcMat.empty()) {
             return null;
         }
-
         // 1. 优先提取右上角 ROI (覆盖宽度的右上 45%，高度的顶部 40%)
         int roiX = (int) (srcMat.cols() * 0.55);
         int roiY = 0;
         int roiWidth = srcMat.cols() - roiX;
         int roiHeight = (int) (srcMat.rows() * 0.40);
-
         Rect roiRect = new Rect(roiX, roiY, roiWidth, roiHeight);
         Mat roiMat = new Mat(srcMat, roiRect);
-
         List<Mat> pointsList = new ArrayList<>();
         weChatQRCode.detectAndDecode(roiMat, pointsList);
-
         Point[] paperCorners = null;
-
         if (pointsList.size() > 0) {
             // ROI 区域识别成功，将坐标映射回全图坐标系
             Mat cornerMat = pointsList.get(0);
@@ -100,15 +95,12 @@ public class WeChatCropHelper {
                 }
             }
         }
-
         // 释放 JNI 层创建的 Mat 对象及中间 ROI 矩阵
         releasePointsList(pointsList);
         roiMat.release();
-
         if (paperCorners != null) {
             return warpPerspective(srcMat, paperCorners);
         }
-
         return null;
     }
 

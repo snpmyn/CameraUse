@@ -174,7 +174,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
             }
         });*/
         // 3. 微信裁剪引擎 - 过程
-        WeChatCropEngine.getInstance(captureActivity).process(captureActivity, savePath, true, new WeChatCropEngine.OnCropListener() {
+        WeChatCropEngine.getInstance(captureActivity).process(captureActivity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
             @Override
             public void onSuccess(Bitmap resultBitmap, String savedPath) {
                 Log.e(TAG, "微信裁剪引擎 - 过程成功\n" + savedPath);
