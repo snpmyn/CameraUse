@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.qtone.camerause.kit.AssetFileKit;
+import com.qtone.camerause.kit.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +27,13 @@ import java.util.List;
  * @desc 微信裁剪辅助者
  */
 public class WeChatCropHelper {
-    private static final String TAG = WeChatCropHelper.class.getSimpleName();
+    /**
+     * WeChatQRCode
+     */
     private WeChatQRCode weChatQRCode;
+    /**
+     * 是否已经初始化
+     */
     private volatile boolean isInitialized = false;
 
     /**
@@ -37,7 +43,7 @@ public class WeChatCropHelper {
      */
     public void init(Context context) {
         if (!OpenCVLoader.initDebug()) {
-            Log.e(TAG, "OpenCV 基础库初始化失败");
+            Log.e(LogKit.TAG, "OpenCV 基础库初始化失败");
             return;
         }
         try {
@@ -45,12 +51,11 @@ public class WeChatCropHelper {
             String p2 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "detect.caffemodel");
             String p3 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "sr.prototxt");
             String p4 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "sr.caffemodel");
-
             weChatQRCode = new WeChatQRCode(p1, p2, p3, p4);
             isInitialized = true;
-            Log.d(TAG, "微信 AI 识别模型加载成功！");
+            Log.d(LogKit.TAG, "微信视觉模型加载成功");
         } catch (Exception e) {
-            Log.e(TAG, "初始化微信模型异常 || " + e.getMessage(), e);
+            Log.e(LogKit.TAG, "初始化微信视觉模型异常 || " + e.getMessage(), e);
         }
     }
 
@@ -64,7 +69,8 @@ public class WeChatCropHelper {
         if (!isInitialized || (weChatQRCode == null) || (srcMat == null) || srcMat.empty()) {
             return null;
         }
-        // 1. 优先提取右上角 ROI (覆盖宽度的右上 45%，高度的顶部 40%)
+        // 1. 优先提取右上角 ROI
+        // 覆盖宽度的右上 45% + 高度的顶部 40%
         int roiX = (int) (srcMat.cols() * 0.55);
         int roiY = 0;
         int roiWidth = srcMat.cols() - roiX;
@@ -75,7 +81,7 @@ public class WeChatCropHelper {
         weChatQRCode.detectAndDecode(roiMat, pointsList);
         Point[] paperCorners = null;
         if (pointsList.size() > 0) {
-            // ROI 区域识别成功，将坐标映射回全图坐标系
+            // ROI 区域识别成功，将坐标映射回全图坐标系。
             Mat cornerMat = pointsList.get(0);
             paperCorners = new Point[4];
             for (int i = 0; i < 4; i++) {
@@ -83,7 +89,8 @@ public class WeChatCropHelper {
                 paperCorners[i] = new Point(p[0] + roiX, p[1] + roiY);
             }
         } else {
-            // 2. 若 ROI 未匹配，释放列表并回退至全图检测
+            // 2. 若 ROI 未匹配
+            // 释放列表并回退至全图检测
             releasePointsList(pointsList);
             weChatQRCode.detectAndDecode(srcMat, pointsList);
             if (pointsList.size() > 0) {
