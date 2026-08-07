@@ -1,6 +1,7 @@
 package com.qtone.camerause.capture;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.annotation.Nullable;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraActivity;
+import com.qtone.camerause.crop.ExamCropProcessor;
 import com.qtone.camerause.kit.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 
@@ -87,6 +89,20 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
         findViewById(R.id.captureActivityMbSingleCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbBurstCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbStopBurstCapture).setOnClickListener(this);
+
+        String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
+        //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
+        captureActivityKit.getExamCropProcessor().processAsync(this, filePath, new ExamCropProcessor.OnExamCropCallback() {
+            @Override
+            public void onExamCropSuccess(String croppedPath, Bitmap resultBitmap) {
+
+            }
+
+            @Override
+            public void onExamCropError(String errorMsg) {
+
+            }
+        });
     }
 
     /**

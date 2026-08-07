@@ -54,6 +54,15 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
     }
 
     /**
+     * 获取试卷裁剪处理器
+     *
+     * @return 试卷裁剪处理器
+     */
+    public ExamCropProcessor getExamCropProcessor() {
+        return examCropProcessor;
+    }
+
+    /**
      * 释放
      */
     public void release() {
