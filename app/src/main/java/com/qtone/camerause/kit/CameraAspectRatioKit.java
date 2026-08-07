@@ -14,7 +14,6 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView;
  * @desc 相机宽高比配套原件
  */
 public class CameraAspectRatioKit {
-    private static final String TAG = CameraAspectRatioKit.class.getSimpleName();
     /**
      * AspectRatioTextureView
      */
@@ -48,12 +47,13 @@ public class CameraAspectRatioKit {
         if ((width <= 0) || (height <= 0) || (aspectRatioTextureView == null) || (activity == null)) {
             return;
         }
-        // 仅当分辨率确实发生变化时才更新布局，避免高频触发 requestLayout() 导致卡顿。
+        // 仅当分辨率确实发生变化时才更新布局
+        // 避免高频触发 requestLayout() 导致卡顿
         if ((currentWidth != width) || (currentHeight != height)) {
             currentWidth = width;
             currentHeight = height;
             float ratio = (float) width / (float) height;
-            Log.d(TAG, String.format("更新预览比例 || %d:%d (宽高比 %.2f)", width, height, ratio));
+            Log.d(LogKit.TAG, String.format("更新预览比例 || %d:%d (宽高比 %.2f)", width, height, ratio));
             activity.runOnUiThread(() -> {
                 if (!activity.isFinishing() && !activity.isDestroyed() && (aspectRatioTextureView != null)) {
                     aspectRatioTextureView.setAspectRatio(width, height);
