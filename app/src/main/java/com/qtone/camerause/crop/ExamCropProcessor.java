@@ -9,7 +9,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.kit.LogKit;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
  * @desc 试卷裁剪处理器
  */
 public class ExamCropProcessor {
-    private static final String TAG = ExamCropProcessor.class.getSimpleName();
     /**
      * 线程消息调度器
      */
@@ -75,7 +74,7 @@ public class ExamCropProcessor {
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated) {
-                    Log.w(TAG, "创建 Pictures 图片保存目录失败");
+                    Log.w(LogKit.TAG, "创建 Pictures 图片保存目录失败");
                 }
             }
             String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
@@ -88,12 +87,10 @@ public class ExamCropProcessor {
                         context,
                         new String[]{outputPath},
                         new String[]{"image/jpeg"},
-                        (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                        (path, uri) -> Log.d(LogKit.TAG, "媒体库刷新完成 - Uri || " + uri)
                 );
-                // 切换到主线程处理成功逻辑
                 handler.post(() -> {
-                    Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
-                    ToastUtils.show("试卷矫正裁剪成功");
+                    Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 已拍照片 - 保存路径 || " + outputPath);
                     if (onExamCropCallback != null) {
                         onExamCropCallback.onExamCropSuccess(outputPath, resultBitmap);
                     }
@@ -119,48 +116,42 @@ public class ExamCropProcessor {
      */
     public void processNv21Async(@NonNull Context context, byte[] nv21Data, int width, int height, OnExamCropCallback onExamCropCallback) {
         executorService.execute(() -> {
-            if ((nv21Data == null) || (nv21Data.length < width * height * 3 / 2)) {
+            if ((nv21Data == null) || (nv21Data.length < (width * height * 3 / 2))) {
                 notifyError(onExamCropCallback, "NV21 数据帧异常");
                 return;
             }
             Mat yuvMat = new Mat(height + height / 2, width, CvType.CV_8UC1);
             yuvMat.put(0, 0, nv21Data);
-
             Mat bgrMat = new Mat();
             Imgproc.cvtColor(yuvMat, bgrMat, Imgproc.COLOR_YUV2BGR_NV21);
             yuvMat.release();
-
             Mat croppedMat = cropPaperBody(bgrMat);
             bgrMat.release();
-
             if ((croppedMat == null) || croppedMat.empty()) {
                 notifyError(onExamCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
-
             File mediaDir = context.getExternalFilesDir("Pictures");
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated) {
-                    Log.w(TAG, "创建 Pictures 图片保存目录失败");
+                    Log.w(LogKit.TAG, "创建 Pictures 图片保存目录失败");
                 }
             }
             String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
-
             boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
-
             if (saved && (resultBitmap != null)) {
+                // 内部自动触发系统 MediaScanner 媒体库刷新
                 MediaScannerConnection.scanFile(
                         context,
                         new String[]{outputPath},
                         new String[]{"image/jpeg"},
-                        (path, uri) -> Log.d(TAG, "媒体库刷新完成，Uri: " + uri)
+                        (path, uri) -> Log.d(LogKit.TAG, "媒体库刷新完成 - Uri || " + uri)
                 );
                 handler.post(() -> {
-                    Log.d(TAG, "试卷四角透视矫正成功，保存路径: " + outputPath);
-                    ToastUtils.show("试卷矫正裁剪成功");
+                    Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 原始数据 - 保存路径 || " + outputPath);
                     if (onExamCropCallback != null) {
                         onExamCropCallback.onExamCropSuccess(outputPath, resultBitmap);
                     }
@@ -209,7 +200,7 @@ public class ExamCropProcessor {
                 }
             }
             if (maxContour == null) {
-                Log.w(TAG, "未能在场景中找到足够大的白色纸张");
+                Log.w(LogKit.TAG, "未能在场景中找到足够大的白色纸张");
                 return null;
             }
             // 5. 试卷四角拟合
@@ -267,7 +258,7 @@ public class ExamCropProcessor {
             }
             return destMat;
         } catch (Exception e) {
-            Log.e(TAG, "试卷主体裁剪处理异常", e);
+            Log.e(LogKit.TAG, "试卷主体裁剪处理异常", e);
             return null;
         } finally {
             gray.release();
@@ -347,7 +338,7 @@ public class ExamCropProcessor {
             rgbMat.release();
             return bitmap;
         } catch (Exception e) {
-            Log.e(TAG, "Mat 转 Bitmap 失败", e);
+            Log.e(LogKit.TAG, "Mat 转 Bitmap 失败", e);
             return null;
         }
     }
@@ -360,8 +351,7 @@ public class ExamCropProcessor {
      */
     private void notifyError(OnExamCropCallback onExamCropCallback, String errorMsg) {
         handler.post(() -> {
-            Log.e(TAG, "试卷透视矫正失败: " + errorMsg);
-            ToastUtils.show("试卷矫正失败: " + errorMsg);
+            Log.e(LogKit.TAG, "试卷透视矫正失败 || " + errorMsg);
             if (onExamCropCallback != null) {
                 onExamCropCallback.onExamCropError(errorMsg);
             }

@@ -6,8 +6,10 @@ import android.util.Log;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
+import com.baidu.ocr.sdk.model.OcrResponseResult;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.crop.ExamCropProcessor;
+import com.qtone.camerause.kit.LogKit;
 import com.qtone.camerause.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.wechat.WeChatCropEngine;
 
@@ -18,7 +20,6 @@ import com.qtone.camerause.wechat.WeChatCropEngine;
  * @desc 拍照页配套原件
  */
 public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, ExamCropProcessor.OnExamCropCallback {
-    private static final String TAG = CaptureActivityKit.class.getSimpleName();
     /**
      * 拍照页
      */
@@ -71,7 +72,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
      */
     @Override
     public void onCaptureBegin() {
-        Log.d(TAG, "拍照开始");
+        Log.d(LogKit.TAG, "拍照开始");
         ToastUtils.show("拍照开始");
     }
 
@@ -91,12 +92,12 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        // 试卷裁剪处理器 - 异步处理 NV21
         if (examCropProcessor != null) {
             try {
+                // 试卷裁剪处理器 - 异步处理 NV21
                 examCropProcessor.processNv21Async(captureActivity, nv21Data, width, height, CaptureActivityKit.this);
             } catch (Exception e) {
-                Log.e(TAG, "processNv21Async 失败 || " + e.getMessage());
+                Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
             }
         }
     }
@@ -115,74 +116,74 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        Log.e(TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
+        Log.d(LogKit.TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
         ToastUtils.show("拍照成功");
-        // 1. 试卷裁剪处理器 - 异步处理
         if (examCropProcessor != null) {
             try {
+                // 1. 试卷裁剪处理器 - 异步处理
                 examCropProcessor.processAsync(captureActivity, savePath, CaptureActivityKit.this);
             } catch (Exception e) {
-                Log.e(TAG, "processAsync 失败 || " + e.getMessage());
+                Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
             }
         }
-        // 2. 百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版)
+        // 2. 通用文字识别 (高精度含位置信息版)
         BaiDuOcrHelper.recognizeAccurate(captureActivity, savePath, new OnResultListener<GeneralResult>() {
             @Override
             public void onResult(GeneralResult generalResult) {
-                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
+                Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
             }
 
             @Override
             public void onError(OCRError ocrError) {
-                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
+                Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
             }
-        });
-        // 2. 百度 OCR 辅助者 - 通用文字识别 (含生僻字版)
-        /*BaiDuOcrHelper.recognizeGeneralEnhanced(captureActivity, savePath, new OnResultListener<GeneralResult>() {
+        }, false);
+        // 2. 通用文字识别 (含生僻字版)
+        BaiDuOcrHelper.recognizeGeneralEnhanced(captureActivity, savePath, new OnResultListener<GeneralResult>() {
             @Override
             public void onResult(GeneralResult generalResult) {
-                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (含生僻字版) 结果\n" + generalResult);
+                Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 结果\n" + generalResult);
             }
 
             @Override
             public void onError(OCRError ocrError) {
-                Log.e(TAG, "百度 OCR 辅助者 - 通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
+                Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
             }
-        });*/
-        // 2. 百度 OCR 辅助者 - 试卷分析与识别
-        /*BaiDuOcrHelper.recognizeExampleDoc(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
+        }, false);
+        // 2. 试卷分析与识别
+        BaiDuOcrHelper.recognizeExampleDoc(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
             @Override
             public void onResult(OcrResponseResult ocrResponseResult) {
-                Log.e(TAG, "百度 OCR 辅助者 - 试卷分析与识别结果\n" + ocrResponseResult);
+                Log.e(LogKit.TAG, "试卷分析与识别结果\n" + ocrResponseResult);
             }
 
             @Override
             public void onError(OCRError ocrError) {
-                Log.e(TAG, "百度 OCR 辅助者 - 试卷分析与识别错误\n" + ocrError.getMessage());
+                Log.e(LogKit.TAG, "试卷分析与识别错误\n" + ocrError.getMessage());
             }
-        });*/
-        // 2. 百度 OCR 辅助者 - 手写文字识别
-        /*BaiDuOcrHelper.recoginzeWrittenText(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
+        }, false);
+        // 2. 手写文字识别
+        BaiDuOcrHelper.recoginzeWrittenText(captureActivity, savePath, new OnResultListener<OcrResponseResult>() {
             @Override
             public void onResult(OcrResponseResult ocrResponseResult) {
-                Log.e(TAG, "百度 OCR 辅助者 - 手写文字识别结果\n" + ocrResponseResult);
+                Log.e(LogKit.TAG, "手写文字识别结果\n" + ocrResponseResult);
             }
 
             @Override
             public void onError(OCRError ocrError) {
-                Log.e(TAG, "百度 OCR 辅助者 - 手写文字识别错误\n" + ocrError.getMessage());
+                Log.e(LogKit.TAG, "手写文字识别错误\n" + ocrError.getMessage());
             }
-        });*/
-        // 3. 微信裁剪引擎 - 过程
+        }, false);
+        // 3. 微信裁剪引擎 - 处理
         WeChatCropEngine.getInstance(captureActivity).process(captureActivity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
             @Override
-            public void onSuccess(Bitmap resultBitmap, String savedPath) {
-                Log.e(TAG, "微信裁剪引擎 - 过程成功\n" + savedPath);
+            public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
+                Log.e(LogKit.TAG, "微信裁剪成功\n" + savedPath);
             }
 
             @Override
-            public void onError(String errorMessage) {
-                Log.e(TAG, "微信裁剪引擎 - 过程错误\n" + errorMessage);
+            public void onWeChatCropError(String errorMessage) {
+                Log.e(LogKit.TAG, "微信裁剪错误\n" + errorMessage);
             }
         });
     }
@@ -198,7 +199,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        Log.e(TAG, "拍照错误 || " + errorMsg);
+        Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
         ToastUtils.show("拍照错误");
     }
 
@@ -210,7 +211,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
      */
     @Override
     public void onExamCropSuccess(String croppedPath, Bitmap resultBitmap) {
-
+        ToastUtils.show("试卷矫正裁剪成功");
     }
 
     /**
@@ -220,6 +221,6 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
      */
     @Override
     public void onExamCropError(String errorMsg) {
-
+        ToastUtils.show("试卷矫正失败");
     }
 }
