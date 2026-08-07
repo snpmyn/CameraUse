@@ -3,9 +3,14 @@ package com.qtone.camerause;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -26,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
      * 请求相机权限码
      */
     private static final int REQUEST_CAMERA_PERMISSION_CODE = 100;
+    /**
+     * 请求管理外部存储权限码
+     */
+    private static final int REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION_CODE = 102;
     /**
      * 动作标识
      */
@@ -68,37 +77,47 @@ public class MainActivity extends AppCompatActivity {
     private void initListener() {
         mainActivityMbCapture.setOnClickListener(v -> {
             // 1. 先检查权限
-            if (hasCameraPermission()) {
-                // 2. 有权限
-                // 跳转拍照页
+            if (hasAllPermissions()) {
+                // 2. 有权限 -> 跳转拍照页
                 navigateToCaptureActivity();
             } else {
-                // 3. 无权限
-                // 检查并请求权限
+                // 3. 无权限 -> 检查并请求权限
                 checkAndRequestPermission(ACTION_GO_TO_CAPTURE_ACTIVITY);
             }
         });
         mainActivityMbScanCode.setOnClickListener(v -> {
             // 1. 先检查权限
-            if (hasCameraPermission()) {
-                // 2. 有权限
-                // 跳转扫码页
+            if (hasAllPermissions()) {
+                // 2. 有权限 -> 跳转扫码页
                 navigateToScanCodeActivity();
             } else {
-                // 3. 无权限
-                //检查并请求权限
+                // 3. 无权限 -> 检查并请求权限
                 checkAndRequestPermission(ACTION_GO_TO_SCAN_CODE_ACTIVITY);
             }
         });
     }
 
     /**
-     * 是否拥有相机权限
+     * 是否拥有全部权限
      *
-     * @return 是否拥有相机权限
+     * @return 是否拥有全部权限
      */
-    private boolean hasCameraPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+    private boolean hasAllPermissions() {
+        // 1. 检查相机权限
+        boolean hasCameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        if (!hasCameraPermission) {
+            return false;
+        }
+        // 2. 检查存储权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+ (API 30+)
+            // 检查所有文件管理权限
+            return Environment.isExternalStorageManager();
+        } else {
+            // Android 10-
+            // 检查普通读写权限
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
     }
 
     /**
@@ -108,17 +127,29 @@ public class MainActivity extends AppCompatActivity {
      */
     private void checkAndRequestPermission(int targetAction) {
         this.currentPendingAction = targetAction;
-        if (hasCameraPermission()) {
-            // 执行待办动作标识
-            executePendingAction();
-
-        } else {
+        // 1. 检查常规运行时权限
+        boolean hasCameraPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        boolean hasStoragePermission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        if (!hasCameraPermission || !hasStoragePermission) {
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_CAMERA_PERMISSION_CODE
             );
+            return;
         }
+        // 2. 检查所有文件管理权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION_CODE);
+                return;
+            }
+        }
+        // 3. 执行待办动作
+        executePendingAction();
     }
 
     /**
@@ -158,13 +189,31 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // 1. 权限申请成功
-                // 执行待办动作标识
-                executePendingAction();
+                // 常规运行时权限通过
+                // 继续检查所有文件管理权限
+                checkAndRequestPermission(currentPendingAction);
             } else {
-                // 2. 权限申请拒绝
+                // 权限申请被拒
                 currentPendingAction = ACTION_NONE;
                 ToastUtils.show("需要相机权限才能使用 USB 相机");
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_MANAGE_EXTERNAL_STORAGE_PERMISSION_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    // 用户在系统设置页授权成功
+                    // 执行待办动作
+                    executePendingAction();
+                } else {
+                    // 用户未授权
+                    currentPendingAction = ACTION_NONE;
+                    ToastUtils.show("需要所有文件管理权限才能存储文件");
+                }
             }
         }
     }
