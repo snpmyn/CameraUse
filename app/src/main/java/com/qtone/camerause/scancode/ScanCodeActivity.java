@@ -73,7 +73,8 @@ public class ScanCodeActivity extends BaseCameraActivity {
     /**
      * 预览帧
      *
-     * @param data       相机底层输出的原始 NV21 / RGBA 字节数组
+     * @param data       图像帧字节数组
+     *                   相机底层输出的 NV21 或经转码后的 RGBA
      * @param width      帧物理宽
      * @param height     帧物理高
      * @param dataFormat 数据格式
