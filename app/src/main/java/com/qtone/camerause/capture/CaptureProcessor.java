@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
+import com.qtone.camerause.kit.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version: v 1.0
  */
 public class CaptureProcessor {
-    private static final String TAG = CaptureProcessor.class.getSimpleName();
     /**
      * 单拍开关状态锁
      * <p>
@@ -94,7 +94,7 @@ public class CaptureProcessor {
     /**
      * 预览帧
      * <p>
-     * 须在相机的 onPreviewFrame 帧回调线程中同步调用
+     * 须在相机 onPreviewFrame 帧回调线程中同步调用
      *
      * @param nv21Data          相机底层输出的原始 NV21 / RGBA 字节数组
      * @param width             帧物理宽
@@ -122,13 +122,13 @@ public class CaptureProcessor {
             }
         }
         if (shouldCapture) {
-            Log.d(TAG, "捕获帧成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+            Log.d(LogKit.TAG, "捕获帧成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
             // 1. 检查并创建 Pictures 存储路径
             File mediaDir = (applicationContext != null) ? applicationContext.getExternalFilesDir("Pictures") : null;
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean created = mediaDir.mkdirs();
                 if (!created && !mediaDir.exists()) {
-                    Log.e(TAG, "创建存储目录失败 || " + mediaDir.getAbsolutePath());
+                    Log.e(LogKit.TAG, "创建存储目录失败 || " + mediaDir.getAbsolutePath());
                     notifyError(onCaptureCallBack, "创建图片保存目录失败");
                     return;
                 }
@@ -160,7 +160,7 @@ public class CaptureProcessor {
         // 校验 NV21 物理空间合法性 (width * height * 1.5 Byte)
         int minRequiredSize = width * height * 3 / 2;
         if (nv21Data.length < minRequiredSize) {
-            Log.e(TAG, String.format(Locale.CHINA, "NV21 字节流异常 || 实际长度 (%d) 小于 %dx%d 所需空间", nv21Data.length, width, height));
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "NV21 字节流异常 || 实际长度 (%d) 小于 %dx%d 所需空间", nv21Data.length, width, height));
             notifyError(onCaptureCallBack, "YUV 数据帧截断");
             return;
         }
@@ -208,7 +208,7 @@ public class CaptureProcessor {
                 }
             });
         } catch (Exception e) {
-            Log.e(TAG, "处理 YUV 数据写盘异常", e);
+            Log.e(LogKit.TAG, "处理 YUV 数据写盘异常", e);
             notifyError(onCaptureCallBack, "处理高清 YUV 帧失败");
         }
     }
@@ -243,7 +243,7 @@ public class CaptureProcessor {
         this.lastCaptureTimestamp = 0L;
         burstSequence.set(0);
         isBurstModeActive.set(true);
-        Log.d(TAG, "开启连续拍照模式 - 间隔 || " + this.burstIntervalMs + " ms");
+        Log.d(LogKit.TAG, "开启连续拍照模式 - 间隔 || " + this.burstIntervalMs + " ms");
         triggerCaptureInternal(context, camera, onCaptureCallBack);
     }
 
@@ -253,7 +253,6 @@ public class CaptureProcessor {
     public void stopBurstCapture() {
         isBurstModeActive.set(false);
         currentCaptureMode = CaptureMode.SINGLE;
-        Log.d(TAG, "已停止连拍");
     }
 
     /**
@@ -295,16 +294,18 @@ public class CaptureProcessor {
 
     /**
      * 释放
-     * <p>
-     * 停止连拍、清空消息队列并关闭线程池
      */
     public void release() {
+        isSingleModeActive.set(false);
         stopBurstCapture();
         if (executorService != null) {
-            executorService.shutdownNow();
+            if (!executorService.isShutdown()) {
+                executorService.shutdownNow();
+            }
             executorService = null;
         }
         handler.removeCallbacksAndMessages(null);
+        applicationContext = null;
     }
 
     /**
