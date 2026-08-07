@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.qtone.camerause.kit.LogKit;
+
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -22,7 +24,6 @@ import java.util.concurrent.Executors;
  * @desc 微信裁剪引擎
  */
 public class WeChatCropEngine {
-    private static final String TAG = WeChatCropEngine.class.getSimpleName();
     /**
      * 单例
      */
@@ -74,7 +75,7 @@ public class WeChatCropEngine {
     }
 
     /**
-     * 过程
+     * 处理
      * <p>
      * 传入原图路径
      * 自动进行微信 AI 识别与透视校正裁剪
@@ -94,7 +95,7 @@ public class WeChatCropEngine {
         }
         File file = new File(imagePath);
         if (!file.exists() || !file.isFile()) {
-            notifyError(onWeChatCropListener, "找不到目标文件，请检查路径: " + imagePath);
+            notifyError(onWeChatCropListener, "找不到目标文件 - 请检查路径 || " + imagePath);
             return;
         }
         // 预先获取 ApplicationContext 安全保存
@@ -124,24 +125,24 @@ public class WeChatCropEngine {
                 if (autoSaveResult && appContext != null) {
                     File outputDir = new File(appContext.getExternalFilesDir(null), "CroppedImages");
                     if (!outputDir.exists() && !outputDir.mkdirs()) {
-                        Log.e(TAG, "创建输出目录失败: " + outputDir.getAbsolutePath());
+                        Log.e(LogKit.TAG, "创建输出目录失败: " + outputDir.getAbsolutePath());
                     }
                     File outputFile = new File(outputDir, "CROP_" + System.currentTimeMillis() + ".jpg");
                     savePath = outputFile.getAbsolutePath();
                     // 用 Imgcodecs 写入图片
                     Imgcodecs.imwrite(savePath, resultMat);
-                    Log.d(TAG, "裁剪拉平结果已成功存入 || " + savePath);
+                    Log.d(LogKit.TAG, "裁剪拉平结果已成功存入 || " + savePath);
                 }
                 // E. 切换回主线程回调结果
                 final String finalSavePath = savePath;
                 handler.post(() -> {
                     if (onWeChatCropListener != null) {
-                        onWeChatCropListener.onSuccess(resultBitmap, finalSavePath);
+                        Log.e(LogKit.TAG, "微信裁剪成功 || " + finalSavePath);
+                        onWeChatCropListener.onWeChatCropSuccess(resultBitmap, finalSavePath);
                     }
                 });
             } catch (Exception e) {
-                Log.e(TAG, "图像处理过程发生异常", e);
-                notifyError(onWeChatCropListener, "图像处理异常: " + e.getMessage());
+                notifyError(onWeChatCropListener, "图像处理异常 || " + e.getMessage());
             } finally {
                 // F. 必须手动释放 C++ 底层 Mat 内存，防止内存泄漏爆发崩溃。
                 if (srcMat != null) {
@@ -158,13 +159,13 @@ public class WeChatCropEngine {
      * 通知错误
      *
      * @param onWeChatCropListener 微信裁剪监听
-     * @param errorMsg             错误消息
+     * @param errorMessage         错误消息
      */
-    private void notifyError(OnWeChatCropListener onWeChatCropListener, String errorMsg) {
-        Log.e(TAG, errorMsg);
+    private void notifyError(OnWeChatCropListener onWeChatCropListener, String errorMessage) {
         handler.post(() -> {
             if (onWeChatCropListener != null) {
-                onWeChatCropListener.onError(errorMsg);
+                Log.e(LogKit.TAG, "微信裁剪错误 || " + errorMessage);
+                onWeChatCropListener.onWeChatCropError(errorMessage);
             }
         });
     }
@@ -174,18 +175,18 @@ public class WeChatCropEngine {
      */
     public interface OnWeChatCropListener {
         /**
-         * 成功
+         * 微信裁剪成功
          *
          * @param resultBitmap 结果像素数据
          * @param savedPath    保存路径
          */
-        void onSuccess(Bitmap resultBitmap, String savedPath);
+        void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath);
 
         /**
-         * 错误
+         * 微信裁剪错误
          *
          * @param errorMessage 错误消息
          */
-        void onError(String errorMessage);
+        void onWeChatCropError(String errorMessage);
     }
 }
