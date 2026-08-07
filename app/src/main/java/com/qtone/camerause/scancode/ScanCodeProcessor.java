@@ -1,12 +1,14 @@
 package com.qtone.camerause.scancode;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
+import com.qtone.camerause.kit.LogKit;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -137,12 +139,14 @@ public class ScanCodeProcessor {
                             String rawValue = barcode.getRawValue();
                             if ((rawValue != null) && (onScanCodeListener != null)) {
                                 lastSuccessTime = System.currentTimeMillis();
+                                Log.d(LogKit.TAG, "扫码成功 || " + rawValue);
                                 onScanCodeListener.onScanCodeSuccess(rawValue, barcode);
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
                         if (onScanCodeListener != null) {
+                            Log.e(LogKit.TAG, "扫码失败 || ", e);
                             onScanCodeListener.onScanCodeFailure(e);
                         }
                     })

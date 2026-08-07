@@ -1,7 +1,5 @@
 package com.qtone.camerause.scancode;
 
-import android.util.Log;
-
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.utils.ToastUtils;
 
@@ -12,7 +10,6 @@ import com.jiangdg.ausbc.utils.ToastUtils;
  * @desc 扫码页配套原件
  */
 public class ScanCodeActivityKit implements ScanCodeProcessor.OnScanCodeListener {
-    private static final String TAG = ScanCodeActivityKit.class.getSimpleName();
     /**
      * 扫码处理器
      */
@@ -55,7 +52,6 @@ public class ScanCodeActivityKit implements ScanCodeProcessor.OnScanCodeListener
      */
     @Override
     public void onScanCodeSuccess(String result, Barcode barcode) {
-        Log.d(TAG, "扫码成功 || " + result);
         ToastUtils.show(result);
     }
 
@@ -66,7 +62,6 @@ public class ScanCodeActivityKit implements ScanCodeProcessor.OnScanCodeListener
      */
     @Override
     public void onScanCodeFailure(Exception e) {
-        Log.e(TAG, "扫码失败 || ", e);
         ToastUtils.show("扫码失败");
     }
 }
