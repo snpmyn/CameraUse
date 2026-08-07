@@ -9,9 +9,9 @@ package com.qtone.camerause.value;
  * 在 USB 摄像头硬件驱动协商 (Negotiation) 过程中
  * 640 x 480 @ 30fps 是所有 USB 摄像头设备在 firmware(固件) 中强制要求必须具备的基础保底分辨率
  * <p>
- * 当应用层通过 CameraRequest 请求了一个外接摄像头固件不支持的分辨率 (如之前的 1080 x 720) 时
+ * 当应用层通过 CameraRequest 请求一个外接摄像头固件不支持的分辨率 (如之前的 1080 x 720) 时
  * 如果 UVC 底层 C/C++ 库 (如 libuvc / UVCCamera) 无法与硬件建立匹配的数据流管道
- * 那么为了防止程序直接崩溃或黑屏
+ * 那么为防止程序直接崩溃或黑屏
  * 底层便会自动触发降级保护
  * 自动回退到绝对安全分辨率 640 x 480
  * <p>
