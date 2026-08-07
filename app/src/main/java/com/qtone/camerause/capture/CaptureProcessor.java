@@ -204,6 +204,7 @@ public class CaptureProcessor {
             // 切回主线程通知写盘成功
             handler.post(() -> {
                 if (onCaptureCallBack != null) {
+                    Log.d(LogKit.TAG, "物理 1:1 无损图片生成成功\n模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
                     onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
                 }
             });
@@ -273,6 +274,7 @@ public class CaptureProcessor {
         isSingleModeActive.set(true);
         handler.post(() -> {
             if (onCaptureCallBack != null) {
+                Log.d(LogKit.TAG, "拍照开始");
                 onCaptureCallBack.onCaptureBegin();
             }
         });
@@ -287,6 +289,7 @@ public class CaptureProcessor {
     private void notifyError(OnCaptureCallBack onCaptureCallBack, String errorMsg) {
         handler.post(() -> {
             if (onCaptureCallBack != null) {
+                Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
                 onCaptureCallBack.onCaptureError(errorMsg);
             }
         });

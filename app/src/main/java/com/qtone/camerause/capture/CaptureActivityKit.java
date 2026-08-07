@@ -72,7 +72,6 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
      */
     @Override
     public void onCaptureBegin() {
-        Log.d(LogKit.TAG, "拍照开始");
         ToastUtils.show("拍照开始");
     }
 
@@ -116,7 +115,6 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        Log.d(LogKit.TAG, "物理 1:1 无损图片生成成功\n模式 " + captureMode.name() + "\n分辨率 " + width + "x" + height + "\n路径 " + savePath);
         ToastUtils.show("拍照成功");
         if (examCropProcessor != null) {
             try {
@@ -178,12 +176,12 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         WeChatCropEngine.getInstance(captureActivity).process(captureActivity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
             @Override
             public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
-                Log.e(LogKit.TAG, "微信裁剪成功\n" + savedPath);
+
             }
 
             @Override
             public void onWeChatCropError(String errorMessage) {
-                Log.e(LogKit.TAG, "微信裁剪错误\n" + errorMessage);
+
             }
         });
     }
@@ -199,7 +197,6 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
         ToastUtils.show("拍照错误");
     }
 
