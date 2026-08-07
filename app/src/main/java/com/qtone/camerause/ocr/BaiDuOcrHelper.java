@@ -27,12 +27,15 @@ public class BaiDuOcrHelper {
      * @param context          上下文
      * @param filePath         文件路径
      * @param onResultListener 结果监听
+     * @param shouldInvoke     是否发起调用
      */
-    public static void recognizeAccurate(@NotNull Context context, String filePath, OnResultListener<GeneralResult> onResultListener) {
+    public static void recognizeAccurate(@NotNull Context context, String filePath, OnResultListener<GeneralResult> onResultListener, boolean shouldInvoke) {
         GeneralParams generalParams = new GeneralParams();
         generalParams.setDetectDirection(true);
         generalParams.setImageFile(new File(filePath));
-        OCR.getInstance(context.getApplicationContext()).recognizeAccurate(generalParams, onResultListener);
+        if (shouldInvoke) {
+            OCR.getInstance(context.getApplicationContext()).recognizeAccurate(generalParams, onResultListener);
+        }
     }
 
     /**
@@ -41,12 +44,15 @@ public class BaiDuOcrHelper {
      * @param context          上下文
      * @param filePath         文件路径
      * @param onResultListener 结果监听
+     * @param shouldInvoke     是否发起调用
      */
-    public static void recognizeGeneralEnhanced(@NotNull Context context, String filePath, OnResultListener<GeneralResult> onResultListener) {
+    public static void recognizeGeneralEnhanced(@NotNull Context context, String filePath, OnResultListener<GeneralResult> onResultListener, boolean shouldInvoke) {
         GeneralBasicParams generalBasicParams = new GeneralBasicParams();
         generalBasicParams.setDetectDirection(true);
         generalBasicParams.setImageFile(new File(filePath));
-        OCR.getInstance(context.getApplicationContext()).recognizeGeneralEnhanced(generalBasicParams, onResultListener);
+        if (shouldInvoke) {
+            OCR.getInstance(context.getApplicationContext()).recognizeGeneralEnhanced(generalBasicParams, onResultListener);
+        }
     }
 
     /**
@@ -55,11 +61,14 @@ public class BaiDuOcrHelper {
      * @param context          上下文
      * @param filePath         文件路径
      * @param onResultListener 结果监听
+     * @param shouldInvoke     是否发起调用
      */
-    public static void recognizeExampleDoc(@NotNull Context context, String filePath, OnResultListener<OcrResponseResult> onResultListener) {
+    public static void recognizeExampleDoc(@NotNull Context context, String filePath, OnResultListener<OcrResponseResult> onResultListener, boolean shouldInvoke) {
         OcrRequestParams ocrRequestParams = new OcrRequestParams();
         ocrRequestParams.setImageFile(new File(filePath));
-        OCR.getInstance(context.getApplicationContext()).recoginzeExampleDoc(ocrRequestParams, onResultListener);
+        if (shouldInvoke) {
+            OCR.getInstance(context.getApplicationContext()).recoginzeExampleDoc(ocrRequestParams, onResultListener);
+        }
     }
 
     /**
@@ -68,10 +77,13 @@ public class BaiDuOcrHelper {
      * @param context          上下文
      * @param filePath         文件路径
      * @param onResultListener 结果监听
+     * @param shouldInvoke     是否发起调用
      */
-    public static void recoginzeWrittenText(@NotNull Context context, String filePath, OnResultListener<OcrResponseResult> onResultListener) {
+    public static void recoginzeWrittenText(@NotNull Context context, String filePath, OnResultListener<OcrResponseResult> onResultListener, boolean shouldInvoke) {
         OcrRequestParams ocrRequestParams = new OcrRequestParams();
         ocrRequestParams.setImageFile(new File(filePath));
-        OCR.getInstance(context.getApplicationContext()).recoginzeWrittenText(ocrRequestParams, onResultListener);
+        if (shouldInvoke) {
+            OCR.getInstance(context.getApplicationContext()).recoginzeWrittenText(ocrRequestParams, onResultListener);
+        }
     }
 }
