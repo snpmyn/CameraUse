@@ -19,6 +19,7 @@ import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.kit.CameraAspectRatioKit;
+import com.qtone.camerause.kit.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
  * @desc 相机基类
  */
 public abstract class BaseCameraActivity extends CameraActivity {
-    private static final String TAG = BaseCameraActivity.class.getSimpleName();
     /**
      * 容器
      */
@@ -136,7 +136,8 @@ public abstract class BaseCameraActivity extends CameraActivity {
     /**
      * 预览帧
      *
-     * @param data       相机底层输出的原始 NV21 / RGBA 字节数组
+     * @param data       图像帧字节数组
+     *                   相机底层输出的 NV21 或经转码后的 RGBA
      * @param width      帧物理宽
      * @param height     帧物理高
      * @param dataFormat 数据格式
@@ -185,12 +186,12 @@ public abstract class BaseCameraActivity extends CameraActivity {
     @Override
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
         if (code == State.OPENED) {
-            Log.d(TAG, "相机打开成功");
+            Log.d(LogKit.TAG, "相机打开成功");
             CameraResolution customResolution = getCustomResolution();
             if (cameraAspectRatioKit != null) {
                 // 相机打开成功 -> 按默认分辨率设置预览区域比例
                 runOnUiThread(() -> {
-                    if (!isFinishing() && !isDestroyed() && cameraAspectRatioKit != null) {
+                    if (!isFinishing() && !isDestroyed() && (cameraAspectRatioKit != null)) {
                         cameraAspectRatioKit.updateAspectRatio(this, customResolution.getWidth(), customResolution.getHeight());
                     }
                 });
@@ -200,7 +201,7 @@ public abstract class BaseCameraActivity extends CameraActivity {
             // 重新注册预览帧回调
             self.addPreviewDataCallBack(previewDataCallBack);
         } else if (code == State.CLOSED) {
-            Log.d(TAG, "相机关闭成功");
+            Log.d(LogKit.TAG, "相机关闭成功");
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
             if (cameraAspectRatioKit != null) {
@@ -208,7 +209,7 @@ public abstract class BaseCameraActivity extends CameraActivity {
                 cameraAspectRatioKit.reset();
             }
         } else if (code == State.ERROR) {
-            Log.e(TAG, "相机打开错误 || " + msg);
+            Log.e(LogKit.TAG, "相机启动错误 || " + msg);
             self.removePreviewDataCallBack(previewDataCallBack);
         }
     }
