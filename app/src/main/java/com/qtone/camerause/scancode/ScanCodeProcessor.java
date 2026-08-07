@@ -33,7 +33,7 @@ public class ScanCodeProcessor {
      */
     private final OnScanCodeListener onScanCodeListener;
     /**
-     * 进行中状态锁
+     * 处理中状态锁
      * <p>
      * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
      */
@@ -82,7 +82,8 @@ public class ScanCodeProcessor {
     /**
      * 处理帧
      *
-     * @param data            相机底层输出的原始 NV21 / RGBA 字节数组
+     * @param data            图像帧字节数组
+     *                        相机底层输出的 NV21 或经转码后的 RGBA
      * @param width           帧物理宽
      * @param height          帧物理高
      * @param dataFormat      数据格式
@@ -148,7 +149,7 @@ public class ScanCodeProcessor {
                     .addOnCompleteListener(task -> isProcessing.set(false));
         } catch (Throwable t) {
             // 捕获所有运行时异常与 Error
-            // 确保出现异常时可重置标志位，防止线程卡死。
+            // 确保出现异常时可重置处理中状态锁，防止线程卡死。
             isProcessing.set(false);
         }
     }
