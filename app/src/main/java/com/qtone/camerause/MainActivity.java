@@ -20,6 +20,9 @@ import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.capture.CaptureActivity;
 import com.qtone.camerause.scancode.ScanCodeActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @decs: 主页
  * @author: 郑少鹏
@@ -132,9 +135,18 @@ public class MainActivity extends AppCompatActivity {
         boolean hasStoragePermission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                 || (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
         if (!hasCameraPermission || !hasStoragePermission) {
+            List<String> permissionsNeeded = new ArrayList<>();
+            if (!hasCameraPermission) {
+                permissionsNeeded.add(Manifest.permission.CAMERA);
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }
+            }
             ActivityCompat.requestPermissions(
                     this,
-                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    permissionsNeeded.toArray(new String[0]),
                     REQUEST_CAMERA_PERMISSION_CODE
             );
             return;
@@ -188,14 +200,26 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
-            if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // 常规运行时权限通过
+            // 校验申请的所有运行时权限是否均被授予
+            boolean allGranted = true;
+            if (grantResults.length > 0) {
+                for (int grantResult : grantResults) {
+                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                        allGranted = false;
+                        break;
+                    }
+                }
+            } else {
+                allGranted = false;
+            }
+            if (allGranted) {
+                // 常规运行时权限全通过
                 // 继续检查所有文件管理权限
                 checkAndRequestPermission(currentPendingAction);
             } else {
                 // 权限申请被拒
                 currentPendingAction = ACTION_NONE;
-                ToastUtils.show("需要相机权限才能使用 USB 相机");
+                ToastUtils.show("需要相机和存储权限才能正常使用");
             }
         }
     }
