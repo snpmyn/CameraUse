@@ -131,7 +131,7 @@ public class WeChatCropHelper {
      * 透视变换
      */
     @Nullable
-    private Mat warpPerspective(Mat srcMat, @NotNull Point[] paperCorners) {
+    private Mat warpPerspective(Mat srcMat, @NotNull Point @NotNull [] paperCorners) {
         double widthTop = Math.hypot(paperCorners[1].x - paperCorners[0].x, paperCorners[1].y - paperCorners[0].y);
         double widthBottom = Math.hypot(paperCorners[2].x - paperCorners[3].x, paperCorners[2].y - paperCorners[3].y);
         int targetWidth = (int) Math.max(widthTop, widthBottom);
