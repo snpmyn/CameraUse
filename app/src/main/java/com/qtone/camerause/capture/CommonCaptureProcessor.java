@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Created on 2026/8/8.
  *
  * @author 郑少鹏
- * @desc 公共抓拍处理器
+ * @desc 公共拍照处理器
  */
 public class CommonCaptureProcessor {
     /**
