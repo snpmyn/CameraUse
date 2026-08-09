@@ -1,4 +1,4 @@
-package com.qtone.camerause.kit;
+package com.qtone.camerause.util.log;
 
 /**
  * Created on 2026/8/7.
