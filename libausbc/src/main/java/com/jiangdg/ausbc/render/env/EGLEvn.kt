@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.render.env
 
 import android.opengl.*
@@ -21,7 +6,9 @@ import android.view.Surface
 import com.jiangdg.ausbc.utils.Logger
 
 /**
- * 创建EGL，将其与目标Surface绑定
+ * 创建 EGL
+ *
+ * 将其与目标 Surface 绑定
  *
  * @author Created by jiangdg on 2021/10/14
  */
@@ -33,23 +20,23 @@ class EGLEvn {
     private val configs = arrayOfNulls<EGLConfig>(1)
 
     fun initEgl(curContext: EGLContext? = null): Boolean {
-        // 1. 获取EGL Display
+        // 1. 获取 EGL Display
         mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
         if (mEglDisplay == EGL14.EGL_NO_DISPLAY) {
             loggerError("Get display")
             return false
         }
-        // 2. 初始化EGL
+        // 2. 初始化 EGL
         val version = IntArray(2)
-        if (! EGL14.eglInitialize(mEglDisplay, version, 0, version, 1)) {
+        if (!EGL14.eglInitialize(mEglDisplay, version, 0, version, 1)) {
             loggerError("Init egl")
             return false
         }
-        // 3. 指定Surface配置
+        // 3. 指定 Surface 配置
         // RGB888 & opengl ES2
-        // EGL_RECORDABLE_ANDROID（API26以下必须指定）
+        // EGL_RECORDABLE_ANDROID (API26 以下必须指定)
         val configAttribs = intArrayOf(
-		    EGL14.EGL_RED_SIZE, 8,
+            EGL14.EGL_RED_SIZE, 8,
             EGL14.EGL_GREEN_SIZE, 8,
             EGL14.EGL_BLUE_SIZE, 8,
             EGL14.EGL_ALPHA_SIZE, 8,
@@ -58,7 +45,17 @@ class EGLEvn {
             EGL14.EGL_NONE
         )
         val numConfigs = IntArray(1)
-        if (! EGL14.eglChooseConfig(mEglDisplay, configAttribs, 0, configs, 0, configs.size, numConfigs, 0)) {
+        if (!EGL14.eglChooseConfig(
+                mEglDisplay,
+                configAttribs,
+                0,
+                configs,
+                0,
+                configs.size,
+                numConfigs,
+                0
+            )
+        ) {
             loggerError("Choose Config")
             return false
         }
@@ -68,14 +65,26 @@ class EGLEvn {
             EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
             EGL14.EGL_NONE
         )
-        mEglContext = EGL14.eglCreateContext(mEglDisplay, configs[0], curContext ?: EGL14.EGL_NO_CONTEXT , ctxAttribs, 0)
+        mEglContext = EGL14.eglCreateContext(
+            mEglDisplay,
+            configs[0],
+            curContext ?: EGL14.EGL_NO_CONTEXT,
+            ctxAttribs,
+            0
+        )
         if (mEglContext == EGL14.EGL_NO_CONTEXT) {
             loggerError("Create context")
             return false
         }
         // 5. 设置默认的上下文环境和输出缓冲区
         // 将eglSurface先设置为EGL14.EGL_NO_SURFACE
-        if (! EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, mEglContext)) {
+        if (!EGL14.eglMakeCurrent(
+                mEglDisplay,
+                EGL14.EGL_NO_SURFACE,
+                EGL14.EGL_NO_SURFACE,
+                mEglContext
+            )
+        ) {
             loggerError("Bind context and window")
             return false
         }
@@ -90,17 +99,17 @@ class EGLEvn {
         // If surface is null
         // Force off screen mode
         mEglSurface = if (surface == null) {
-            val attributes  = intArrayOf(
+            val attributes = intArrayOf(
                 EGL14.EGL_WIDTH, surfaceWidth,
                 EGL14.EGL_HEIGHT, surfaceHeight,
                 EGL14.EGL_NONE
             )
-            EGL14.eglCreatePbufferSurface(mEglDisplay, configs[0], attributes , 0)
+            EGL14.eglCreatePbufferSurface(mEglDisplay, configs[0], attributes, 0)
         } else {
-            val attributes  = intArrayOf(
+            val attributes = intArrayOf(
                 EGL14.EGL_NONE
             )
-            EGL14.eglCreateWindowSurface(mEglDisplay, configs[0], surface, attributes , 0)
+            EGL14.eglCreateWindowSurface(mEglDisplay, configs[0], surface, attributes, 0)
         }
         if (mEglSurface == EGL14.EGL_NO_SURFACE) {
             loggerError("Create window")
@@ -116,7 +125,7 @@ class EGLEvn {
         if (mEglSurface == EGL14.EGL_NO_SURFACE) {
             return
         }
-        if (! EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
+        if (!EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
             loggerError("Bind context and window")
         }
     }
@@ -129,7 +138,7 @@ class EGLEvn {
             return
         }
         // 更新EGL显示时间戳
-        if (! EGLExt.eglPresentationTimeANDROID(mEglDisplay, mEglSurface, nanoseconds)) {
+        if (!EGLExt.eglPresentationTimeANDROID(mEglDisplay, mEglSurface, nanoseconds)) {
             loggerError("Set Presentation time")
         }
     }
@@ -140,23 +149,28 @@ class EGLEvn {
         }
         // 交换双重缓冲数据
         // 即将渲染数据(后端缓冲区)输出到目标窗口(Surface)(前端缓冲区)
-        if (! EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
+        if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
             loggerError("Swap buffers")
         }
     }
 
     fun releaseElg() {
         if (mEglDisplay != EGL14.EGL_NO_DISPLAY) {
-            EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+            EGL14.eglMakeCurrent(
+                mEglDisplay,
+                EGL14.EGL_NO_SURFACE,
+                EGL14.EGL_NO_SURFACE,
+                EGL14.EGL_NO_CONTEXT
+            )
             EGL14.eglDestroySurface(mEglDisplay, mEglSurface)
             EGL14.eglDestroyContext(mEglDisplay, mEglContext)
             EGL14.eglReleaseThread()
             EGL14.eglTerminate(mEglDisplay)
         }
-		mSurface?.release()
+        mSurface?.release()
         mEglDisplay = EGL14.EGL_NO_DISPLAY
         mEglSurface = EGL14.EGL_NO_SURFACE
-        mEglContext = EGL14.EGL_NO_CONTEXT      
+        mEglContext = EGL14.EGL_NO_CONTEXT
         mSurface = null
         Logger.i(TAG, "Release EGL Success!")
     }
