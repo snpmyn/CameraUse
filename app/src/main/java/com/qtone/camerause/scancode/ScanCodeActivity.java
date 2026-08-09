@@ -1,14 +1,12 @@
 package com.qtone.camerause.scancode;
 
-import android.os.Bundle;
-
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraActivity;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.ViewFinderView;
 
 /**
  * Created on 2026/8/5.
@@ -25,6 +23,10 @@ public class ScanCodeActivity extends BaseCameraActivity {
      * 扫码页配套原件
      */
     private ScanCodeActivityKit scanCodeActivityKit;
+    /**
+     * ViewFinderView
+     */
+    private ViewFinderView scanCodeActivityVfv;
 
     /**
      * 获取布局 ID
@@ -61,13 +63,14 @@ public class ScanCodeActivity extends BaseCameraActivity {
 
     /**
      * 开始逻辑
-     *
-     * @param savedInstanceState Bundle
      */
     @Override
-    protected void startLogic(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
-        super.startLogic(savedInstanceState);
+    protected void startLogic() {
+        // 扫码页配套原件
         scanCodeActivityKit = new ScanCodeActivityKit();
+        // ViewFinderView
+        scanCodeActivityVfv = findViewById(R.id.scanCodeActivityVfv);
+        scanCodeActivityVfv.showScanner();
     }
 
     /**
