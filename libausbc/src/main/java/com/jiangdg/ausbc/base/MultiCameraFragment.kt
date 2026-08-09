@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.base
 
 import android.content.Context
@@ -21,12 +6,12 @@ import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.usb.USBMonitor
 
-/** Multi-road camera fragment
+/**
+ * Multi-road camera fragment
  *
  * @author Created by jiangdg on 2022/7/20
- *      Modified for v3.3.0 by jiangdg on 2023/1/15
  */
-abstract class MultiCameraFragment: BaseFragment() {
+abstract class MultiCameraFragment : BaseFragment() {
     private var mCameraClient: MultiCameraClient? = null
     private val mCameraMap = hashMapOf<Int, MultiCameraClient.ICamera>()
 
@@ -151,7 +136,7 @@ abstract class MultiCameraFragment: BaseFragment() {
 
     /**
      * If you want to open the specified camera,you need to let isAutoRequestPermission() false.
-    *  And then you need to call requestPermission(device) in your own Fragment
+     *  And then you need to call requestPermission(device) in your own Fragment
      * when onAttachDev() called, default is true.
      */
     protected fun isAutoRequestPermission() = true
