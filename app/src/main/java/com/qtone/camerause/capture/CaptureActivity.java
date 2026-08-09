@@ -2,18 +2,14 @@ package com.qtone.camerause.capture;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraActivity;
-import com.qtone.camerause.crop.ExamCropProcessor;
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.crop.DocumentCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.NotNull;
@@ -77,12 +73,9 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
 
     /**
      * 开始逻辑
-     *
-     * @param savedInstanceState Bundle
      */
     @Override
-    protected void startLogic(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
-        super.startLogic(savedInstanceState);
+    protected void startLogic() {
         // 拍照页配套原件
         captureActivityKit = new CaptureActivityKit(this);
         // MaterialButton
@@ -92,7 +85,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
 
         String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
         //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
-        captureActivityKit.getExamCropProcessor().processAsync(this, filePath, new ExamCropProcessor.OnExamCropCallback() {
+        captureActivityKit.getExamCropProcessor().processAsync(this, filePath, new DocumentCropProcessor.OnExamCropCallback() {
             @Override
             public void onExamCropSuccess(String croppedPath, Bitmap resultBitmap) {
 
@@ -116,7 +109,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     @Override
     protected void onPreviewFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat) {
-        if (captureActivityKit.getCaptureProcessor() != null) {
+        if ((captureActivityKit.getCaptureProcessor() != null) && (captureActivityKit.getCaptureProcessor().getCaptureStrategy() == CaptureStrategy.NV21_FRAME)) {
             captureActivityKit.getCaptureProcessor().onPreviewFrame(data, width, height, captureActivityKit);
         }
     }
@@ -126,7 +119,6 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     public void startSingleCapture() {
         if (captureActivityKit.getCaptureProcessor() != null) {
-            Log.d(LogKit.TAG, "开始单拍");
             captureActivityKit.getCaptureProcessor().startSingleCapture(this, getCurrentCamera(), captureActivityKit);
         }
     }
@@ -139,7 +131,6 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     public void startBurstCapture(long intervalMs) {
         if (captureActivityKit.getCaptureProcessor() != null) {
-            Log.d(LogKit.TAG, "开始连拍");
             captureActivityKit.getCaptureProcessor().startBurstCapture(this, getCurrentCamera(), intervalMs, captureActivityKit);
         }
     }
@@ -149,7 +140,6 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      */
     public void stopBurstCapture() {
         if (captureActivityKit.getCaptureProcessor() != null) {
-            Log.d(LogKit.TAG, "停止连拍");
             captureActivityKit.getCaptureProcessor().stopBurstCapture();
         }
     }
