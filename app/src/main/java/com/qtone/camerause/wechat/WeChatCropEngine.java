@@ -6,7 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
@@ -44,7 +44,7 @@ public class WeChatCropEngine {
     /**
      * constructor
      * <p>
-     * 私有构造函数 + 防止外部直接 new
+     * 私有构造函数 + 防止实例化
      *
      * @param context 上下文
      */

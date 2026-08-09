@@ -3,8 +3,8 @@ package com.qtone.camerause.wechat;
 import android.content.Context;
 import android.util.Log;
 
-import com.qtone.camerause.kit.AssetFileKit;
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.util.asset.AssetFileKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
