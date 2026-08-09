@@ -127,7 +127,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
      * 开始连拍
      *
      * @param intervalMs 连拍时间间隔
-     *                   单位 毫秒
+     *                   单位 - 毫秒
      */
     public void startBurstCapture(long intervalMs) {
         if (captureActivityKit.getCaptureProcessor() != null) {
