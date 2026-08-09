@@ -12,7 +12,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        consumerProguardFiles "consumer-rules.pro"
         externalNativeBuild {
             cmake {
                 cppFlags ""
@@ -21,10 +20,18 @@ android {
                 abiFilters 'armeabi-v7a','arm64-v8a', "x86", "x86_64"
             }
         }
+
+        // consumer-rules.pro 会合并到最终 APK
+        // consumer-rules.pro 专门用于传递给主应用 (消费者)。它指定的规则是确保主应用在混淆时，能正确处理这个库的代码。这些规则会被打包到 AAR 中。
+        // proguard-rules.pro 仅用于当前 Library 自身构建时的混淆
+        // proguard-rules.pro 不会自动传递给引用它的 App
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
+            // library 通设 false
+            // 交由 App 统一混淆
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -42,12 +49,12 @@ android {
         targetCompatibility = rootProject.ext.targetCompatibility
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = rootProject.ext.jvmTarget
     }
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation "androidx.core:core-ktx:${androidxCoreVersion}"
     implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
     implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
 }
