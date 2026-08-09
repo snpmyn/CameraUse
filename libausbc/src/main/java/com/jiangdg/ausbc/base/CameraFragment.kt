@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.base
 
 import android.content.Context
@@ -23,12 +8,11 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import com.jiangdg.ausbc.MultiCameraClient
-import com.jiangdg.ausbc.camera.bean.PreviewSize
-import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.callback.*
 import com.jiangdg.ausbc.camera.CameraUVC
+import com.jiangdg.ausbc.camera.bean.CameraRequest
+import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.render.effect.AbstractEffect
-import com.jiangdg.ausbc.render.effect.EffectBlackWhite
 import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.SettableFuture
@@ -37,7 +21,8 @@ import com.jiangdg.usb.USBMonitor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**Extends from BaseFragment for one uvc camera
+/**
+ * Extends from BaseFragment for one uvc camera
  *
  * @author Created by jiangdg on 2023/2/3
  */
@@ -71,7 +56,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 registerMultiCamera()
                 return
             }
-        }?.also { view->
+        }?.also { view ->
             getCameraViewContainer()?.apply {
                 removeAllViews()
                 addView(view, getViewLayoutParams(this))
@@ -139,11 +124,17 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                     mCurrentCamera = SettableFuture()
                     mCurrentCamera?.set(camera)
                     openCamera(mCameraView)
-                    Logger.i(TAG, "camera connection. pid: ${device.productId}, vid: ${device.vendorId}")
+                    Logger.i(
+                        TAG,
+                        "camera connection. pid: ${device.productId}, vid: ${device.vendorId}"
+                    )
                 }
             }
 
-            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onDisConnectDec(
+                device: UsbDevice?,
+                ctrlBlock: USBMonitor.UsbControlBlock?
+            ) {
                 closeCamera()
                 mRequestPermission.set(false)
             }
@@ -300,7 +291,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      *
      * @return camera open status
      */
-    protected fun isCameraOpened() = getCurrentCamera()?.isCameraOpened()  ?: false
+    protected fun isCameraOpened() = getCurrentCamera()?.isCameraOpened() ?: false
 
     /**
      * Update resolution
@@ -318,7 +309,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param aspectRatio preview size aspect ratio,
      *                      null means getting all preview sizes
      */
-    protected fun getAllPreviewSizes(aspectRatio: Double? = null) = getCurrentCamera()?.getAllPreviewSizes(aspectRatio)
+    protected fun getAllPreviewSizes(aspectRatio: Double? = null) =
+        getCurrentCamera()?.getAllPreviewSizes(aspectRatio)
 
     /**
      * Add render effect
@@ -396,7 +388,11 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param path custom save path
      * @param durationInSec divided record duration time in seconds
      */
-    protected fun captureVideoStart(callBack: ICaptureCallBack, path: String ?= null, durationInSec: Long = 0L) {
+    protected fun captureVideoStart(
+        callBack: ICaptureCallBack,
+        path: String? = null,
+        durationInSec: Long = 0L
+    ) {
         getCurrentCamera()?.captureVideoStart(callBack, path, durationInSec)
     }
 
@@ -413,7 +409,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param callBack capture status, see [ICaptureCallBack]
      * @param path custom save path
      */
-    protected fun captureAudioStart(callBack: ICaptureCallBack, path: String ?= null) {
+    protected fun captureAudioStart(callBack: ICaptureCallBack, path: String? = null) {
         getCurrentCamera()?.captureAudioStart(callBack, path)
     }
 
@@ -517,7 +513,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             camera.resetAutoFocus()
         }
     }
-
 
 
     /**
@@ -863,7 +858,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     private fun getViewLayoutParams(viewGroup: ViewGroup): ViewGroup.LayoutParams {
-        return when(viewGroup) {
+        return when (viewGroup) {
             is FrameLayout -> {
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -883,8 +878,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.MATCH_PARENT,
                     RelativeLayout.LayoutParams.MATCH_PARENT
-                ).apply{
-                    when(getGravity()) {
+                ).apply {
+                    when (getGravity()) {
                         Gravity.TOP -> {
                             addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
                         }
@@ -898,8 +893,10 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                     }
                 }
             }
-            else -> throw IllegalArgumentException("Unsupported container view, " +
-                    "you can use FrameLayout or LinearLayout or RelativeLayout")
+            else -> throw IllegalArgumentException(
+                "Unsupported container view, " +
+                        "you can use FrameLayout or LinearLayout or RelativeLayout"
+            )
         }
     }
 
