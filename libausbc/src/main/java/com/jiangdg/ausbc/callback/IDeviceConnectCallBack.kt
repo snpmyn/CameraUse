@@ -4,7 +4,7 @@ import android.hardware.usb.UsbDevice
 import com.jiangdg.usb.USBMonitor
 
 /**
- * I device connect call back
+ * I device connect call back.
  *
  * @author Created by jiangdg on 2022/7/19
  */
