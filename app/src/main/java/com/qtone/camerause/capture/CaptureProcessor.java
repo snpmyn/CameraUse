@@ -95,7 +95,7 @@ public class CaptureProcessor {
      * @param context           上下文
      * @param camera            相机硬件实例
      * @param intervalMs        连拍时间间隔
-     *                          单位 毫秒
+     *                          单位 - 毫秒
      * @param onCaptureCallBack 拍照回调
      */
     public void startBurstCapture(Context context, MultiCameraClient.ICamera camera, long intervalMs, OnCaptureCallBack onCaptureCallBack) {
