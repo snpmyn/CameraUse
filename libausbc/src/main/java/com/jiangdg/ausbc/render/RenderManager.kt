@@ -25,8 +25,8 @@ import android.provider.MediaStore
 import android.view.Surface
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
-import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.render.effect.AbstractEffect
+import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.render.internal.*
 import com.jiangdg.ausbc.utils.*
 import com.jiangdg.ausbc.utils.bus.BusKey
@@ -56,7 +56,7 @@ class RenderManager(
     context: Context,
     private val surfaceWidth: Int,         // render surface width
     private val surfaceHeight: Int,        // render surface height
-    private val mPreviewDataCbList: CopyOnWriteArrayList<IPreviewDataCallBack>?=null
+    private val mPreviewDataCbList: CopyOnWriteArrayList<IPreviewDataCallBack>? = null
 ) : SurfaceTexture.OnFrameAvailableListener, Handler.Callback {
     private var mPreviewByteBuffer: ByteBuffer? = null
     private var mEOSTextureId: Int? = null
@@ -177,7 +177,7 @@ class RenderManager(
                 mScreenRender?.swapBuffers(mCameraSurfaceTexture?.timestamp ?: 0)
             }
             MSG_GL_ADD_EFFECT -> {
-                (msg.obj as? AbstractEffect)?.let { effect->
+                (msg.obj as? AbstractEffect)?.let { effect ->
                     if (mEffectList.contains(effect)) {
                         return@let
                     }
@@ -185,18 +185,24 @@ class RenderManager(
                     effect.setSize(mWidth, mHeight)
                     mEffectList.add(effect)
                     mCacheEffectList.add(effect)
-                    Logger.i(TAG, "add effect, name = ${effect.javaClass.simpleName}, size = ${mEffectList.size}")
+                    Logger.i(
+                        TAG,
+                        "add effect, name = ${effect.javaClass.simpleName}, size = ${mEffectList.size}"
+                    )
                 }
             }
             MSG_GL_REMOVE_EFFECT -> {
                 (msg.obj as? AbstractEffect)?.let {
-                    if (! mEffectList.contains(it)) {
+                    if (!mEffectList.contains(it)) {
                         return@let
                     }
                     it.releaseGLES()
                     mEffectList.remove(it)
                     mCacheEffectList.remove(it)
-                    Logger.i(TAG, "remove effect, name = ${it.javaClass.simpleName}, size = ${mEffectList.size}")
+                    Logger.i(
+                        TAG,
+                        "remove effect, name = ${it.javaClass.simpleName}, size = ${mEffectList.size}"
+                    )
                 }
             }
             MSG_GL_RELEASE -> {
@@ -225,14 +231,24 @@ class RenderManager(
             val renderHeight = mCaptureRender?.getRenderHeight() ?: mHeight
             val rgbaLen = renderWidth * renderHeight * 4
             mPreviewDataCbList?.forEach { callback ->
-                if (mPreviewByteBuffer==null || mPreviewByteBuffer?.remaining() != rgbaLen) {
+                if (mPreviewByteBuffer == null || mPreviewByteBuffer?.remaining() != rgbaLen) {
                     mPreviewByteBuffer = ByteBuffer.allocateDirect(rgbaLen)
                     mPreviewByteBuffer?.order(ByteOrder.LITTLE_ENDIAN)
                 }
                 mPreviewByteBuffer?.let {
                     it.clear()
-                    GLBitmapUtils.readPixelToByteBuffer(id,renderWidth, renderHeight, mPreviewByteBuffer)
-                    callback.onPreviewData(it.array(),renderWidth, renderHeight, IPreviewDataCallBack.DataFormat.RGBA)
+                    GLBitmapUtils.readPixelToByteBuffer(
+                        id,
+                        renderWidth,
+                        renderHeight,
+                        mPreviewByteBuffer
+                    )
+                    callback.onPreviewData(
+                        it.array(),
+                        renderWidth,
+                        renderHeight,
+                        IPreviewDataCallBack.DataFormat.RGBA
+                    )
                 }
             }
         }
@@ -246,7 +262,12 @@ class RenderManager(
      * @param outSurface render surface
      * @param listener acquire camera surface texture, see [CameraSurfaceTextureListener]
      */
-    fun startRenderScreen(w: Int, h: Int, outSurface: Surface?, listener: CameraSurfaceTextureListener? = null) {
+    fun startRenderScreen(
+        w: Int,
+        h: Int,
+        outSurface: Surface?,
+        listener: CameraSurfaceTextureListener? = null
+    ) {
         mRenderThread = HandlerThread(RENDER_THREAD)
         mRenderThread?.start()
         mRenderHandler = Handler(mRenderThread!!.looper, this@RenderManager)
@@ -402,9 +423,11 @@ class RenderManager(
             if (it == null) {
                 throw NullPointerException("Current EGLContext can't be null.")
             }
-            mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_INIT, Pair(it, surface))?.sendToTarget()
+            mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_INIT, Pair(it, surface))
+                ?.sendToTarget()
         }
-        mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_CHANGED_SIZE, Pair(w, h))?.sendToTarget()
+        mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_CHANGED_SIZE, Pair(w, h))
+            ?.sendToTarget()
     }
 
     private fun drawFrame2Codec(textureId: Int, timeStamps: Long) {
@@ -487,7 +510,10 @@ class RenderManager(
         mEndTime = System.currentTimeMillis()
         if (mEndTime - mStartTime >= 1000) {
             if (Utils.debugCamera) {
-                Logger.i(TAG, "camera render frame rate is $mFrameRate fps-->${Thread.currentThread().name}")
+                Logger.i(
+                    TAG,
+                    "camera render frame rate is $mFrameRate fps-->${Thread.currentThread().name}"
+                )
             }
             EventBus.with<Int>(BusKey.KEY_FRAME_RATE).postMessage(mFrameRate)
             mStartTime = mEndTime
@@ -513,6 +539,7 @@ class RenderManager(
         private const val TAG = "RenderManager"
         private const val RENDER_THREAD = "gl_render"
         private const val RENDER_CODEC_THREAD = "gl_render_codec"
+
         // render
         private const val MSG_GL_INIT = 0x00
         private const val MSG_GL_DRAW = 0x01

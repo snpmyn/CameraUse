@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.render.internal
 
 import android.content.Context
@@ -25,8 +10,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-/** Abstract render class based on opengl es 2.0
- *      openGL ES  initial and frame drawing
+/**
+ * Abstract render class based on opengl es 2.0
+ *
+ * openGL ES  initial and frame drawing
  *
  * @author Created by jiangdg on 2021/12/27
  */
@@ -67,12 +54,16 @@ abstract class AbstractRender(context: Context) {
 
         // 2. 链接顶点属性
         mTriangleVertices.position(TRIANGLE_VERTICES_DATA_POS_OFFSET)
-        GLES20.glVertexAttribPointer(mPositionLocation, 3, GLES20.GL_FLOAT, false,
-            TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices)
+        GLES20.glVertexAttribPointer(
+            mPositionLocation, 3, GLES20.GL_FLOAT, false,
+            TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices
+        )
         GLES20.glEnableVertexAttribArray(mPositionLocation)
         mTriangleVertices.position(TRIANGLE_VERTICES_DATA_UV_OFFSET)
-        GLES20.glVertexAttribPointer(mTextureCoordLocation, 2, GLES20.GL_FLOAT, false,
-            TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices)
+        GLES20.glVertexAttribPointer(
+            mTextureCoordLocation, 2, GLES20.GL_FLOAT, false,
+            TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices
+        )
         GLES20.glEnableVertexAttribArray(mTextureCoordLocation)
 
         beforeDraw()
@@ -133,7 +124,10 @@ abstract class AbstractRender(context: Context) {
         val compiled = IntArray(1)
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0)
         if (compiled[0] == 0) {
-            Log.e(TAG, "Could not compile shader, info = ${GLES20.glGetShaderInfoLog(shader)}, T = ${Thread.currentThread().name}")
+            Log.e(
+                TAG,
+                "Could not compile shader, info = ${GLES20.glGetShaderInfoLog(shader)}, T = ${Thread.currentThread().name}"
+            )
             GLES20.glDeleteShader(shader)
             return 0
         }
@@ -172,10 +166,22 @@ abstract class AbstractRender(context: Context) {
     protected fun createTexture(textures: IntArray) {
         GLES20.glGenTextures(1, textures, 0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0])
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(
+            GLES20.GL_TEXTURE_2D,
+            GLES20.GL_TEXTURE_MIN_FILTER,
+            GLES20.GL_NEAREST
+        )
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(
+            GLES20.GL_TEXTURE_2D,
+            GLES20.GL_TEXTURE_WRAP_S,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
+        GLES20.glTexParameteri(
+            GLES20.GL_TEXTURE_2D,
+            GLES20.GL_TEXTURE_WRAP_T,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
         Logger.i(TAG, "create texture, id = ${textures[0]}")
     }
 
@@ -183,10 +189,26 @@ abstract class AbstractRender(context: Context) {
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0])
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MIN_FILTER,
+            GLES20.GL_NEAREST
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_MAG_FILTER,
+            GLES20.GL_LINEAR
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_S,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
+        GLES20.glTexParameteri(
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+            GLES20.GL_TEXTURE_WRAP_T,
+            GLES20.GL_CLAMP_TO_EDGE
+        )
         Logger.i(TAG, "create external texture, id = ${textures[0]}")
         return textures[0]
     }

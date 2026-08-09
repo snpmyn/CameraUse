@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.render.internal
 
 import android.content.Context
@@ -24,8 +9,10 @@ import com.jiangdg.ausbc.render.env.RotateType
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Inherit from AbstractFboRender
- *      render camera data with camera_vertex.glsl and camera_fragment.glsl
+/**
+ * Inherit from AbstractFboRender
+ *
+ * render camera data with camera_vertex.glsl and camera_fragment.glsl
  *
  * @author Created by jiangdg on 2021/12/27
  */
@@ -77,7 +64,7 @@ class CameraRender(context: Context) : AbstractFboRender(context) {
         Matrix.setIdentityM(mMVPMatrix, 0)
         when (angle) {
             -90 -> {
-                // 上下翻转 (绕x轴180度)
+                // 上下翻转 (绕 x 轴 180 度)
                 val radius = (180 * Math.PI / 180.0).toFloat()
                 mMVPMatrix[5] *= cos(radius.toDouble()).toFloat()
                 mMVPMatrix[6] += (-sin(radius.toDouble())).toFloat()
@@ -85,7 +72,7 @@ class CameraRender(context: Context) : AbstractFboRender(context) {
                 mMVPMatrix[10] *= cos(radius.toDouble()).toFloat()
             }
             -180 -> {
-                // 左右翻转 (绕y轴180度)
+                // 左右翻转 (绕 y 轴 180 度)
                 val radius = (180 * Math.PI / 180.0).toFloat()
                 mMVPMatrix[0] *= cos(radius.toDouble()).toFloat()
                 mMVPMatrix[2] += sin(radius.toDouble()).toFloat()
@@ -93,7 +80,7 @@ class CameraRender(context: Context) : AbstractFboRender(context) {
                 mMVPMatrix[10] *= cos(radius.toDouble()).toFloat()
             }
             else -> {
-                // 旋转画面（绕z轴）
+                // 旋转画面 (绕 z 轴)
                 val radius = (angle * Math.PI / 180.0).toFloat()
                 mMVPMatrix[0] *= cos(radius.toDouble()).toFloat()
                 mMVPMatrix[1] += (-sin(radius.toDouble())).toFloat()
