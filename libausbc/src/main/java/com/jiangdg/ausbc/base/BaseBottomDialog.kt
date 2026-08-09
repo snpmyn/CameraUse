@@ -18,11 +18,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jiangdg.ausbc.R
 
-/** Base bottom sheet dialog
+/**
+ * Base bottom sheet dialog
  *
  * @author Created by jiangdg on 2022/7/23
  */
-abstract class BaseBottomDialog: BottomSheetDialogFragment()  {
+abstract class BaseBottomDialog : BottomSheetDialogFragment() {
     private var mDismissListener: OnDismissListener? = null
     private var mTopOffset: Int = 0
     private var mBehavior: BottomSheetBehavior<FrameLayout>? = null
