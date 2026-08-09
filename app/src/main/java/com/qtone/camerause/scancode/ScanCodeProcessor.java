@@ -8,7 +8,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,7 +44,7 @@ public class ScanCodeProcessor {
      * 扫描间隔
      * <p>
      * 扫码成功冷却时间
-     * 单位 毫秒
+     * 单位 - 毫秒
      */
     private volatile long scanInterval = DEFAULT_SCAN_INTERVAL;
     /**
@@ -75,7 +75,7 @@ public class ScanCodeProcessor {
      *
      * @param scanInterval 扫描间隔
      *                     扫码成功冷却时间
-     *                     单位 毫秒
+     *                     单位 - 毫秒
      */
     public void setScanInterval(long scanInterval) {
         this.scanInterval = scanInterval;
