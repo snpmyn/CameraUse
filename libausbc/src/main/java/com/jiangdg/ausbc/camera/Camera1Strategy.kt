@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.camera
 
 import android.app.Activity
@@ -31,7 +16,8 @@ import com.jiangdg.ausbc.utils.Utils
 import java.io.File
 import kotlin.Exception
 
-/** Camera1 usage
+/**
+ * Camera1 usage
  *
  * @author Created by jiangdg on 2021/12/20
  *
@@ -47,7 +33,7 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
         val cameraInfo = Camera.CameraInfo()
         for (cameraId in 0 until Camera.getNumberOfCameras()) {
             Camera.getCameraInfo(cameraId, cameraInfo)
-            when(cameraInfo.facing) {
+            when (cameraInfo.facing) {
                 Camera.CameraInfo.CAMERA_FACING_FRONT -> {
                     TYPE_FRONT
                 }
@@ -57,7 +43,7 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
                 else -> {
                     TYPE_OTHER
                 }
-            }.also { type->
+            }.also { type ->
                 val info = CameraV1Info(cameraId.toString()).apply {
                     cameraType = type
                     cameraVid = cameraId + 1
@@ -108,7 +94,10 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
                 values.put(MediaStore.Images.ImageColumns.ORIENTATION, orientation)
                 values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
                 values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-                getContext()?.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                getContext()?.contentResolver?.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    values
+                )
                 mMainHandler.post {
                     mCaptureDataCb?.onComplete(path)
                 }
@@ -121,7 +110,7 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
                 }
             }
         }
-        if (! hasCameraPermission() || !hasStoragePermission()) {
+        if (!hasCameraPermission() || !hasStoragePermission()) {
             mMainHandler.post {
                 mCaptureDataCb?.onError("Have no storage or camera permission.")
             }
@@ -164,16 +153,16 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
             }
             val previewSizeList = cameraInfo?.cameraPreviewSizes ?: mutableListOf()
             if (previewSizeList.isEmpty()) {
-                mCamera?.parameters?.supportedPreviewSizes?.forEach { size->
+                mCamera?.parameters?.supportedPreviewSizes?.forEach { size ->
                     list.add(PreviewSize(size.width, size.height))
                 }
                 previewSizeList.addAll(list)
             }
-            previewSizeList.forEach { size->
+            previewSizeList.forEach { size ->
                 val width = size.width
                 val height = size.height
                 val ratio = width.toDouble() / height
-                if (aspectRatio==null || ratio == aspectRatio) {
+                if (aspectRatio == null || ratio == aspectRatio) {
                     list.add(size)
                 }
             }
@@ -184,8 +173,8 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
     }
 
     private fun createCamera() {
-        getRequest()?.let { request->
-            if (! hasCameraPermission()) {
+        getRequest()?.let { request ->
+            if (!hasCameraPermission()) {
                 Logger.i(TAG, "openCamera failed, has no camera permission.")
                 postCameraStatus(CameraStatus(CameraStatus.ERROR, "no permission"))
                 return
@@ -205,7 +194,10 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
             } ?: return
             getAllPreviewSizes()
             if (Utils.debugCamera) {
-                Logger.i(TAG, "createCamera id = ${request.cameraId}, front camera = ${request.isFrontCamera}")
+                Logger.i(
+                    TAG,
+                    "createCamera id = ${request.cameraId}, front camera = ${request.isFrontCamera}"
+                )
             }
         }
     }
@@ -252,14 +244,22 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
         val holder = getSurfaceHolder()
         if (st == null && holder == null) {
             postCameraStatus(CameraStatus(CameraStatus.ERROR, "surface is null"))
-            Logger.e(TAG, "realStartPreview failed, SurfaceTexture or SurfaceHolder cannot be null.")
+            Logger.e(
+                TAG,
+                "realStartPreview failed, SurfaceTexture or SurfaceHolder cannot be null."
+            )
             return
         }
         try {
-            getRequest()?.let { request->
+            getRequest()?.let { request ->
                 val width = request.previewWidth
                 val height = request.previewHeight
-                mCamera?.setDisplayOrientation(getPreviewDegree(getContext(), getRequest()?.isFrontCamera ?: false))
+                mCamera?.setDisplayOrientation(
+                    getPreviewDegree(
+                        getContext(),
+                        getRequest()?.isFrontCamera ?: false
+                    )
+                )
                 mCamera?.setPreviewCallbackWithBuffer(this)
                 mCamera?.addCallbackBuffer(ByteArray(width * height * 3 / 2))
                 if (st != null) {
@@ -280,7 +280,7 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
     }
 
     private fun destroyCamera() {
-        if (! mIsPreviewing.get()) return
+        if (!mIsPreviewing.get()) return
         mIsPreviewing.set(false)
         mCamera?.setPreviewCallbackWithBuffer(null)
         mCamera?.addCallbackBuffer(null)
@@ -339,12 +339,17 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
         data ?: return
         getRequest() ?: return
         try {
-            val frameSize = getRequest()!!.previewWidth * getRequest()!!.previewHeight * 3 /2
+            val frameSize = getRequest()!!.previewWidth * getRequest()!!.previewHeight * 3 / 2
             if (data.size != frameSize) {
                 return
             }
             mPreviewDataCbList.forEach { cb ->
-                cb.onPreviewData(data, getRequest()!!.previewWidth , getRequest()!!.previewHeight, IPreviewDataCallBack.DataFormat.NV21)
+                cb.onPreviewData(
+                    data,
+                    getRequest()!!.previewWidth,
+                    getRequest()!!.previewHeight,
+                    IPreviewDataCallBack.DataFormat.NV21
+                )
             }
             mCamera?.addCallbackBuffer(data)
         } catch (e: IndexOutOfBoundsException) {

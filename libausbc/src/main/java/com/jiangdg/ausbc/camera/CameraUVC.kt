@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2023 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.camera
 
 import android.content.ContentValues
@@ -34,13 +19,14 @@ import com.jiangdg.ausbc.utils.CameraUtils
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.MediaUtils
 import com.jiangdg.ausbc.utils.Utils
-import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.uvc.IFrameCallback
 import com.jiangdg.uvc.UVCCamera
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
-/** UVC Camera
+/**
+ * UVC Camera
  *
  * @author Created by jiangdg on 2023/1/15
  */
@@ -61,7 +47,12 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                 }
                 // for preview callback
                 mPreviewDataCbList.forEach { cb ->
-                    cb?.onPreviewData(data, previewWidth, previewHeight, IPreviewDataCallBack.DataFormat.NV21)
+                    cb?.onPreviewData(
+                        data,
+                        previewWidth,
+                        previewHeight,
+                        IPreviewDataCallBack.DataFormat.NV21
+                    )
                 }
                 // for image
                 if (mNV21DataQueue.size >= MAX_NV21_DATA) {
@@ -75,16 +66,16 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         }
     }
 
-    override fun getAllPreviewSizes(aspectRatio: Double?): MutableList<PreviewSize> {
+    /*override fun getAllPreviewSizes(aspectRatio: Double?): MutableList<PreviewSize> {
         val previewSizeList = arrayListOf<PreviewSize>()
         if (mUvcCamera?.supportedSizeList?.isNotEmpty() == true) {
             mUvcCamera?.supportedSizeList
-        }  else {
+        } else {
             mUvcCamera?.getSupportedSizeList(UVCCamera.FRAME_FORMAT_YUYV)
         }?.let { sizeList ->
             if (mCameraPreviewSize.isEmpty()) {
                 mCameraPreviewSize.clear()
-                sizeList.forEach { size->
+                sizeList.forEach { size ->
                     val width = size.width
                     val height = size.height
                     mCameraPreviewSize.add(PreviewSize(width, height))
@@ -102,7 +93,52 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         if (Utils.debugCamera) {
             Logger.i(TAG, "aspect ratio = $aspectRatio, getAllPreviewSizes = $previewSizeList, ")
         }
+        return previewSizeList
+    }*/
 
+    override fun getAllPreviewSizes(aspectRatio: Double?): MutableList<PreviewSize> {
+        val previewSizeList = arrayListOf<PreviewSize>()
+        // 1. 传入 -1
+        // 强行让 Native 层返回 MJPEG + YUYV + H264 的所有并集分辨率。
+        // 如果 mUvcCamera 没有暴露 getSupportedSize(-1, json)
+        // 可以调用下面的兼容提取逻辑
+        val rawSizeList = mUvcCamera?.let { camera ->
+            val jsonStr = camera.supportedSize
+            if (!jsonStr.isNullOrEmpty()) {
+                // -1 代表获取全部格式
+                camera.getSupportedSize(-1, jsonStr)
+            } else {
+                camera.supportedSizeList
+            }
+        }
+        if (rawSizeList.isNullOrEmpty()) {
+            if (Utils.debugCamera) {
+                Logger.e(TAG, "Get camera raw sizes failed: rawSizeList is null or empty.")
+            }
+            return previewSizeList
+        }
+        // 2. 刷新本地缓存
+        // 并使用 HashSet 根据 (Width x Height) 进行物理尺寸去重
+        mCameraPreviewSize.clear()
+        // 保持有序去重
+        val uniqueSizeSet = LinkedHashSet<PreviewSize>()
+        rawSizeList.forEach { size ->
+            uniqueSizeSet.add(PreviewSize(size.width, size.height))
+        }
+        mCameraPreviewSize.addAll(uniqueSizeSet)
+        // 3. 按宽高比过滤
+        // 引入 0.01 容差防浮点数精度误差
+        mCameraPreviewSize.forEach { size ->
+            val width = size.width
+            val height = size.height
+            val ratio = width.toDouble() / height
+            if ((aspectRatio == null) || (abs(aspectRatio - ratio) < 0.01)) {
+                previewSizeList.add(PreviewSize(width, height))
+            }
+        }
+        if (Utils.debugCamera) {
+            Logger.i(TAG, "aspect ratio = $aspectRatio, FULL getAllPreviewSizes = $previewSizeList")
+        }
         return previewSizeList
     }
 
@@ -110,7 +146,10 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         if (Utils.isTargetSdkOverP(ctx) && !CameraUtils.hasCameraPermission(ctx)) {
             closeCamera()
             postStateEvent(ICameraStateCallBack.State.ERROR, "Has no CAMERA permission.")
-            Logger.e(TAG,"open camera failed, need Manifest.permission.CAMERA permission when targetSdk>=28")
+            Logger.e(
+                TAG,
+                "open camera failed, need Manifest.permission.CAMERA permission when targetSdk>=28"
+            )
             return
         }
         if (mCtrlBlock == null) {
@@ -126,7 +165,10 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
             }
         } catch (e: Exception) {
             closeCamera()
-            postStateEvent(ICameraStateCallBack.State.ERROR, "open camera failed ${e.localizedMessage}")
+            postStateEvent(
+                ICameraStateCallBack.State.ERROR,
+                "open camera failed ${e.localizedMessage}"
+            )
             Logger.e(TAG, "open camera failed.", e)
         }
 
@@ -137,10 +179,13 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         }
         try {
             Logger.i(TAG, "getSuitableSize: $previewSize")
-            if (! isPreviewSizeSupported(previewSize)) {
+            if (!isPreviewSizeSupported(previewSize)) {
                 closeCamera()
                 postStateEvent(ICameraStateCallBack.State.ERROR, "unsupported preview size")
-                Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}")
+                Logger.e(
+                    TAG,
+                    "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}"
+                )
                 return
             }
             initEncodeProcessor(previewSize.width, previewSize.height)
@@ -160,10 +205,13 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                     mCameraRequest!!.previewWidth = width
                     mCameraRequest!!.previewHeight = height
                 }
-                if (! isPreviewSizeSupported(previewSize)) {
+                if (!isPreviewSizeSupported(previewSize)) {
                     postStateEvent(ICameraStateCallBack.State.ERROR, "unsupported preview size")
                     closeCamera()
-                    Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}")
+                    Logger.e(
+                        TAG,
+                        "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}"
+                    )
                     return
                 }
                 Logger.e(TAG, " setPreviewSize failed, try to use yuv format...")
@@ -184,11 +232,11 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         }
         // if not opengl render or opengl render with preview callback
         // there should opened
-        if (! isNeedGLESRender || mCameraRequest!!.isRawPreviewData || mCameraRequest!!.isCaptureRawImage) {
+        if (!isNeedGLESRender || mCameraRequest!!.isRawPreviewData || mCameraRequest!!.isCaptureRawImage) {
             mUvcCamera?.setFrameCallback(frameCallBack, UVCCamera.PIXEL_FORMAT_YUV420SP)
         }
         // 3. start preview
-        when(cameraView) {
+        when (cameraView) {
             is Surface -> {
                 mUvcCamera?.setPreviewDisplay(cameraView)
             }
@@ -229,14 +277,14 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
 
     override fun captureImageInternal(savePath: String?, callback: ICaptureCallBack) {
         mSaveImageExecutor.submit {
-            if (! CameraUtils.hasStoragePermission(ctx)) {
+            if (!CameraUtils.hasStoragePermission(ctx)) {
                 mMainHandler.post {
                     callback.onError("have no storage permission")
                 }
-                Logger.e(TAG,"open camera failed, have no storage permission")
+                Logger.e(TAG, "open camera failed, have no storage permission")
                 return@submit
             }
-            if (! isPreviewed) {
+            if (!isPreviewed) {
                 mMainHandler.post {
                     callback.onError("camera not previewing")
                 }
@@ -262,7 +310,7 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
             val width = mCameraRequest!!.previewWidth
             val height = mCameraRequest!!.previewHeight
             val ret = MediaUtils.saveYuv2Jpeg(path, data, width, height)
-            if (! ret) {
+            if (!ret) {
                 val file = File(path)
                 if (file.exists()) {
                     file.delete()
@@ -284,7 +332,9 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
             mMainHandler.post {
                 callback.onComplete(path)
             }
-            if (Utils.debugCamera) { Logger.i(TAG, "captureImageInternal save path = $path") }
+            if (Utils.debugCamera) {
+                Logger.i(TAG, "captureImageInternal save path = $path")
+            }
         }
     }
 

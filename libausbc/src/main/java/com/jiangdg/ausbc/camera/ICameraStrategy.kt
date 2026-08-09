@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.camera
 
 import android.Manifest
@@ -35,7 +20,6 @@ import com.jiangdg.ausbc.camera.bean.CameraStatus
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
-import java.lang.Deprecated
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
@@ -43,7 +27,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** Camera Manager abstract class
+/**
+ * Camera Manager abstract class
  *
  * @author Created by jiangdg on 2021/12/20
  *
@@ -87,7 +72,7 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
     }
 
     override fun handleMessage(msg: Message): Boolean {
-        when(msg.what) {
+        when (msg.what) {
             MSG_INIT -> {
                 loadCameraInfo()
             }
@@ -150,7 +135,8 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
             }.also {
                 mCameraHandler = Handler(it.looper, this)
                 mCameraHandler?.obtainMessage(MSG_INIT)?.sendToTarget()
-                mCameraHandler?.obtainMessage(MSG_START_PREVIEW, request ?: mCameraRequest)?.sendToTarget()
+                mCameraHandler?.obtainMessage(MSG_START_PREVIEW, request ?: mCameraRequest)
+                    ?.sendToTarget()
             }
             this.mThread = thread
         }
@@ -313,9 +299,10 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
      * see [Camera1Strategy] or [Camera2Strategy] or [CameraUvcStrategy]
      * @return true was granted
      */
-    protected fun hasCameraPermission(): Boolean{
+    protected fun hasCameraPermission(): Boolean {
         getContext() ?: return false
-        val locPermission = ContextCompat.checkSelfPermission(getContext()!!, Manifest.permission.CAMERA)
+        val locPermission =
+            ContextCompat.checkSelfPermission(getContext()!!, Manifest.permission.CAMERA)
         return locPermission == PackageManager.PERMISSION_GRANTED
     }
 
@@ -326,7 +313,10 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
      */
     protected fun hasStoragePermission(): Boolean {
         getContext() ?: return false
-        val locPermission = ContextCompat.checkSelfPermission(getContext()!!, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val locPermission = ContextCompat.checkSelfPermission(
+            getContext()!!,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
         return locPermission == PackageManager.PERMISSION_GRANTED
     }
 
@@ -342,7 +332,8 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
                         stopPreview()
                         unRegister()
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
         })
@@ -366,7 +357,7 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
      * @param callBack preview data call back
      */
     fun removePreviewDataCallBack(callBack: IPreviewDataCallBack) {
-        if (! mPreviewDataCbList.contains(callBack)) {
+        if (!mPreviewDataCbList.contains(callBack)) {
             return
         }
         mPreviewDataCbList.remove(callBack)

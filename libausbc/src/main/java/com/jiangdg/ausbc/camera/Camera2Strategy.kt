@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.camera
 
 import android.annotation.SuppressLint
@@ -30,20 +15,21 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.CameraStatus
-import com.jiangdg.ausbc.camera.bean.PreviewSize
-import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.camera.bean.CameraV2Info
+import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.Logger
+import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.utils.Utils
 import java.io.File
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
-import kotlin.Exception
 
-/** Camera2 usage
+/**
+ * Camera2 usage
  *
  * @author Created by jiangdg on 2021/12/20
+ *
  * Deprecated since version 3.3.0, and it will be deleted in the future.
  * I recommend using the [CameraUVC] API for your application.
  */
@@ -59,12 +45,15 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     private var mImageSavePath: SettableFuture<String> = SettableFuture()
     private var mPreviewDataImageReader: ImageReader? = null
     private var mJpegImageReader: ImageReader? = null
-    // 输出到屏幕的Surface
+
+    // 输出到屏幕的 Surface
     private var mPreviewSurface: Surface? = null
-    // 输出到预览ImageReader的Surface
+
+    // 输出到预览 ImageReader的Surface
     // 便于从中获取预览数据
     private var mPreviewDataSurface: Surface? = null
-    // 输出到拍照ImageReader的Surface
+
+    // 输出到拍照 ImageReader的Surface
     // 便于从中获取拍照数据
     private var mJpegDataSurface: Surface? = null
     private var mCameraManager: CameraManager? = null
@@ -87,8 +76,10 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                     }
                 }.let { type ->
                     val list = mutableListOf<PreviewSize>()
-                    val streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    val sizeList = streamConfigurationMap?.getOutputSizes(SurfaceTexture::class.java)
+                    val streamConfigurationMap =
+                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                    val sizeList =
+                        streamConfigurationMap?.getOutputSizes(SurfaceTexture::class.java)
                     sizeList?.forEach {
                         list.add(PreviewSize(it.width, it.height))
                     }
@@ -125,7 +116,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     }
 
     override fun captureImageInternal(savePath: String?) {
-        if (! hasCameraPermission() || !hasStoragePermission()) {
+        if (!hasCameraPermission() || !hasStoragePermission()) {
             mMainHandler.post {
                 mCaptureDataCb?.onError("Have no storage or camera permission.")
             }
@@ -136,7 +127,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
         val characteristics = mCameraCharacteristicsFuture?.get(3, TimeUnit.SECONDS)
         val captureBuilder = mImageCaptureBuilder
         val jpegSurface = mJpegDataSurface
-        if (cameraSession == null || characteristics==null || captureBuilder==null || jpegSurface == null) {
+        if (cameraSession == null || characteristics == null || captureBuilder == null || jpegSurface == null) {
             mMainHandler.post {
                 mCaptureDataCb?.onError("camera2 init failed.")
             }
@@ -188,11 +179,11 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             val cameraInfo = mCameraInfoMap.values.find {
                 request.cameraId == it.cameraId
             }
-            cameraInfo?.cameraPreviewSizes?.forEach { size->
+            cameraInfo?.cameraPreviewSizes?.forEach { size ->
                 val width = size.width
                 val height = size.height
                 val ratio = width.toDouble() / height
-                if (aspectRatio==null || ratio == aspectRatio) {
+                if (aspectRatio == null || ratio == aspectRatio) {
                     list.add(size)
                 }
             }
@@ -203,11 +194,11 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
 
     @SuppressLint("MissingPermission")
     private fun openCamera() {
-        getRequest()?.let { request->
+        getRequest()?.let { request ->
             mCameraDeviceFuture = SettableFuture()
             mCameraCharacteristicsFuture = SettableFuture()
             try {
-                if (! hasCameraPermission()) {
+                if (!hasCameraPermission()) {
                     Logger.e(TAG, "openCamera failed, has no camera permission.")
                     return@let
                 }
@@ -226,7 +217,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                 request.cameraId = cameraId
                 mCameraManager!!.openCamera(cameraId, mCameraStateCallBack, mMainHandler)
                 Logger.i(TAG, "openCamera success, id = $cameraId.")
-            }catch (e: CameraAccessException) {
+            } catch (e: CameraAccessException) {
                 closeCamera()
                 Logger.e(TAG, "openCamera failed, err = ${e.reason}.", e)
             }
@@ -241,7 +232,8 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                 return
             }
             getRequest()?.let {
-                mPreviewCaptureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+                mPreviewCaptureBuilder =
+                    cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
                 mPreviewCaptureBuilder?.set(
                     CaptureRequest.CONTROL_AE_MODE,
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
@@ -250,7 +242,8 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                     CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
                 )
-                mImageCaptureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+                mImageCaptureBuilder =
+                    cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
                 Logger.i(TAG, "createCaptureRequestBuilders success.")
             }
 
@@ -272,20 +265,26 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
         }
         // 创建预览Preview Surface
         // 缓存匹配的预览尺寸
-        getRequest()?.let { request->
+        getRequest()?.let { request ->
             val maxWidth = request.previewWidth
             val maxHeight = request.previewHeight
-            val previewSize = getSuitableSize(characteristics, SurfaceTexture::class.java, maxWidth, maxHeight)
+            val previewSize =
+                getSuitableSize(characteristics, SurfaceTexture::class.java, maxWidth, maxHeight)
             mPreviewSurface = previewSurface
             request.previewWidth = previewSize.width
             request.previewHeight = previewSize.height
             mYUVData = ByteArray(request.previewWidth * request.previewHeight * 3 / 2)
             // 创建预览ImageReader & Preview Data Surface
             val imageFormat = ImageFormat.YUV_420_888
-            val streamConfigurationMap = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
+            val streamConfigurationMap =
+                characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
             if (streamConfigurationMap?.isOutputSupportedFor(imageFormat) == true) {
-                mPreviewDataImageReader = ImageReader.newInstance(previewSize.width, previewSize.height, imageFormat, 3)
-                mPreviewDataImageReader?.setOnImageAvailableListener(mPreviewAvailableListener, getCameraHandler())
+                mPreviewDataImageReader =
+                    ImageReader.newInstance(previewSize.width, previewSize.height, imageFormat, 3)
+                mPreviewDataImageReader?.setOnImageAvailableListener(
+                    mPreviewAvailableListener,
+                    getCameraHandler()
+                )
                 mPreviewDataSurface = mPreviewDataImageReader?.surface
             }
             Logger.i(TAG, "setPreviewSize success, size = ${previewSize}.")
@@ -299,21 +298,27 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             Logger.e(TAG, "setImageSize failed. Camera characteristics is null.")
             return
         }
-        getRequest()?.let { request->
+        getRequest()?.let { request ->
             // 创建Jpeg Surface
             // 缓存匹配得到的尺寸
             val maxWidth = request.previewWidth
             val maxHeight = request.previewHeight
-            val imageSize = getSuitableSize(characteristics, ImageReader::class.java, maxWidth, maxHeight)
-            mJpegImageReader = ImageReader.newInstance(imageSize.width, imageSize.height, ImageFormat.JPEG, 5)
-            mJpegImageReader?.setOnImageAvailableListener(mJpegAvailableListener, getCameraHandler())
+            val imageSize =
+                getSuitableSize(characteristics, ImageReader::class.java, maxWidth, maxHeight)
+            mJpegImageReader =
+                ImageReader.newInstance(imageSize.width, imageSize.height, ImageFormat.JPEG, 5)
+            mJpegImageReader?.setOnImageAvailableListener(
+                mJpegAvailableListener,
+                getCameraHandler()
+            )
             mJpegDataSurface = mJpegImageReader?.surface
             request.previewWidth = imageSize.width
             request.previewHeight = imageSize.height
 
             // 设定缩略图尺寸
             captureBuilder?.let {
-                val availableThumbnailSizes = characteristics[CameraCharacteristics.JPEG_AVAILABLE_THUMBNAIL_SIZES]
+                val availableThumbnailSizes =
+                    characteristics[CameraCharacteristics.JPEG_AVAILABLE_THUMBNAIL_SIZES]
                 val thumbnailSize = getSuitableSize(availableThumbnailSizes, maxWidth, maxHeight)
                 captureBuilder[CaptureRequest.JPEG_THUMBNAIL_SIZE] = thumbnailSize
             }
@@ -325,7 +330,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     private fun createSession() {
         try {
             val cameraDevice = mCameraDeviceFuture?.get(3, TimeUnit.SECONDS)
-            if (cameraDevice==null) {
+            if (cameraDevice == null) {
                 Logger.e(TAG, "realStartPreview failed, camera init failed.")
                 stopPreviewInternal()
                 return
@@ -347,7 +352,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     private fun realStartPreview() {
         val cameraDevice = mCameraDeviceFuture?.get(3, TimeUnit.SECONDS)
         val cameraSession = mCameraSessionFuture?.get(3, TimeUnit.SECONDS)
-        if (cameraDevice==null || cameraSession == null) {
+        if (cameraDevice == null || cameraSession == null) {
             Logger.e(TAG, "realStartPreview failed, camera init failed.")
             stopPreviewInternal()
             postCameraStatus(CameraStatus(CameraStatus.ERROR, "camera init failed"))
@@ -370,7 +375,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             }
             builder.addTarget(previewSurface)
             builder.build()
-        }.also { captureRequest->
+        }.also { captureRequest ->
             if (captureRequest == null) {
                 Logger.e(TAG, "realStartPreview failed, captureRequest is null.")
                 postCameraStatus(CameraStatus(CameraStatus.ERROR, "capture request is null"))
@@ -379,7 +384,12 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             cameraSession.setRepeatingRequest(captureRequest, null, getCameraHandler())
             mIsPreviewing.set(true)
             getRequest()?.apply {
-                postCameraStatus(CameraStatus(CameraStatus.START, Pair(previewWidth, previewHeight).toString()))
+                postCameraStatus(
+                    CameraStatus(
+                        CameraStatus.START,
+                        Pair(previewWidth, previewHeight).toString()
+                    )
+                )
             }
         }
         Logger.i(TAG, "realStartPreview success!")
@@ -422,7 +432,8 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
         maxWidth: Int,
         maxHeight: Int
     ): Size {
-        val streamConfigurationMap = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+        val streamConfigurationMap =
+            cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
         val supportedSizes = streamConfigurationMap?.getOutputSizes(clazz)
         return getSuitableSize(supportedSizes, maxWidth, maxHeight)
     }
@@ -458,7 +469,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
         }
         val sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
         val cameraFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
-        val facingFront =  cameraFacing == CameraCharacteristics.LENS_FACING_FRONT
+        val facingFront = cameraFacing == CameraCharacteristics.LENS_FACING_FRONT
         myDeviceOrientation = (myDeviceOrientation + 45) / 90 * 90
         if (facingFront) {
             myDeviceOrientation = -myDeviceOrientation
@@ -507,7 +518,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     /**
      * 拍照状态回调
      */
-    private val mImageCaptureStateCallBack  = object : CameraCaptureSession.CaptureCallback() {
+    private val mImageCaptureStateCallBack = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureStarted(
             session: CameraCaptureSession,
             request: CaptureRequest,
@@ -531,9 +542,8 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     }
 
     /**
-     * 预览数据(YUV)回调
+     * 预览数据 (YUV) 回调
      * YUV_420_888[] -> NV21[YYYYYYYY VUVU]
-     *
      */
     private val mPreviewAvailableListener = ImageReader.OnImageAvailableListener { imageReader ->
         val image = imageReader?.acquireNextImage()
@@ -543,18 +553,18 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             mYUVData ?: return@OnImageAvailableListener
             try {
                 val planes = it.planes
-                // Y通道
+                // Y 通道
                 val yBuffer = planes[0].buffer
                 val yuv420pYLen = request.previewWidth * request.previewHeight
                 yBuffer.get(mYUVData!!, 0, yuv420pYLen)
-                // V通道
+                // V 通道
                 val vBuffer = planes[2].buffer
                 val vPixelStride = planes[2].pixelStride
                 for ((index, i) in (0 until vBuffer.remaining() step vPixelStride).withIndex()) {
                     mYUVData!![yuv420pYLen + 2 * index] = vBuffer.get(i)
                 }
 
-                // U通道
+                // U 通道
                 val uBuffer = planes[1].buffer
                 val uPixelStride = planes[1].pixelStride
                 for ((index, i) in (0 until uBuffer.remaining() step uPixelStride).withIndex()) {
@@ -562,7 +572,12 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                 }
 
                 mPreviewDataCbList.forEach { cb ->
-                    cb.onPreviewData(mYUVData, request.previewWidth, request.previewHeight, IPreviewDataCallBack.DataFormat.NV21)
+                    cb.onPreviewData(
+                        mYUVData,
+                        request.previewWidth,
+                        request.previewHeight,
+                        IPreviewDataCallBack.DataFormat.NV21
+                    )
                 }
                 it.close()
             } catch (e: IndexOutOfBoundsException) {
@@ -610,7 +625,10 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
 //                values.put(MediaStore.Images.ImageColumns.ORIENTATION, orientation)
 //                values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
 //                values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-                getContext()?.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                getContext()?.contentResolver?.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    values
+                )
                 mMainHandler.post {
                     mCaptureDataCb?.onComplete(path)
                 }

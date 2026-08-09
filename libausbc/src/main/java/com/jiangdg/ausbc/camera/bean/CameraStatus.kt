@@ -2,7 +2,8 @@ package com.jiangdg.ausbc.camera.bean
 
 import androidx.annotation.Keep
 
-/** Camera status
+/**
+ * Camera status
  *
  * @author Created by jiangdg on 2022/4/5
  */

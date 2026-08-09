@@ -1,18 +1,3 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jiangdg.ausbc.camera
 
 import android.content.ContentValues
@@ -37,9 +22,9 @@ import java.io.File
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.Exception
 
-/** UVC Camera usage
+/**
+ * UVC Camera usage
  *
  * @author Created by jiangdg on 2021/12/20
  *
@@ -132,9 +117,17 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
             mUVCCamera = UVCCamera().apply {
                 open(ctrlBlock)
             }
-            if (! isPreviewSizeSupported(previewWidth, previewHeight)) {
-                postCameraStatus(CameraStatus(CameraStatus.ERROR_PREVIEW_SIZE, "unsupported preview size(${request.previewWidth}, ${request.previewHeight})"))
-                Logger.e(TAG, " unsupported preview size(${request.previewWidth}, ${request.previewHeight})")
+            if (!isPreviewSizeSupported(previewWidth, previewHeight)) {
+                postCameraStatus(
+                    CameraStatus(
+                        CameraStatus.ERROR_PREVIEW_SIZE,
+                        "unsupported preview size(${request.previewWidth}, ${request.previewHeight})"
+                    )
+                )
+                Logger.e(
+                    TAG,
+                    " unsupported preview size(${request.previewWidth}, ${request.previewHeight})"
+                )
                 return null
             }
             try {
@@ -149,9 +142,17 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
             } catch (e: Exception) {
                 try {
                     Logger.w(TAG, " setPreviewSize failed ${e.localizedMessage}, try yuv format...")
-                    if (! isPreviewSizeSupported(previewWidth, previewHeight)) {
-                        postCameraStatus(CameraStatus(CameraStatus.ERROR_PREVIEW_SIZE, "unsupported preview size(${request.previewWidth}, ${request.previewHeight})"))
-                        Logger.e(TAG, " unsupported preview size(${request.previewWidth}, ${request.previewHeight})")
+                    if (!isPreviewSizeSupported(previewWidth, previewHeight)) {
+                        postCameraStatus(
+                            CameraStatus(
+                                CameraStatus.ERROR_PREVIEW_SIZE,
+                                "unsupported preview size(${request.previewWidth}, ${request.previewHeight})"
+                            )
+                        )
+                        Logger.e(
+                            TAG,
+                            " unsupported preview size(${request.previewWidth}, ${request.previewHeight})"
+                        )
                         return null
                     }
                     mUVCCamera?.setPreviewSize(
@@ -163,7 +164,12 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                         UVCCamera.DEFAULT_BANDWIDTH
                     )
                 } catch (e: Exception) {
-                    postCameraStatus(CameraStatus(CameraStatus.ERROR, "setPreviewSize failed, err = ${e.localizedMessage}"))
+                    postCameraStatus(
+                        CameraStatus(
+                            CameraStatus.ERROR,
+                            "setPreviewSize failed, err = ${e.localizedMessage}"
+                        )
+                    )
                     Logger.e(TAG, " setPreviewSize failed", e)
                     return null
                 }
@@ -417,7 +423,11 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                 if (Utils.debugCamera) {
                     Logger.i(TAG, "onDetach device = ${device?.deviceName}")
                 }
-                if (!isUsbCamera(device) && !isFilterDevice(getContext(), device) && !mCacheDeviceList.contains(device)) {
+                if (!isUsbCamera(device) && !isFilterDevice(
+                        getContext(),
+                        device
+                    ) && !mCacheDeviceList.contains(device)
+                ) {
                     return
                 }
                 mCameraInfoMap.remove(device?.deviceId)
@@ -445,7 +455,11 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                 if (Utils.debugCamera) {
                     Logger.i(TAG, "onConnect device = ${device?.deviceName}")
                 }
-                if (!isUsbCamera(device) && !isFilterDevice(getContext(), device) && !mCacheDeviceList.contains(device)) {
+                if (!isUsbCamera(device) && !isFilterDevice(
+                        getContext(),
+                        device
+                    ) && !mCacheDeviceList.contains(device)
+                ) {
                     return
                 }
                 mDevSettableFuture = SettableFuture()
@@ -471,7 +485,11 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                 if (Utils.debugCamera) {
                     Logger.i(TAG, "onDisconnect device = ${device?.deviceName}")
                 }
-                if (!isUsbCamera(device) && !isFilterDevice(getContext(), device) && !mCacheDeviceList.contains(device)) {
+                if (!isUsbCamera(device) && !isFilterDevice(
+                        getContext(),
+                        device
+                    ) && !mCacheDeviceList.contains(device)
+                ) {
                     return
                 }
                 val curDevice = mDevSettableFuture?.get()
@@ -492,7 +510,11 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                 if (Utils.debugCamera) {
                     Logger.i(TAG, "onCancel device = ${device?.deviceName}")
                 }
-                if (!isUsbCamera(device) && !isFilterDevice(getContext(), device) && !mCacheDeviceList.contains(device)) {
+                if (!isUsbCamera(device) && !isFilterDevice(
+                        getContext(),
+                        device
+                    ) && !mCacheDeviceList.contains(device)
+                ) {
                     return
                 }
                 val curDevice = mDevSettableFuture?.get()
@@ -784,7 +806,12 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                 frame.position(0)
                 val data = ByteArray(capacity())
                 get(data)
-                cb.onPreviewData(data, getRequest()!!.previewWidth, getRequest()!!.previewHeight,IPreviewDataCallBack.DataFormat.NV21)
+                cb.onPreviewData(
+                    data,
+                    getRequest()!!.previewWidth,
+                    getRequest()!!.previewHeight,
+                    IPreviewDataCallBack.DataFormat.NV21
+                )
                 if (mNV21DataQueue.size >= MAX_NV21_DATA) {
                     mNV21DataQueue.removeLast()
                 }
