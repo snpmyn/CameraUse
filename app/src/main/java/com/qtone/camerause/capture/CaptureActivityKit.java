@@ -39,8 +39,12 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, D
      * @param captureActivity 拍照页
      */
     public CaptureActivityKit(CaptureActivity captureActivity) {
+        // 拍照页
         this.captureActivity = captureActivity;
+        // 拍照处理器
         this.captureProcessor = new CaptureProcessor();
+        this.captureProcessor.setCaptureStrategy(CaptureStrategy.NV21_FRAME);
+        // 文档裁剪处理器
         this.documentCropProcessor = new DocumentCropProcessor();
     }
 
