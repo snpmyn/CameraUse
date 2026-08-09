@@ -8,9 +8,9 @@ import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.crop.ExamCropProcessor;
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.crop.DocumentCropProcessor;
 import com.qtone.camerause.ocr.BaiDuOcrHelper;
+import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.wechat.WeChatCropEngine;
 
 /**
@@ -19,7 +19,7 @@ import com.qtone.camerause.wechat.WeChatCropEngine;
  * @author 郑少鹏
  * @desc 拍照页配套原件
  */
-public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, ExamCropProcessor.OnExamCropCallback {
+public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, DocumentCropProcessor.OnExamCropCallback {
     /**
      * 拍照页
      */
@@ -29,9 +29,9 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
      */
     private CaptureProcessor captureProcessor;
     /**
-     * 试卷裁剪处理器
+     * 文档裁剪处理器
      */
-    private ExamCropProcessor examCropProcessor;
+    private DocumentCropProcessor documentCropProcessor;
 
     /**
      * constructor
@@ -41,7 +41,7 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
     public CaptureActivityKit(CaptureActivity captureActivity) {
         this.captureActivity = captureActivity;
         this.captureProcessor = new CaptureProcessor();
-        this.examCropProcessor = new ExamCropProcessor();
+        this.documentCropProcessor = new DocumentCropProcessor();
     }
 
     /**
@@ -54,12 +54,12 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
     }
 
     /**
-     * 获取试卷裁剪处理器
+     * 获取文档裁剪处理器
      *
-     * @return 试卷裁剪处理器
+     * @return 文档裁剪处理器
      */
-    public ExamCropProcessor getExamCropProcessor() {
-        return examCropProcessor;
+    public DocumentCropProcessor getExamCropProcessor() {
+        return documentCropProcessor;
     }
 
     /**
@@ -70,9 +70,9 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
             captureProcessor.release();
             captureProcessor = null;
         }
-        if (examCropProcessor != null) {
-            examCropProcessor.destroy();
-            examCropProcessor = null;
+        if (documentCropProcessor != null) {
+            documentCropProcessor.destroy();
+            documentCropProcessor = null;
         }
     }
 
@@ -100,10 +100,10 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
         if (captureActivity.isFinishing() || captureActivity.isDestroyed()) {
             return;
         }
-        if (examCropProcessor != null) {
+        if (documentCropProcessor != null) {
             try {
-                // 试卷裁剪处理器 - 异步处理 NV21
-                examCropProcessor.processNv21Async(captureActivity, nv21Data, width, height, CaptureActivityKit.this);
+                // 文档裁剪处理器 - 异步处理 NV21
+                documentCropProcessor.processNv21Async(captureActivity, nv21Data, width, height, CaptureActivityKit.this);
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
             }
@@ -125,10 +125,10 @@ public class CaptureActivityKit implements CaptureProcessor.OnCaptureCallBack, E
             return;
         }
         ToastUtils.show("拍照成功");
-        if (examCropProcessor != null) {
+        if (documentCropProcessor != null) {
             try {
-                // 1. 试卷裁剪处理器 - 异步处理
-                examCropProcessor.processAsync(captureActivity, savePath, CaptureActivityKit.this);
+                // 1. 文档裁剪处理器 - 异步处理
+                documentCropProcessor.processAsync(captureActivity, savePath, CaptureActivityKit.this);
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
             }
