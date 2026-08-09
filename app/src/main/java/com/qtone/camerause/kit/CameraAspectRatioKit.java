@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
+import com.qtone.camerause.util.log.LogKit;
 
 /**
  * Created on 2026/8/4.
