@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Process
+import kotlin.system.exitProcess
 
 /** App operator utils
  *
@@ -30,7 +31,7 @@ object AppUtils {
 
     fun releaseAppResource() {
         Process.killProcess(Process.myPid())
-        System.exit(0)
+        exitProcess(0)
     }
 
     fun removeAllActivity() {

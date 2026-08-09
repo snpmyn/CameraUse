@@ -3,7 +3,8 @@ package com.jiangdg.ausbc.utils
 import android.app.Activity
 import java.util.*
 
-/** Activity stack manager
+/**
+ * Activity stack manager
  *
  * @author Created by jiangdg on 2022/3/1
  */

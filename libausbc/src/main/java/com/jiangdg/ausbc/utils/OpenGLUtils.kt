@@ -5,7 +5,8 @@ import android.content.Context
 import android.opengl.GLES20
 import javax.microedition.khronos.opengles.GL10
 
-/** opengl es tool
+/**
+ * opengl es tool
  *
  * @author Created by jiangdg on 2023/1/17
  */

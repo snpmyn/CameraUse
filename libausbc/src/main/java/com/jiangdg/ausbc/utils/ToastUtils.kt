@@ -4,7 +4,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.annotation.MainThread
 
-/** Simple Toast
+/**
+ * Simple Toast
  *
  * @author Created by jiangdongguo on 2022/1/21
  */

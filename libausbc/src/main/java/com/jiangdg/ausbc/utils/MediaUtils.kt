@@ -13,7 +13,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
-/** Media utils
+/**
+ * Media utils
  *
  * @author Created by jiangdg on 2022/2/23
  */

@@ -3,7 +3,8 @@ package com.jiangdg.ausbc.utils
 import java.util.concurrent.*
 import java.util.concurrent.locks.AbstractQueuedSynchronizer
 
-/** Sync read tool
+/**
+ * Sync read tool
  *
  * @author Created by jiangdg on 2021/12/21
  */

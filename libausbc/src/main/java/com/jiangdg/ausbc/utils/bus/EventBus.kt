@@ -4,7 +4,8 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.*
 import java.util.concurrent.ConcurrentHashMap
 
-/** Event bus with using [LiveData]
+/**
+ * Event bus with using [LiveData]
  *
  * @author Created by jiangdg on 2022/3/15
  */

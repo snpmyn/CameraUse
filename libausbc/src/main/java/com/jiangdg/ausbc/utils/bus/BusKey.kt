@@ -1,6 +1,7 @@
 package com.jiangdg.ausbc.utils.bus
 
-/** Bus keys
+/**
+ * Bus keys
  *
  * @author Created by jiangdg on 2022/3/15
  */

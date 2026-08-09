@@ -4,7 +4,8 @@ import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-/** RecyclerView.ItemDecoration
+/**
+ * RecyclerView.ItemDecoration
  *
  * @author Created by jiangdg on 2022/7/24
  */

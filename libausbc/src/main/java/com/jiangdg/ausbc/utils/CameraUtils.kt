@@ -15,7 +15,6 @@ import com.jiangdg.usb.DeviceFilter
  * @author Created by jiangdg on 2022/7/19
  */
 object CameraUtils {
-
     fun transferYUV420ToNV21(image: Image, width: Int, height: Int): ByteArray {
         val nv21 = ByteArray(width * height * 3 / 2)
         val planes = image.planes

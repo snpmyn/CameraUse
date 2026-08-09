@@ -15,7 +15,8 @@ import androidx.annotation.RawRes
 import androidx.core.content.ContextCompat
 import java.io.InputStream
 
-/** Common Utils
+/**
+ * Common Utils
  *
  * @author Created by jiangdg on 2021/12/27
  */
