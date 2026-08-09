@@ -1,6 +1,5 @@
 package com.qtone.camerause.base;
 
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,14 +14,18 @@ import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.base.CameraActivity;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.CameraRequest;
+import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.kit.CameraAspectRatioKit;
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.kit.PreviewSizeKit;
+import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Created on 2026/8/5.
@@ -65,14 +68,6 @@ public abstract class BaseCameraActivity extends CameraActivity {
     };
 
     @Override
-    protected void onCreate(@org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
-        // 触发 ausbc 底层相机生命周期绑定
-        super.onCreate(savedInstanceState);
-        // 开始逻辑
-        startLogic(savedInstanceState);
-    }
-
-    @Override
     protected void initView() {
         super.initView();
         // 控件
@@ -82,6 +77,13 @@ public abstract class BaseCameraActivity extends CameraActivity {
             // 相机宽高比配套原件
             cameraAspectRatioKit = new CameraAspectRatioKit(aspectRatioTextureView);
         }
+    }
+
+    @Override
+    protected void initData() {
+        super.initData();
+        // 开始逻辑
+        startLogic();
     }
 
     @org.jetbrains.annotations.Nullable
@@ -126,10 +128,8 @@ public abstract class BaseCameraActivity extends CameraActivity {
 
     /**
      * 开始逻辑
-     *
-     * @param savedInstanceState Bundle
      */
-    protected void startLogic(@Nullable Bundle savedInstanceState) {
+    protected void startLogic() {
 
     }
 
@@ -168,12 +168,13 @@ public abstract class BaseCameraActivity extends CameraActivity {
     @NonNull
     @Override
     protected CameraRequest getCameraRequest() {
-        CameraResolution resolution = getCustomResolution();
+        CameraResolution customResolution = getCustomResolution();
         return new CameraRequest.Builder()
-                .setPreviewWidth(resolution.getWidth())
-                .setPreviewHeight(resolution.getHeight())
+                .setPreviewWidth(customResolution.getWidth())
+                .setPreviewHeight(customResolution.getHeight())
                 // NORMAL - NV21
-                // 效率较 OPENGL - RGBA 更高
+                // OPENGL - RGBA
+                // NORMAL 效率较 OPENGL 高
                 .setRenderMode(CameraRequest.RenderMode.NORMAL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
@@ -187,12 +188,36 @@ public abstract class BaseCameraActivity extends CameraActivity {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
         if (code == State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
+            // 1. 获取相机分辨率
             CameraResolution customResolution = getCustomResolution();
+            // 目标宽高
+            int targetWidth = customResolution.getWidth();
+            int targetHeight = customResolution.getHeight();
+            // 2. 获取所有预览尺寸集
+            List<PreviewSize> allPreviewSizes = getAllPreviewSizes(null);
+            // 3. 选择最佳预览尺寸
+            PreviewSize bestPreviewSize = PreviewSizeKit.selectBestPreviewSize(allPreviewSizes, customResolution.getWidth(), customResolution.getHeight(), PreviewSizeKit.DeviceBlacklist.HONOR_60.getDeviceModel());
+            if (bestPreviewSize != null) {
+                // 最佳宽高
+                int bestWidth = bestPreviewSize.getWidth();
+                int bestHeight = bestPreviewSize.getHeight();
+                // 比较最佳宽高与目标宽高
+                if ((bestWidth != targetWidth) || (bestHeight != targetHeight)) {
+                    Log.d(LogKit.TAG, "硬件预览尺寸匹配成功 - 相机更新分辨率 || " + bestWidth + " x " + bestHeight);
+                    // 不同则切至最佳宽高
+                    updateResolution(bestWidth, bestHeight);
+                    // 不同则覆盖目标宽高
+                    targetWidth = bestWidth;
+                    targetHeight = bestHeight;
+                }
+            }
+            // 5. 预览区域动态适配
             if (cameraAspectRatioKit != null) {
-                // 相机打开成功 -> 按默认分辨率设置预览区域比例
+                int finalTargetWidth = targetWidth;
+                int finalTargetHeight = targetHeight;
                 runOnUiThread(() -> {
                     if (!isFinishing() && !isDestroyed() && (cameraAspectRatioKit != null)) {
-                        cameraAspectRatioKit.updateAspectRatio(this, customResolution.getWidth(), customResolution.getHeight());
+                        cameraAspectRatioKit.updateAspectRatio(this, finalTargetWidth, finalTargetHeight);
                     }
                 });
             }
@@ -202,14 +227,15 @@ public abstract class BaseCameraActivity extends CameraActivity {
             self.addPreviewDataCallBack(previewDataCallBack);
         } else if (code == State.CLOSED) {
             Log.d(LogKit.TAG, "相机关闭成功");
-            // 清除已有预览帧回调
-            self.removePreviewDataCallBack(previewDataCallBack);
             if (cameraAspectRatioKit != null) {
                 // 重置缓存的分辨率记录
                 cameraAspectRatioKit.reset();
             }
+            // 清除已有预览帧回调
+            self.removePreviewDataCallBack(previewDataCallBack);
         } else if (code == State.ERROR) {
             Log.e(LogKit.TAG, "相机启动错误 || " + msg);
+            // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
         }
     }
