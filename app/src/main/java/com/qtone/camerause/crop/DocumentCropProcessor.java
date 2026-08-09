@@ -9,7 +9,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.qtone.camerause.kit.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +33,9 @@ import java.util.concurrent.Executors;
  * Created on 2026/8/3.
  *
  * @author 郑少鹏
- * @desc 试卷裁剪处理器
+ * @desc 文档裁剪处理器
  */
-public class ExamCropProcessor {
+public class DocumentCropProcessor {
     /**
      * 线程消息调度器
      */
@@ -278,7 +278,7 @@ public class ExamCropProcessor {
      */
     @NotNull
     @Contract(value = "_ -> new", pure = true)
-    private Point[] findExtremeCorners(@NotNull Point[] points) {
+    private Point @NotNull [] findExtremeCorners(@NotNull Point @NotNull [] points) {
         Point topLeft = points[0];
         Point topRight = points[0];
         Point bottomRight = points[0];
@@ -318,7 +318,7 @@ public class ExamCropProcessor {
      */
     @NotNull
     @Contract(value = "_ -> new", pure = true)
-    private Point[] sortFourCornersClockwise(Point[] points) {
+    private Point @NotNull [] sortFourCornersClockwise(Point[] points) {
         return findExtremeCorners(points);
     }
 
