@@ -10,16 +10,18 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.base.CameraActivity;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.render.env.RotateType;
+import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.kit.CameraAspectRatioKit;
-import com.qtone.camerause.kit.PreviewSizeKit;
+import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 
@@ -188,36 +190,11 @@ public abstract class BaseCameraActivity extends CameraActivity {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull State code, @Nullable String msg) {
         if (code == State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
-            // 1. 获取相机分辨率
-            CameraResolution customResolution = getCustomResolution();
-            // 目标宽高
-            int targetWidth = customResolution.getWidth();
-            int targetHeight = customResolution.getHeight();
-            // 2. 获取所有预览尺寸集
-            List<PreviewSize> allPreviewSizes = getAllPreviewSizes(null);
-            // 3. 选择最佳预览尺寸
-            PreviewSize bestPreviewSize = PreviewSizeKit.selectBestPreviewSize(allPreviewSizes, customResolution.getWidth(), customResolution.getHeight(), PreviewSizeKit.DeviceBlacklist.HONOR_60.getDeviceModel());
-            if (bestPreviewSize != null) {
-                // 最佳宽高
-                int bestWidth = bestPreviewSize.getWidth();
-                int bestHeight = bestPreviewSize.getHeight();
-                // 比较最佳宽高与目标宽高
-                if ((bestWidth != targetWidth) || (bestHeight != targetHeight)) {
-                    Log.d(LogKit.TAG, "硬件预览尺寸匹配成功 - 相机更新分辨率 || " + bestWidth + " x " + bestHeight);
-                    // 不同则切至最佳宽高
-                    updateResolution(bestWidth, bestHeight);
-                    // 不同则覆盖目标宽高
-                    targetWidth = bestWidth;
-                    targetHeight = bestHeight;
-                }
-            }
-            // 5. 预览区域动态适配
+            // 预览区域动态适配
             if (cameraAspectRatioKit != null) {
-                int finalTargetWidth = targetWidth;
-                int finalTargetHeight = targetHeight;
                 runOnUiThread(() -> {
                     if (!isFinishing() && !isDestroyed() && (cameraAspectRatioKit != null)) {
-                        cameraAspectRatioKit.updateAspectRatio(this, finalTargetWidth, finalTargetHeight);
+                        cameraAspectRatioKit.updateAspectRatio(this, getCustomResolution().getWidth(), getCustomResolution().getHeight());
                     }
                 });
             }
@@ -238,6 +215,41 @@ public abstract class BaseCameraActivity extends CameraActivity {
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
         }
+    }
+
+    /**
+     * 显示分辨率对话框
+     */
+    protected void showResolutionDialog() {
+        List<PreviewSize> previewSizes = getAllPreviewSizes(null);
+        if (ListUtils.listIsEmpty(previewSizes)) {
+            ToastUtils.show("获取预览分辨率失败");
+            return;
+        }
+        int selectedIndex = -1;
+        String[] items = new String[previewSizes.size()];
+        PreviewSize currentPreviewSize = getCurrentPreviewSize();
+        for (int i = 0; i < previewSizes.size(); i++) {
+            PreviewSize previewSize = previewSizes.get(i);
+            int previewSizeWidth = previewSize.getWidth();
+            int previewSizeHeight = previewSize.getHeight();
+            if ((currentPreviewSize != null) && (currentPreviewSize.getWidth() == previewSizeWidth) && (currentPreviewSize.getHeight() == previewSizeHeight)) {
+                selectedIndex = i;
+            }
+            items[i] = (previewSizeWidth + " x " + previewSizeHeight);
+        }
+        final int initialSelectedIndex = selectedIndex;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("选择预览分辨率")
+                .setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
+                    if (which != initialSelectedIndex) {
+                        PreviewSize selectedSize = previewSizes.get(which);
+                        updateResolution(selectedSize.getWidth(), selectedSize.getHeight());
+                    }
+                    dialog.dismiss();
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
     @Override
