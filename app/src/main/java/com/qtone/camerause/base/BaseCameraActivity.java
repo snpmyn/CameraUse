@@ -9,6 +9,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jiangdg.ausbc.MultiCameraClient;
@@ -239,17 +240,18 @@ public abstract class BaseCameraActivity extends CameraActivity {
             items[i] = (previewSizeWidth + " x " + previewSizeHeight);
         }
         final int initialSelectedIndex = selectedIndex;
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("选择预览分辨率")
+        AlertDialog alertDialog = new MaterialAlertDialogBuilder(this)
                 .setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
                     if (which != initialSelectedIndex) {
-                        PreviewSize selectedSize = previewSizes.get(which);
-                        updateResolution(selectedSize.getWidth(), selectedSize.getHeight());
+                        PreviewSize selectedPreviewSize = previewSizes.get(which);
+                        updateResolution(selectedPreviewSize.getWidth(), selectedPreviewSize.getHeight());
                     }
                     dialog.dismiss();
                 })
-                .setNegativeButton("取消", null)
                 .show();
+        if (alertDialog.getListView() != null) {
+            alertDialog.getListView().setVerticalScrollBarEnabled(false);
+        }
     }
 
     @Override
