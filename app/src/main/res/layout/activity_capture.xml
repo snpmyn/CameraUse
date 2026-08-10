@@ -88,5 +88,19 @@
             android:text="停止连拍"
             android:textSize="8sp"
             app:backgroundTint="@color/color_aa6a4c" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/captureActivityMbSwitchResolution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:filterTouchesWhenObscured="true"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:text="切分辨率"
+            android:textSize="8sp"
+            app:backgroundTint="@color/color_aa6a4c" />
     </LinearLayout>
 </LinearLayout>
