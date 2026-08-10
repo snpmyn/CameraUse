@@ -54,6 +54,7 @@ android {
 }
 
 dependencies {
+    /*使用 AndroidX Core KTX 提供的 Kotlin 扩展函数*/
     implementation "androidx.core:core-ktx:${androidxCoreVersion}"
     implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
     implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
