@@ -82,6 +82,7 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
         findViewById(R.id.captureActivityMbSingleCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbBurstCapture).setOnClickListener(this);
         findViewById(R.id.captureActivityMbStopBurstCapture).setOnClickListener(this);
+        findViewById(R.id.captureActivityMbSwitchResolution).setOnClickListener(this);
 
         String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
         //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
@@ -157,6 +158,9 @@ public class CaptureActivity extends BaseCameraActivity implements View.OnClickL
                 break;
             case R.id.captureActivityMbStopBurstCapture:
                 stopBurstCapture();
+                break;
+            case R.id.captureActivityMbSwitchResolution:
+                showResolutionDialog();
                 break;
             default:
                 break;
