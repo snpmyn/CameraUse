@@ -12,12 +12,13 @@ abstract class BaseDialog(
     landscapeWidthRatio: Float = 0.5F
 ) : DialogInterface {
     private val mContext: Activity = activity
-    private val mDialog: Dialog = Dialog(mContext, R.style.CommonDialogStyle)
+    protected val mDialog: Dialog = Dialog(mContext, R.style.CommonDialogStyle)
 
     init {
         mDialog.setContentView(this.getContentLayoutId())
         val orientation = mContext.resources.configuration.orientation
-        val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE // 是否横屏
+        // 是否横屏
+        val isLandscape = orientation == Configuration.ORIENTATION_LANDSCAPE
         mDialog.window?.let {
             // dialog 的宽度 横屏设置为 50% 竖屏设置为 80%
             val dm = DisplayMetrics()
