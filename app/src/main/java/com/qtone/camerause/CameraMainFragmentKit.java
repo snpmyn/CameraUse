@@ -15,17 +15,18 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.capture.CaptureMode;
-import com.qtone.camerause.capture.CaptureProcessor;
-import com.qtone.camerause.capture.CaptureStrategy;
-import com.qtone.camerause.crop.DocumentCropProcessor;
-import com.qtone.camerause.ocr.BaiDuOcrHelper;
-import com.qtone.camerause.scancode.ScanCodeProcessor;
-import com.qtone.camerause.util.list.ListUtils;
-import com.qtone.camerause.util.log.LogKit;
-import com.qtone.camerause.wechat.WeChatCropEngine;
+import com.qtone.camerause.function.capture.CaptureMode;
+import com.qtone.camerause.function.capture.CaptureProcessor;
+import com.qtone.camerause.function.capture.CaptureStrategy;
+import com.qtone.camerause.function.crop.DocumentCropProcessor;
+import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
+import com.qtone.camerause.function.scancode.ScanCodeProcessor;
+import com.qtone.camerause.function.wechat.WeChatCropEngine;
+import com.qtone.camerause.kit.list.ListKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created on 2026/8/11.
@@ -34,6 +35,12 @@ import java.util.List;
  * @desc 相机主碎片配套原件
  */
 public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeListener {
+    /**
+     * 允许扫码状态锁
+     * <p>
+     * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
+     */
+    protected final AtomicBoolean isAllowScanCode = new AtomicBoolean(true);
     /**
      * 相机主碎片
      */
@@ -77,23 +84,29 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     }
 
     /**
-     * 预览帧
+     * 处理帧
      *
      * @param data       图像帧字节数组
      * @param width      帧物理宽
      * @param height     帧物理高
      * @param dataFormat 数据格式
      */
-    public void onPreviewFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat) {
-        captureProcessor.onPreviewFrame(data, width, height, dataFormat, this);
-
-        scanCodeProcessor.processFrame(data, width, height, dataFormat, 0);
+    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat) {
+        // 拍照处理器 - 处理帧
+        captureProcessor.processFrame(data, width, height, dataFormat, this);
+        if (isAllowScanCode.get()) {
+            // 扫码处理器 - 处理帧
+            scanCodeProcessor.processFrame(data, width, height, dataFormat, 0);
+        }
     }
 
     /**
      * 单拍按钮点击事件
      */
     public void onSingleCaptureClicked() {
+        if (!isAllowScanCode.compareAndSet(true, false)) {
+            return;
+        }
         captureProcessor.setCaptureStrategy(CaptureStrategy.NV21_FRAME);
         captureProcessor.startSingleCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), this);
     }
@@ -101,11 +114,14 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     /**
      * 连拍按钮点击事件
      *
-     * @param intervalMs 连拍时间间隔
-     *                   单位 - 毫秒
+     * @param interval 时间间隔
+     *                 单位 - 毫秒
      */
-    public void onBurstCaptureClicked(long intervalMs) {
-        captureProcessor.startBurstCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), intervalMs, this);
+    public void onBurstCaptureClicked(long interval) {
+        if (!isAllowScanCode.compareAndSet(true, false)) {
+            return;
+        }
+        captureProcessor.startBurstCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
     }
 
     /**
@@ -113,6 +129,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onStopBurstCaptureClicked() {
         captureProcessor.stopBurstCapture();
+        isAllowScanCode.set(true);
     }
 
     /**
@@ -120,7 +137,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onSwitchResolutionClicked() {
         List<PreviewSize> previewSizes = cameraMainFragment.getAllPreviewSizes(null);
-        if (ListUtils.listIsEmpty(previewSizes)) {
+        if (ListKit.listIsEmpty(previewSizes)) {
             ToastUtils.show("获取预览分辨率失败");
             return;
         }
@@ -154,12 +171,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     /**
      * 扫码按钮点击事件
      *
-     * @param scanInterval 扫描间隔
-     *                     扫码成功冷却时间
-     *                     单位 - 毫秒
+     * @param interval 时间间隔
+     *                 扫码成功冷却时间
+     *                 单位 - 毫秒
      */
-    public void onScanCodeClicked(long scanInterval) {
-        scanCodeProcessor.setScanInterval(scanInterval);
+    public void onScanCodeClicked(long interval) {
+        scanCodeProcessor.setScanInterval(interval);
     }
 
     /**
@@ -176,12 +193,15 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      * 释放
      */
     public void release() {
+        // 允许扫码状态锁
+        isAllowScanCode.set(true);
+        // 拍照处理器
         captureProcessor.release();
+        // 文档裁剪处理器
         documentCropProcessor.release();
+        // 扫码处理器
         scanCodeProcessor.release();
     }
-
-    /*回调*/
 
     /**
      * 拍照开始
@@ -224,6 +244,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
+        if (captureMode == CaptureMode.SINGLE) {
+            // 单拍成功立刻恢复允许扫码
+            // 连拍需点击停拍按钮再恢复
+            isAllowScanCode.set(true);
+        }
         if (needReturn()) {
             return;
         }
@@ -304,6 +329,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureError(String errorMsg) {
+        isAllowScanCode.set(true);
         if (needReturn()) {
             return;
         }
