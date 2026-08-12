@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">CameraUse</string>
+    <string name="singleCapture">单拍</string>
+    <string name="burstCapture">连拍</string>
+    <string name="stopBurstCapture">停止连拍</string>
+    <string name="scanCode">扫码</string>
+    <string name="stopScanCode">停止扫码</string>
+    <string name="switchResolution">切分辨率</string>
 </resources>
