@@ -1,10 +1,10 @@
-package com.qtone.camerause.kit.asset;
+package com.qtone.camerause.utils.asset;
 
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 
