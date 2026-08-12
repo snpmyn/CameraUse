@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 /**
  * Created on 2026/8/4.
@@ -16,10 +16,6 @@ import com.qtone.camerause.util.log.LogKit;
  */
 public class CameraAspectRatioKit {
     /**
-     * AspectRatioTextureView
-     */
-    private AspectRatioTextureView aspectRatioTextureView;
-    /**
      * 当前物理帧宽
      */
     private int currentWidth = -1;
@@ -27,6 +23,10 @@ public class CameraAspectRatioKit {
      * 当前物理帧高
      */
     private int currentHeight = -1;
+    /**
+     * AspectRatioTextureView
+     */
+    private AspectRatioTextureView aspectRatioTextureView;
 
     /**
      * constructor
@@ -45,16 +45,15 @@ public class CameraAspectRatioKit {
      * @param height   物理帧高
      */
     public void updateAspectRatio(@Nullable Activity activity, int width, int height) {
-        if ((width <= 0) || (height <= 0) || (aspectRatioTextureView == null) || (activity == null)) {
+        if ((activity == null) || (aspectRatioTextureView == null) || (width <= 0) || (height <= 0)) {
             return;
         }
-        // 仅当分辨率确实发生变化时才更新布局
-        // 避免高频触发 requestLayout() 导致卡顿
+        // 分辨率变化时更新 -> 规避高频触发 requestLayout() 导致卡顿
         if ((currentWidth != width) || (currentHeight != height)) {
             currentWidth = width;
             currentHeight = height;
             float ratio = (float) width / (float) height;
-            Log.d(LogKit.TAG, String.format("更新预览比例 || %d:%d (宽高比 %.2f)", width, height, ratio));
+            Log.d(LogKit.TAG, String.format("预览区更新宽高比 || %d:%d (宽高比 %.2f)", width, height, ratio));
             activity.runOnUiThread(() -> {
                 if (!activity.isFinishing() && !activity.isDestroyed() && (aspectRatioTextureView != null)) {
                     aspectRatioTextureView.setAspectRatio(width, height);
@@ -80,8 +79,8 @@ public class CameraAspectRatioKit {
      * 释放
      */
     public void release() {
-        this.aspectRatioTextureView = null;
         this.currentWidth = -1;
         this.currentHeight = -1;
+        this.aspectRatioTextureView = null;
     }
 }
