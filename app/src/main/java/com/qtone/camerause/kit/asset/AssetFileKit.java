@@ -1,10 +1,10 @@
-package com.qtone.camerause.util.asset;
+package com.qtone.camerause.kit.asset;
 
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ public class AssetFileKit {
      * @param subdirectoryName 子目录名
      *                         需根目录传 null 或 ""
      * @param fileName         文件名
-     * @return 物理绝对路径 (拷贝失败或目录创建失败返 "")
+     * @return 物理绝对路径 [拷贝失败或目录创建失败返 ""]
      */
     @NotNull
     public static String copyAssetFileToCache(@NotNull Context context, String subdirectoryName, String fileName) {

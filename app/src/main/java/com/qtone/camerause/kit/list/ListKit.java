@@ -1,4 +1,4 @@
-package com.qtone.camerause.util.list;
+package com.qtone.camerause.kit.list;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -24,9 +24,9 @@ import timber.log.Timber;
  * Created on 2020/12/28
  *
  * @author zsp
- * @desc List 工具类
+ * @desc List 配套原件
  */
-public class ListUtils {
+public class ListKit {
     /**
      * 集合为空
      *
