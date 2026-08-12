@@ -3,6 +3,7 @@ package com.qtone.camerause.fragment.kit;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -23,8 +24,10 @@ import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.function.scancode.ScanCodeProcessor;
 import com.qtone.camerause.function.wechat.WeChatCropEngine;
-import com.qtone.camerause.kit.list.ListKit;
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.list.ListUtils;
+import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.view.ViewUtils;
+import com.qtone.camerause.widget.ViewFinderView;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +44,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      * <p>
      * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
      */
-    protected final AtomicBoolean isAllowScanCode = new AtomicBoolean(true);
+    protected final AtomicBoolean isAllowScanCode = new AtomicBoolean(false);
     /**
      * 相机主碎片
      */
@@ -105,9 +108,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      * 单拍按钮点击事件
      */
     public void onSingleCaptureClicked() {
-        if (!isAllowScanCode.compareAndSet(true, false)) {
-            return;
-        }
         // 停止连拍
         captureProcessor.stopBurstCapture();
         // 设置拍照策略
@@ -123,9 +123,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      *                 单位 - 毫秒
      */
     public void onBurstCaptureClicked(long interval) {
-        if (!isAllowScanCode.compareAndSet(true, false)) {
-            return;
-        }
         // 开始连拍
         captureProcessor.startBurstCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
     }
@@ -136,8 +133,33 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     public void onStopBurstCaptureClicked() {
         // 停止连拍
         captureProcessor.stopBurstCapture();
+    }
+
+    /**
+     * 扫码按钮点击事件
+     *
+     * @param viewFinderView 取景框视图
+     * @param interval       时间间隔
+     *                       扫码成功冷却时间
+     *                       单位 - 毫秒
+     */
+    public void onScanCodeClicked(ViewFinderView viewFinderView, long interval) {
+        ViewUtils.showView(viewFinderView);
+        /*scanCodeActivityVfv.showScanner();*/
+        scanCodeProcessor.setScanInterval(interval);
         // 允许扫码状态锁
         isAllowScanCode.set(true);
+    }
+
+    /**
+     * 停止扫码按钮点击事件
+     *
+     * @param viewFinderView 取景框视图
+     */
+    public void onStopScanCodeClicked(ViewFinderView viewFinderView) {
+        ViewUtils.hideView(viewFinderView, View.GONE);
+        // 允许扫码状态锁
+        isAllowScanCode.set(false);
     }
 
     /**
@@ -145,7 +167,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onSwitchResolutionClicked() {
         List<PreviewSize> previewSizes = cameraMainFragment.getAllPreviewSizes(null);
-        if (ListKit.listIsEmpty(previewSizes)) {
+        if (ListUtils.listIsEmpty(previewSizes)) {
             ToastUtils.show("获取预览分辨率失败");
             return;
         }
@@ -177,17 +199,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     }
 
     /**
-     * 扫码按钮点击事件
-     *
-     * @param interval 时间间隔
-     *                 扫码成功冷却时间
-     *                 单位 - 毫秒
-     */
-    public void onScanCodeClicked(long interval) {
-        scanCodeProcessor.setScanInterval(interval);
-    }
-
-    /**
      * 是否需要返回
      *
      * @return 是否需要返回
@@ -202,7 +213,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void release() {
         // 允许扫码状态锁
-        isAllowScanCode.set(true);
+        isAllowScanCode.set(false);
         // 拍照处理器
         captureProcessor.release();
         // 文档裁剪处理器
@@ -250,11 +261,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
-        if (captureMode == CaptureMode.SINGLE) {
-            // 单拍成功立刻恢复允许扫码
-            // 连拍需点击停拍按钮再恢复
-            isAllowScanCode.set(true);
-        }
         if (needReturn()) {
             return;
         }
@@ -335,7 +341,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        isAllowScanCode.set(true);
         if (needReturn()) {
             return;
         }
