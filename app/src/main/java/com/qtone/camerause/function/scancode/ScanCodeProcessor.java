@@ -1,4 +1,4 @@
-package com.qtone.camerause.scancode;
+package com.qtone.camerause.function.scancode;
 
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -8,7 +8,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ScanCodeProcessor {
     /**
-     * 默认扫描间隔
+     * 默认扫描时间间隔
      * <p>
      * 默认成功后 1.5s 内不重复触发
      */
@@ -41,7 +41,7 @@ public class ScanCodeProcessor {
      */
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
     /**
-     * 扫描间隔
+     * 扫描时间间隔
      * <p>
      * 扫码成功冷却时间
      * 单位 - 毫秒
@@ -71,21 +71,20 @@ public class ScanCodeProcessor {
     }
 
     /**
-     * 设置扫描间隔
+     * 设置扫描时间间隔
      *
-     * @param scanInterval 扫描间隔
-     *                     扫码成功冷却时间
-     *                     单位 - 毫秒
+     * @param interval 时间间隔
+     *                 扫码成功冷却时间
+     *                 单位 - 毫秒
      */
-    public void setScanInterval(long scanInterval) {
-        this.scanInterval = scanInterval;
+    public void setScanInterval(long interval) {
+        this.scanInterval = interval;
     }
 
     /**
      * 处理帧
      *
      * @param data            图像帧字节数组
-     *                        相机底层输出的 NV21 或经转码后的 RGBA
      * @param width           帧物理宽
      * @param height          帧物理高
      * @param dataFormat      数据格式
