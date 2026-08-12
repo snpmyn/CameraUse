@@ -18,8 +18,8 @@ import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.kit.CameraAspectRatioKit;
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.CameraAspectRatioKit;
+import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 
 import org.jetbrains.annotations.NotNull;
