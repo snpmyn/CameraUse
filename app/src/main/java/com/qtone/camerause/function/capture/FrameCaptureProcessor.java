@@ -10,7 +10,7 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 
