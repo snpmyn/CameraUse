@@ -1,10 +1,10 @@
-package com.qtone.camerause.wechat;
+package com.qtone.camerause.function.wechat;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.qtone.camerause.util.asset.AssetFileKit;
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.asset.AssetFileKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

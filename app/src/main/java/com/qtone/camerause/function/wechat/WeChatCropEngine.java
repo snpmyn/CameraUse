@@ -1,4 +1,4 @@
-package com.qtone.camerause.wechat;
+package com.qtone.camerause.function.wechat;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,7 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
