@@ -6,7 +6,7 @@
     android:baselineAligned="false">
 
     <FrameLayout
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dp_0"
         android:layout_height="match_parent"
         android:layout_weight="2.5"
         android:background="@android:color/black">
@@ -27,9 +27,10 @@
         </FrameLayout>
 
         <com.qtone.camerause.widget.ViewFinderView
-            android:id="@+id/scanCodeActivityVfv"
+            android:id="@+id/cameraMainFragmentVfv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             app:vvFrameRatio="0.9"
             app:vvLaserStyle="line"
             app:vvMaskColor="@color/viewfinder_mask"
@@ -41,11 +42,11 @@
     </FrameLayout>
 
     <ScrollView
-        android:layout_width="0dp"
+        android:layout_width="@dimen/dp_0"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center"
-        android:padding="10dp"
+        android:padding="@dimen/dp_10"
         android:scrollbars="none">
 
         <LinearLayout
@@ -69,73 +70,86 @@
                 <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/cameraMainFragmentMbSingleCapture"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
+                    android:layout_width="@dimen/dp_0"
+                    android:layout_height="@dimen/dp_36"
                     android:layout_weight="1"
                     android:filterTouchesWhenObscured="true"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    android:text="单拍"
-                    android:textSize="8sp"
+                    android:insetLeft="@dimen/dp_0"
+                    android:insetTop="@dimen/dp_0"
+                    android:insetRight="@dimen/dp_0"
+                    android:insetBottom="@dimen/dp_0"
+                    android:text="@string/singleCapture"
+                    android:textSize="@dimen/sp_10"
                     app:backgroundTint="@color/color_aa6a4c" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/cameraMainFragmentMbBurstCapture"
-                    android:layout_width="0dp"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="10dp"
+                    android:layout_width="@dimen/dp_0"
+                    android:layout_height="@dimen/dp_36"
+                    android:layout_marginStart="@dimen/dp_10"
                     android:layout_weight="1"
                     android:filterTouchesWhenObscured="true"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    android:text="连拍"
-                    android:textSize="8sp"
+                    android:insetLeft="@dimen/dp_0"
+                    android:insetTop="@dimen/dp_0"
+                    android:insetRight="@dimen/dp_0"
+                    android:insetBottom="@dimen/dp_0"
+                    android:text="@string/burstCapture"
+                    android:textSize="@dimen/sp_10"
                     app:backgroundTint="@color/color_aa6a4c" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbStopBurstCapture"
                 android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:layout_marginVertical="10dp"
+                android:layout_height="@dimen/dp_36"
+                android:layout_marginVertical="@dimen/dp_10"
                 android:filterTouchesWhenObscured="true"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:text="停止连拍"
-                android:textSize="8sp"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/stopBurstCapture"
+                android:textSize="@dimen/sp_10"
+                app:backgroundTint="@color/color_aa6a4c" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbScanCode"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dp_36"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/scanCode"
+                android:textSize="@dimen/sp_10"
+                app:backgroundTint="@color/color_aa6a4c" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbStopScanCode"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dp_36"
+                android:layout_marginVertical="@dimen/dp_10"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/stopScanCode"
+                android:textSize="@dimen/sp_10"
                 app:backgroundTint="@color/color_aa6a4c" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbSwitchResolution"
                 android:layout_width="match_parent"
-                android:layout_height="36dp"
+                android:layout_height="@dimen/dp_36"
                 android:filterTouchesWhenObscured="true"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:text="切分辨率"
-                android:textSize="8sp"
-                app:backgroundTint="@color/color_aa6a4c" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/scanCodeActivityMbScanCode"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:layout_marginTop="10dp"
-                android:filterTouchesWhenObscured="true"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:text="扫码"
-                android:textSize="8sp"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/switchResolution"
+                android:textSize="@dimen/sp_10"
                 app:backgroundTint="@color/color_aa6a4c" />
         </LinearLayout>
     </ScrollView>
