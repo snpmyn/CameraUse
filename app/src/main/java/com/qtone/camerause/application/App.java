@@ -7,7 +7,7 @@ import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
-import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.kit.log.LogKit;
 
 import org.opencv.android.OpenCVLoader;
 
