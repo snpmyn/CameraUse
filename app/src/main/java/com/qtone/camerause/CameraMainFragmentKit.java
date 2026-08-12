@@ -110,7 +110,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         // 停止连拍
         captureProcessor.stopBurstCapture();
         // 设置拍照策略
-        captureProcessor.setCaptureStrategy(CaptureStrategy.NV21_FRAME);
+        captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
         captureProcessor.startSingleCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), this);
     }
@@ -219,23 +219,21 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     }
 
     /**
-     * 拍照 NV21
-     * <p>
-     * 成功捕获并隔离 NV21 原始数据帧时回调
+     * 拍照处理中
      *
-     * @param nv21Data    深拷贝后的 NV21 字节数据
+     * @param data        图像帧字节数组
      * @param width       帧物理宽
      * @param height      帧物理高
      * @param captureMode 拍照模式
      */
     @Override
-    public void onCaptureNv21(byte[] nv21Data, int width, int height, CaptureMode captureMode) {
+    public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
         if (needReturn()) {
             return;
         }
         try {
             // 文档裁剪处理器 - 异步处理 NV21
-            documentCropProcessor.processNv21Async(cameraMainFragment.requireActivity(), nv21Data, width, height, this);
+            documentCropProcessor.processNv21Async(cameraMainFragment.requireActivity(), data, width, height, this);
         } catch (Exception e) {
             Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
         }
