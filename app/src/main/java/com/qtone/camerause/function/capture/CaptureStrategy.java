@@ -8,9 +8,9 @@ package com.qtone.camerause.function.capture;
  */
 public enum CaptureStrategy {
     /**
-     * NV21 帧
+     * 帧拍照
      */
-    NV21_FRAME,
+    FRAME_CAPTURE,
     /**
      * SDK 拍照
      */
