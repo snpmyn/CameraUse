@@ -107,6 +107,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         if (!isAllowScanCode.compareAndSet(true, false)) {
             return;
         }
+        captureProcessor.stopBurstCapture();
         captureProcessor.setCaptureStrategy(CaptureStrategy.NV21_FRAME);
         captureProcessor.startSingleCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), this);
     }
