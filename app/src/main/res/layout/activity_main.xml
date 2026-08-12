@@ -1,48 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.fragment.app.FragmentContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainActivityFcv"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:paddingHorizontal="?actionBarSize">
-
-    <!--普通按钮-->
-    <!--style="@style/Widget.MaterialComponents.Button"-->
-    <!--带图标-->
-    <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
-    <!--无背景 + 只有文字-->
-    <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
-    <!--描边按钮-->
-    <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
-    <!--扁平按钮 + 有背景 + 无阴影-->
-    <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/mainActivityMbCapture"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:filterTouchesWhenObscured="true"
-        android:insetLeft="0dp"
-        android:insetTop="0dp"
-        android:insetRight="0dp"
-        android:insetBottom="0dp"
-        android:text="拍照"
-        android:textSize="8sp"
-        android:textStyle="bold"
-        app:backgroundTint="@color/color_2f90b9" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/mainActivityMbScanCode"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:filterTouchesWhenObscured="true"
-        android:insetLeft="0dp"
-        android:insetTop="0dp"
-        android:insetRight="0dp"
-        android:insetBottom="0dp"
-        android:text="扫码"
-        android:textSize="8sp"
-        android:textStyle="bold"
-        app:backgroundTint="@color/color_2f90b9" />
-</LinearLayout>
+    android:layout_height="match_parent" />
