@@ -1,30 +1,28 @@
 apply plugin: 'com.android.library'
 
-import org.apache.tools.ant.taskdefs.condition.Os
-
 android {
-	compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
-	compileOptions {
-		// 源代码兼容 Java 8 (可按需设)
-		sourceCompatibility = rootProject.ext.sourceCompatibility
-		// 生成的字节码兼容 Java 8 (可按需设)
-		targetCompatibility = rootProject.ext.targetCompatibility
-	}
-
-    defaultConfig {
-		minSdkVersion rootProject.ext.minSdkVersion
-		targetSdkVersion rootProject.ext.targetSdkVersion
+    compileOptions {
+        // 源代码兼容 Java 8 (可按需设)
+        sourceCompatibility = rootProject.ext.sourceCompatibility
+        // 生成的字节码兼容 Java 8 (可按需设)
+        targetCompatibility = rootProject.ext.targetCompatibility
     }
 
-	lintOptions {
-		checkReleaseBuilds false
-		// Or, if you prefer, you can continue to check for errors in release builds,
-		// but continue the build even when errors are found:
-		abortOnError false
-		// The demo app does not have translations.
-		disable 'MissingTranslation'
-	}
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+        // The demo app does not have translations.
+        disable 'MissingTranslation'
+    }
 
     buildTypes {
         release {
@@ -32,45 +30,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-}
 
-tasks.withType(JavaCompile) {
-	compileTask -> compileTask.dependsOn ndkBuild
-}
+    // 使用原生 externalNativeBuild 替代手写 ndkBuild / ndkClean 任务
+    externalNativeBuild {
+        ndkBuild {
+            // 替为实际 Android.mk 或 Application.mk 路径
+            path file('src/main/jni/Android.mk')
+        }
+    }
 
-String getNdkBuildPath() {
-	def ndkBuildingDir = System.getenv("NDK_HOME")
-	if (ndkBuildingDir==null || ndkBuildingDir.isEmpty()) {
-		Properties properties = new Properties()
-		properties.load(project.rootProject.file('local.properties').newDataInputStream())
-		ndkBuildingDir = properties.getProperty("ndk.dir")
-	}
-	def ndkBuildPath = ndkBuildingDir
-	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-		ndkBuildPath = ndkBuildingDir + '/ndk-build.cmd'
-	} else {
-		ndkBuildPath = ndkBuildingDir + '/ndk-build'
-	}
-	return ndkBuildPath
+    // 解决 MergeJavaResWorkAction 重复打包 so 文件冲突
+    packagingOptions {
+        pickFirst 'lib/*/*.so'
+    }
 }
-
-task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-	println('executing ndkBuild')
-	def ndkBuildPath = getNdkBuildPath();
-	commandLine ndkBuildPath, '-j8', '-C', file('src/main').absolutePath
-}
-
-task ndkClean(type: Exec, description: 'clean JNI libraries') {
-	println('executing ndkBuild clean')
-	def ndkBuildPath = getNdkBuildPath();
-	commandLine ndkBuildPath, 'clean', '-C', file('src/main').absolutePath
-}
-
-clean.dependsOn 'ndkClean'
 
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
-	implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
-	implementation 'com.elvishew:xlog:1.11.0'
-	implementation project(path: ':libuvccommon')
+    implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
+    /*xlog*/
+    implementation 'com.elvishew:xlog:1.11.0'
+    /*libuvccommon*/
+    implementation project(path: ':libuvccommon')
 }

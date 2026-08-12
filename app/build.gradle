@@ -75,6 +75,8 @@ dependencies {
 
     /*luban*/
     /*implementation 'top.zibin:luban:2.0.1'*/
+    /*fragment*/
+    implementation 'androidx.fragment:fragment:1.5.7'
     /*timber*/
     implementation 'com.jakewharton.timber:timber:5.0.1'
 }

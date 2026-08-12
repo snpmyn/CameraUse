@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.fragment.kit;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -15,6 +15,7 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.fragment.CameraMainFragment;
 import com.qtone.camerause.function.capture.CaptureMode;
 import com.qtone.camerause.function.capture.CaptureProcessor;
 import com.qtone.camerause.function.capture.CaptureStrategy;

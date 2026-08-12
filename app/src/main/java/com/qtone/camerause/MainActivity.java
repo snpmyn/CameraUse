@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.fragment.CameraMainFragment;
 
 import java.util.ArrayList;
 import java.util.List;

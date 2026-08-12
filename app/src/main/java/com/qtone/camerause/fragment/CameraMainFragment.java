@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.fragment;
 
 import android.graphics.Bitmap;
 import android.view.View;
@@ -9,7 +9,9 @@ import androidx.annotation.NonNull;
 
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
+import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
+import com.qtone.camerause.fragment.kit.CameraMainFragmentKit;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
 
