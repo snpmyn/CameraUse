@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false">
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2.5"
+        android:background="@android:color/black">
+
+        <FrameLayout
+            android:id="@+id/cameraMainFragmentFl"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!--建议将 width 和 height 都设为 match_parent-->
+            <!--1. AspectRatioTextureView 内部重写的 onMeasure 会根据 setAspectRatio 传入的宽高比自动缩放-->
+            <!--2. 配合 FrameLayout 黑色背景，画面比例与屏幕不一致时会自动呈现上下或左右黑边 (Letterboxing)，保证画面 100% 完整且绝不拉伸变形-->
+            <com.jiangdg.ausbc.widget.AspectRatioTextureView
+                android:id="@+id/cameraMainFragmentArtv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <com.qtone.camerause.widget.ViewFinderView
+            android:id="@+id/scanCodeActivityVfv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:vvFrameRatio="0.9"
+            app:vvLaserStyle="line"
+            app:vvMaskColor="@color/viewfinder_mask"
+            app:vvViewFinderStyle="classic" />
+
+        <com.qtone.camerause.widget.MultiRoiOverlayView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:padding="10dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!--普通按钮-->
+                <!--style="@style/Widget.MaterialComponents.Button"-->
+                <!--带图标-->
+                <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
+                <!--无背景 + 只有文字-->
+                <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
+                <!--描边按钮-->
+                <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
+                <!--扁平按钮 + 有背景 + 无阴影-->
+                <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cameraMainFragmentMbSingleCapture"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:filterTouchesWhenObscured="true"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:text="单拍"
+                    android:textSize="8sp"
+                    app:backgroundTint="@color/color_aa6a4c" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cameraMainFragmentMbBurstCapture"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:filterTouchesWhenObscured="true"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:text="连拍"
+                    android:textSize="8sp"
+                    app:backgroundTint="@color/color_aa6a4c" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbStopBurstCapture"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginVertical="10dp"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:text="停止连拍"
+                android:textSize="8sp"
+                app:backgroundTint="@color/color_aa6a4c" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbSwitchResolution"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:text="切分辨率"
+                android:textSize="8sp"
+                app:backgroundTint="@color/color_aa6a4c" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scanCodeActivityMbScanCode"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginTop="10dp"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:text="扫码"
+                android:textSize="8sp"
+                app:backgroundTint="@color/color_aa6a4c" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
