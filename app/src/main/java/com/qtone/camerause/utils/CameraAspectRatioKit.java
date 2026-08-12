@@ -1,4 +1,4 @@
-package com.qtone.camerause.kit;
+package com.qtone.camerause.utils;
 
 import android.app.Activity;
 import android.util.Log;
@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.log.LogKit;
 
 /**
  * Created on 2026/8/4.
