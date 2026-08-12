@@ -51,7 +51,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:${androidxConstraintlayoutVersion}"
 
     implementation project(':libutils')
-    // For debug online
+    /*For debug online*/
     implementation project(':libausbc')
 
     /*BaiDu - ocrsdk*/
