@@ -14,6 +14,7 @@ import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.fragment.kit.CameraMainFragmentKit;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.ViewFinderView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      */
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
-    /*private ViewFinderView scanCodeActivityVfv;*/
+    private ViewFinderView cameraMainFragmentVfv;
     /*private MultiRoiOverlayView multiRoiOverlayView;*/
     /**
      * 相机主碎片配套原件
@@ -81,14 +82,14 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     protected void initWidget(@NotNull View rootView) {
         cameraMainFragmentFl = rootView.findViewById(R.id.cameraMainFragmentFl);
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
-        /*scanCodeActivityVfv = rootView.findViewById(R.id.scanCodeActivityVfv);*/
-        /*scanCodeActivityVfv.showScanner();*/
+        cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         /*multiRoiOverlayView = rootView.findViewById(R.id.multiRoiOverlayView);*/
         rootView.findViewById(R.id.cameraMainFragmentMbSingleCapture).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbBurstCapture).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbStopBurstCapture).setOnClickListener(this);
+        rootView.findViewById(R.id.cameraMainFragmentMbScanCode).setOnClickListener(this);
+        rootView.findViewById(R.id.cameraMainFragmentMbStopScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbSwitchResolution).setOnClickListener(this);
-        rootView.findViewById(R.id.scanCodeActivityMbScanCode).setOnClickListener(this);
     }
 
     /**
@@ -158,12 +159,15 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         } else if (id == R.id.cameraMainFragmentMbStopBurstCapture) {
             // 停止连拍按钮点击事件
             cameraMainFragmentKit.onStopBurstCaptureClicked();
+        } else if (id == R.id.cameraMainFragmentMbScanCode) {
+            // 扫码按钮点击事件
+            cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, 1200);
+        } else if (id == R.id.cameraMainFragmentMbStopScanCode) {
+            // 停止扫码按钮点击事件
+            cameraMainFragmentKit.onStopScanCodeClicked(cameraMainFragmentVfv);
         } else if (id == R.id.cameraMainFragmentMbSwitchResolution) {
             // 切换分辨率按钮点击事件
             cameraMainFragmentKit.onSwitchResolutionClicked();
-        } else if (id == R.id.scanCodeActivityMbScanCode) {
-            // 扫码按钮点击事件
-            cameraMainFragmentKit.onScanCodeClicked(1200);
         }
     }
 
