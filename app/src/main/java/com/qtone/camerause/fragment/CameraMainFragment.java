@@ -110,7 +110,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     protected void startLogic() {
         String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
         //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
-        cameraMainFragmentKit.getExamCropProcessor().processAsync(requireActivity(), filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
+        cameraMainFragmentKit.getExamCropProcessor().processAsync(getHostActivity(), filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
             @Override
             public void onDocumentCropSuccess(String croppedPath, Bitmap resultBitmap) {
 

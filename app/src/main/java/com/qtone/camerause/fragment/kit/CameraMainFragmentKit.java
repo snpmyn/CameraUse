@@ -113,7 +113,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         // 设置拍照策略
         captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
-        captureProcessor.startSingleCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), this);
+        captureProcessor.startSingleCapture(cameraMainFragment.getHostActivity(), cameraMainFragment.getCurrentCamera(), this);
     }
 
     /**
@@ -124,7 +124,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onBurstCaptureClicked(long interval) {
         // 开始连拍
-        captureProcessor.startBurstCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
+        captureProcessor.startBurstCapture(cameraMainFragment.getHostActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
     }
 
     /**
@@ -184,7 +184,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
             items[i] = (previewSizeWidth + " x " + previewSizeHeight);
         }
         final int initialSelectedIndex = selectedIndex;
-        AlertDialog alertDialog = new MaterialAlertDialogBuilder(cameraMainFragment.requireActivity())
+        AlertDialog alertDialog = new MaterialAlertDialogBuilder(cameraMainFragment.getHostActivity())
                 .setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
                     if (which != initialSelectedIndex) {
                         PreviewSize selectedPreviewSize = previewSizes.get(which);
@@ -196,16 +196,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         if (alertDialog.getListView() != null) {
             alertDialog.getListView().setVerticalScrollBarEnabled(false);
         }
-    }
-
-    /**
-     * 是否需要返回
-     *
-     * @return 是否需要返回
-     */
-    private boolean needReturn() {
-        Activity activity = cameraMainFragment.requireActivity();
-        return (activity.isFinishing() || activity.isDestroyed());
     }
 
     /**
@@ -240,12 +230,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
-        if (needReturn()) {
+        if (cameraMainFragment.needReturn()) {
             return;
         }
         try {
             // 文档裁剪处理器 - 异步处理 NV21
-            documentCropProcessor.processNv21Async(cameraMainFragment.requireActivity(), data, width, height, this);
+            documentCropProcessor.processNv21Async(cameraMainFragment.getHostActivity(), data, width, height, this);
         } catch (Exception e) {
             Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
         }
@@ -261,11 +251,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
-        if (needReturn()) {
+        if (cameraMainFragment.needReturn()) {
             return;
         }
         ToastUtils.show("拍照成功");
-        Activity activity = cameraMainFragment.requireActivity();
+        Activity activity = cameraMainFragment.getHostActivity();
         try {
             // 1. 文档裁剪处理器 - 异步处理
             documentCropProcessor.processAsync(activity, savePath, this);
@@ -341,7 +331,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        if (needReturn()) {
+        if (cameraMainFragment.needReturn()) {
             return;
         }
         ToastUtils.show("拍照错误");

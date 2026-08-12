@@ -1,5 +1,6 @@
 package com.qtone.camerause.base;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -43,9 +44,17 @@ public abstract class BaseCameraFragment extends CameraFragment {
     private final IPreviewDataCallBack previewDataCallBack = new IPreviewDataCallBack() {
         @Override
         public void onPreviewData(@org.jetbrains.annotations.Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
+            if (needReturn()) {
+                return;
+            }
             // 预览区域动态适配
-            if (cameraAspectRatioKit != null) {
-                requireActivity().runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(requireActivity(), width, height));
+            Activity activity = getHostActivity();
+            if ((cameraAspectRatioKit != null) && (activity != null)) {
+                activity.runOnUiThread(() -> {
+                    if (!needReturn()) {
+                        cameraAspectRatioKit.updateAspectRatio(activity, width, height);
+                    }
+                });
             }
             // 实时分发原始数据
             if (data != null) {
@@ -203,9 +212,17 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull ICameraStateCallBack.State code, @org.jetbrains.annotations.Nullable String msg) {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
+            if (needReturn()) {
+                return;
+            }
             // 预览区域动态适配
-            if (cameraAspectRatioKit != null) {
-                requireActivity().runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(requireActivity(), getCustomResolution().getWidth(), getCustomResolution().getHeight()));
+            Activity activity = getHostActivity();
+            if ((cameraAspectRatioKit != null) && (activity != null)) {
+                activity.runOnUiThread(() -> {
+                    if (!needReturn()) {
+                        cameraAspectRatioKit.updateAspectRatio(activity, getCustomResolution().getWidth(), getCustomResolution().getHeight());
+                    }
+                });
             }
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
@@ -224,6 +241,35 @@ public abstract class BaseCameraFragment extends CameraFragment {
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
         }
+    }
+
+    /**
+     * 获取宿主 Activity
+     *
+     * @return 宿主 Activity
+     */
+    @Nullable
+    public Activity getHostActivity() {
+        return getActivity();
+    }
+
+    /*public void safeRun(Consumer<Activity> action) {
+        Activity activity = getHostActivity();
+        if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+            action.accept(activity);
+        } else {
+            Log.w(LogKit.TAG, "safeRun 终止 - 宿主 Activity 已销毁或解绑");
+        }
+    }*/
+
+    /**
+     * 是否需要返回
+     *
+     * @return 是否需要返回
+     */
+    public boolean needReturn() {
+        Activity activity = getHostActivity();
+        return (!isAdded() || (activity == null) || activity.isFinishing() || activity.isDestroyed());
     }
 
     @Override
