@@ -107,8 +107,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         if (!isAllowScanCode.compareAndSet(true, false)) {
             return;
         }
+        // 停止连拍
         captureProcessor.stopBurstCapture();
+        // 设置拍照策略
         captureProcessor.setCaptureStrategy(CaptureStrategy.NV21_FRAME);
+        // 开始单拍
         captureProcessor.startSingleCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), this);
     }
 
@@ -122,6 +125,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         if (!isAllowScanCode.compareAndSet(true, false)) {
             return;
         }
+        // 开始连拍
         captureProcessor.startBurstCapture(cameraMainFragment.requireActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
     }
 
@@ -129,7 +133,9 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      * 停止连拍按钮点击事件
      */
     public void onStopBurstCaptureClicked() {
+        // 停止连拍
         captureProcessor.stopBurstCapture();
+        // 允许扫码状态锁
         isAllowScanCode.set(true);
     }
 
