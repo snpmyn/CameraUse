@@ -6,7 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;

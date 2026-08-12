@@ -9,7 +9,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.qtone.camerause.kit.log.LogKit;
+import com.qtone.camerause.utils.log.LogKit;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -82,7 +82,7 @@ public class DocumentCropProcessor {
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
             if (saved && (resultBitmap != null)) {
-                // 内部自动触发系统 MediaScanner 媒体库刷新
+                // 触发系统 MediaScanner 媒体库刷新
                 MediaScannerConnection.scanFile(
                         context,
                         new String[]{outputPath},
