@@ -102,6 +102,12 @@ public class MultiRoiOverlayView extends View {
      */
     private static final float MIN_RECT_SIZE = 60f;
     /**
+     * 双指扩散创建 ROI 的最小扩张距离阈值
+     * <p>
+     * 单位 px
+     */
+    private static final float CREATE_ROI_THRESHOLD = 30f;
+    /**
      * 存储当前 View 上的所有 ROI 实例
      * <p>
      * 数据与状态管理变量
@@ -145,6 +151,12 @@ public class MultiRoiOverlayView extends View {
      * 数据与状态管理变量
      */
     private int mode = MODE_NONE;
+    /**
+     * 标识双指按下后是否处于等待向外扩散以创建 ROI 的状态
+     * <p>
+     * 数据与状态管理变量
+     */
+    private boolean isPendingCreate = false;
     /**
      * 双指捏合开始时
      * <p>
@@ -335,22 +347,23 @@ public class MultiRoiOverlayView extends View {
                         oldDist = dist;
                         // 获取两指交汇的中心点
                         PointF center = getCenterPoint(event);
-                        // 若当前在空白处直接双指按下
-                        // 自动在双指中心创建一个默认矩形 ROI
-                        if (activeRoi == null) {
-                            activeRoi = createNewRoi(center.x, center.y);
-                            highlightRoi(activeRoi);
-                        }
-                        // 切换为 [双指缩放] 模式
-                        mode = MODE_ZOOM;
                         startTouch.set(center.x, center.y);
-                        startRect.set(activeRoi.rect);
+                        if (activeRoi == null) {
+                            // 若当前在空白处双指按下，暂不创建 ROI，标记为等待扩散创建。
+                            isPendingCreate = true;
+                            mode = MODE_ZOOM;
+                        } else {
+                            // 已有选中 ROI 时，正常进行缩放。
+                            isPendingCreate = false;
+                            mode = MODE_ZOOM;
+                            startRect.set(activeRoi.rect);
+                        }
                     }
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (activeRoi == null) break;
                 if (mode == MODE_RESIZE) {
+                    if (activeRoi == null) break;
                     // 模式 A
                     // 拖拽单个角点改变形状
                     float dx = x - startTouch.x;
@@ -363,6 +376,7 @@ public class MultiRoiOverlayView extends View {
                     startRect.set(activeRoi.rect);
                     invalidate(); // 触发重绘
                 } else if (mode == MODE_DRAG && event.getPointerCount() == 1) {
+                    if (activeRoi == null) break;
                     // 模式 B
                     // 单指整体平移 ROI 框
                     float dx = x - startTouch.x;
@@ -381,26 +395,41 @@ public class MultiRoiOverlayView extends View {
                     // 双指等比例缩放与中心平移
                     float newDist = spacing(event);
                     if (newDist > 20f) {
-                        // 计算缩放比例
-                        float scale = newDist / oldDist;
-                        PointF newCenter = getCenterPoint(event);
-                        // 中心点平移 X 偏移量
-                        float cDx = (newCenter.x - startTouch.x);
-                        // 中心点平移 Y 偏移量
-                        float cDy = (newCenter.y - startTouch.y);
-                        float currentWidth = startRect.width() * scale;
-                        float currentHeight = startRect.height() * scale;
-                        // 满足最小尺寸限制时，计算缩放及位移后的矩形边界。
-                        if ((currentWidth >= MIN_RECT_SIZE) && (currentHeight >= MIN_RECT_SIZE)) {
-                            float cx = (startRect.centerX() + cDx);
-                            float cy = (startRect.centerY() + cDy);
-                            activeRoi.rect.set(
-                                    cx - currentWidth / 2f,
-                                    cy - currentHeight / 2f,
-                                    cx + currentWidth / 2f,
-                                    cy + currentHeight / 2f
-                            );
-                            invalidate();
+                        // 双指处于等待创建状态，且向外扩散超过阈值时才生成方框。
+                        if (isPendingCreate) {
+                            if (newDist - oldDist > CREATE_ROI_THRESHOLD) {
+                                // 在初始双指中心点创建一个默认矩形 ROI
+                                activeRoi = createNewRoi(startTouch.x, startTouch.y);
+                                highlightRoi(activeRoi);
+                                startRect.set(activeRoi.rect);
+                                // 已成功创建，解除等待状态。
+                                isPendingCreate = false;
+                            } else {
+                                break;
+                            }
+                        }
+                        if (activeRoi != null) {
+                            // 计算缩放比例
+                            float scale = newDist / oldDist;
+                            PointF newCenter = getCenterPoint(event);
+                            // 中心点平移 X 偏移量
+                            float cDx = (newCenter.x - startTouch.x);
+                            // 中心点平移 Y 偏移量
+                            float cDy = (newCenter.y - startTouch.y);
+                            float currentWidth = startRect.width() * scale;
+                            float currentHeight = startRect.height() * scale;
+                            // 满足最小尺寸限制时，计算缩放及位移后的矩形边界。
+                            if ((currentWidth >= MIN_RECT_SIZE) && (currentHeight >= MIN_RECT_SIZE)) {
+                                float cx = (startRect.centerX() + cDx);
+                                float cy = (startRect.centerY() + cDy);
+                                activeRoi.rect.set(
+                                        cx - currentWidth / 2f,
+                                        cy - currentHeight / 2f,
+                                        cx + currentWidth / 2f,
+                                        cy + currentHeight / 2f
+                                );
+                                invalidate();
+                            }
                         }
                     }
                 }
@@ -409,6 +438,7 @@ public class MultiRoiOverlayView extends View {
                 // 当多指操作过程中有一根手指抬起时，强制重置手势模式。
                 // 防止 ACTION_MOVE 继续读取已被释放的手指 Index 导致 IndexOutOfBoundsException
                 mode = MODE_NONE;
+                isPendingCreate = false;
                 break;
             case MotionEvent.ACTION_UP:
                 // 最后一根手指抬起，检查当前活跃的 ROI 是否超出了 View 的边界范围，超出则执行移除。
@@ -418,6 +448,7 @@ public class MultiRoiOverlayView extends View {
                 // 重置所有手势标志位
                 mode = MODE_NONE;
                 activeHandle = HANDLE_NONE;
+                isPendingCreate = false;
                 break;
         }
         return true;
@@ -426,7 +457,7 @@ public class MultiRoiOverlayView extends View {
     /**
      * 重测 ROI
      * <p>
-     * 根据当前拖拽的控制角点，重新计算并设定矩形的四边边界坐标。
+     * 根据当前拖拽的控制角点重新计算并设定矩形的四边边界坐标
      * 包含了 View 的视口边界截断保护与矩形最小尺寸约束
      *
      * @param target 需要修改的目标 RectF 对象
