@@ -548,48 +548,79 @@ public class ViewFinderView extends View {
         paint.setColor(frameCornerColor);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(frameCornerStrokeWidth);
-        float padding = (frameCornerStrokeWidth - frameLineStrokeWidth) / 2;
-        RectF cornerFrame = new RectF(frame.left + padding, frame.top + padding, frame.right - padding, frame.bottom - padding);
-        // 绘制圆角
-        if (frameCornerRadius > 0f) {
-            float diameter = 2 * frameCornerRadius;
-            // 左上角
-            // 从 180 度开始 -> 画 90 度
-            RectF topLeft = new RectF(cornerFrame.left, cornerFrame.top,
-                    cornerFrame.left + diameter, cornerFrame.top + diameter);
-            canvas.drawArc(topLeft, 180, 90, false, paint);
-            // 右上角
-            // 从 270 度开始 -> 画 90 度
-            RectF topRight = new RectF(cornerFrame.right - diameter, cornerFrame.top,
-                    cornerFrame.right, cornerFrame.top + diameter);
-            canvas.drawArc(topRight, 270, 90, false, paint);
-            // 右下角
-            // 从 0 度开始 -> 画 90 度
-            RectF bottomRight = new RectF(cornerFrame.right - diameter, cornerFrame.bottom - diameter,
-                    cornerFrame.right, cornerFrame.bottom);
-            canvas.drawArc(bottomRight, 0, 90, false, paint);
-            // 左下角
-            // 从 90 度开始 -> 画 90 度
-            RectF bottomLeft = new RectF(cornerFrame.left, cornerFrame.bottom - diameter,
-                    cornerFrame.left + diameter, cornerFrame.bottom);
-            canvas.drawArc(bottomLeft, 90, 90, false, paint);
+        // 粗画笔中心线应该内缩 (frameCornerStrokeWidth - frameLineStrokeWidth) / 2f
+        float offset = (frameCornerStrokeWidth - frameLineStrokeWidth) / 2f;
+        RectF cornerFrame = new RectF(
+                frame.left + offset,
+                frame.top + offset,
+                frame.right - offset,
+                frame.bottom - offset
+        );
+        // 圆角半径同步等距缩放
+        // 保证内外弧度的同心圆关系
+        float adjustedRadius = Math.max(0f, frameCornerRadius - offset);
+        // 核心修复
+        // 直角时必须切换回 MITER 和 BUTT
+        // 否则 ROUND 会强制产生圆角角头和半圆端点
+        if (adjustedRadius > 0f) {
+            paint.setStrokeJoin(Paint.Join.ROUND);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+        } else {
+            paint.setStrokeJoin(Paint.Join.MITER);
+            paint.setStrokeCap(Paint.Cap.BUTT);
         }
-        float length = (frameCornerSize - frameCornerRadius);
-        // 绘制边角纵横延长线
-        if (length > 0f) {
-            // 左上
-            canvas.drawLine(cornerFrame.left - padding + frameCornerRadius, cornerFrame.top, cornerFrame.left + frameCornerSize, cornerFrame.top, paint);
-            canvas.drawLine(cornerFrame.left, cornerFrame.top - padding + frameCornerRadius, cornerFrame.left, cornerFrame.top + frameCornerSize, paint);
-            // 右上
-            canvas.drawLine(cornerFrame.right - frameCornerSize, cornerFrame.top, cornerFrame.right + padding - frameCornerRadius, cornerFrame.top, paint);
-            canvas.drawLine(cornerFrame.right, cornerFrame.top - padding + frameCornerRadius, cornerFrame.right, cornerFrame.top + frameCornerSize, paint);
-            // 右下
-            canvas.drawLine(cornerFrame.right + padding - frameCornerRadius, cornerFrame.bottom, cornerFrame.right - frameCornerSize, cornerFrame.bottom, paint);
-            canvas.drawLine(cornerFrame.right, cornerFrame.bottom + padding - frameCornerRadius, cornerFrame.right, cornerFrame.bottom - frameCornerSize, paint);
-            // 左下
-            canvas.drawLine(cornerFrame.left + frameCornerSize, cornerFrame.bottom, cornerFrame.left - padding + frameCornerRadius, cornerFrame.bottom, paint);
-            canvas.drawLine(cornerFrame.left, cornerFrame.bottom + padding - frameCornerRadius, cornerFrame.left, cornerFrame.bottom - frameCornerSize, paint);
+        float diameter = 2 * adjustedRadius;
+        Path cornerPath = new Path();
+        // 1. 左上角
+        cornerPath.reset();
+        cornerPath.moveTo(cornerFrame.left, cornerFrame.top + frameCornerSize);
+        if (adjustedRadius > 0f) {
+            cornerPath.lineTo(cornerFrame.left, cornerFrame.top + adjustedRadius);
+            cornerPath.arcTo(new RectF(cornerFrame.left, cornerFrame.top, cornerFrame.left + diameter, cornerFrame.top + diameter), 180, 90, false);
+        } else {
+            // 直角精准绘制
+            // 从左边延伸线起点 -> 折角顶点 -> 顶边延伸线终点
+            cornerPath.lineTo(cornerFrame.left, cornerFrame.top);
         }
+        cornerPath.lineTo(cornerFrame.left + frameCornerSize, cornerFrame.top);
+        canvas.drawPath(cornerPath, paint);
+        // 2. 右上角
+        cornerPath.reset();
+        cornerPath.moveTo(cornerFrame.right - frameCornerSize, cornerFrame.top);
+        if (adjustedRadius > 0f) {
+            cornerPath.lineTo(cornerFrame.right - adjustedRadius, cornerFrame.top);
+            cornerPath.arcTo(new RectF(cornerFrame.right - diameter, cornerFrame.top, cornerFrame.right, cornerFrame.top + diameter), 270, 90, false);
+        } else {
+            cornerPath.lineTo(cornerFrame.right, cornerFrame.top);
+        }
+        cornerPath.lineTo(cornerFrame.right, cornerFrame.top + frameCornerSize);
+        canvas.drawPath(cornerPath, paint);
+        // 3. 右下角
+        cornerPath.reset();
+        cornerPath.moveTo(cornerFrame.right, cornerFrame.bottom - frameCornerSize);
+        if (adjustedRadius > 0f) {
+            cornerPath.lineTo(cornerFrame.right, cornerFrame.bottom - adjustedRadius);
+            cornerPath.arcTo(new RectF(cornerFrame.right - diameter, cornerFrame.bottom - diameter, cornerFrame.right, cornerFrame.bottom), 0, 90, false);
+        } else {
+            cornerPath.lineTo(cornerFrame.right, cornerFrame.bottom);
+        }
+        cornerPath.lineTo(cornerFrame.right - frameCornerSize, cornerFrame.bottom);
+        canvas.drawPath(cornerPath, paint);
+        // 4. 左下角
+        cornerPath.reset();
+        cornerPath.moveTo(cornerFrame.left + frameCornerSize, cornerFrame.bottom);
+        if (adjustedRadius > 0f) {
+            cornerPath.lineTo(cornerFrame.left + adjustedRadius, cornerFrame.bottom);
+            cornerPath.arcTo(new RectF(cornerFrame.left, cornerFrame.bottom - diameter, cornerFrame.left + diameter, cornerFrame.bottom), 90, 90, false);
+        } else {
+            cornerPath.lineTo(cornerFrame.left, cornerFrame.bottom);
+        }
+        cornerPath.lineTo(cornerFrame.left, cornerFrame.bottom - frameCornerSize);
+        canvas.drawPath(cornerPath, paint);
+        // 恢复默认画笔风格
+        // 避免影响后续绘制
+        paint.setStrokeJoin(Paint.Join.MITER);
+        paint.setStrokeCap(Paint.Cap.BUTT);
     }
 
     /**
@@ -700,10 +731,13 @@ public class ViewFinderView extends View {
         if (frameBitmap != null) {
             canvas.drawBitmap(frameBitmap, null, frame, paint);
         } else {
-            paint.setStrokeWidth(frameLineStrokeWidth);
-            // 绘制圆角边框
-            canvas.drawRoundRect(frame, frameCornerRadius, frameCornerRadius, paint);
-            // 绘制扫描框边角
+            // 1. 先绘制基础细边框
+            if (frameLineStrokeWidth > 0) {
+                paint.setStrokeWidth(frameLineStrokeWidth);
+                canvas.drawRoundRect(frame, frameCornerRadius, frameCornerRadius, paint);
+            }
+            // 2. 再叠加绘制四个角
+            // 保证四个角精准贴合且不会被细线遮挡
             drawFrameCorner(canvas, frame);
         }
     }
