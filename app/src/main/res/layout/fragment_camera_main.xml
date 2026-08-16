@@ -31,12 +31,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
+            app:vvFrameCornerColor="@color/color_aa6a4c"
+            app:vvFrameCornerRadius="@dimen/dp_10"
             app:vvFrameRatio="0.9"
             app:vvLaserStyle="line"
             app:vvMaskColor="@color/viewfinder_mask"
             app:vvViewFinderStyle="classic" />
 
         <com.qtone.camerause.widget.MultiRoiOverlayView
+            android:id="@+id/cameraMainFragmentMrov"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
