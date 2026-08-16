@@ -22,8 +22,11 @@ import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.utils.CameraAspectRatioKit;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 /**
  * Created on 2026/8/11.
@@ -35,6 +38,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class BaseCameraFragment extends CameraFragment {
     /**
+     * 相机分辨率
+     */
+    public CameraResolution customResolution;
+    /**
      * 相机宽高比配套原件
      */
     protected CameraAspectRatioKit cameraAspectRatioKit;
@@ -44,18 +51,12 @@ public abstract class BaseCameraFragment extends CameraFragment {
     private final IPreviewDataCallBack previewDataCallBack = new IPreviewDataCallBack() {
         @Override
         public void onPreviewData(@org.jetbrains.annotations.Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
-            if (needReturn()) {
-                return;
-            }
             // 预览区域动态适配
-            Activity activity = getHostActivity();
-            if ((cameraAspectRatioKit != null) && (activity != null)) {
-                activity.runOnUiThread(() -> {
-                    if (!needReturn()) {
-                        cameraAspectRatioKit.updateAspectRatio(activity, width, height);
-                    }
-                });
-            }
+            safeRun(activity -> {
+                if (cameraAspectRatioKit != null) {
+                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, width, height));
+                }
+            });
             // 实时分发原始数据
             if (data != null) {
                 onPreviewFrame(data, width, height, format);
@@ -98,6 +99,13 @@ public abstract class BaseCameraFragment extends CameraFragment {
     protected abstract AspectRatioTextureView getTextureView();
 
     /**
+     * 获取 MultiRoiOverlayView
+     *
+     * @return MultiRoiOverlayView
+     */
+    protected abstract MultiRoiOverlayView getMultiRoiOverlayView();
+
+    /**
      * 初始化组件
      *
      * @param rootView 根视图
@@ -113,9 +121,11 @@ public abstract class BaseCameraFragment extends CameraFragment {
     @Override
     protected void initData() {
         super.initData();
+        // 相机分辨率
+        customResolution = getCameraResolution();
         if (getTextureView() != null) {
             // 相机宽高比配套原件
-            cameraAspectRatioKit = new CameraAspectRatioKit(getTextureView());
+            cameraAspectRatioKit = new CameraAspectRatioKit(customResolution, getTextureView(), getMultiRoiOverlayView());
         }
     }
 
@@ -130,7 +140,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
      * @return 相机分辨率
      */
     @NonNull
-    protected abstract CameraResolution getCustomResolution();
+    protected abstract CameraResolution getCameraResolution();
 
     /**
      * 预览帧
@@ -193,7 +203,6 @@ public abstract class BaseCameraFragment extends CameraFragment {
                 .setCaptureRawImage(false)
                 .setRawPreviewData(false)
                 .create();*/
-        CameraResolution customResolution = getCustomResolution();
         return new CameraRequest.Builder()
                 .setPreviewWidth(customResolution.getWidth())
                 .setPreviewHeight(customResolution.getHeight())
@@ -212,18 +221,12 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull ICameraStateCallBack.State code, @org.jetbrains.annotations.Nullable String msg) {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
-            if (needReturn()) {
-                return;
-            }
             // 预览区域动态适配
-            Activity activity = getHostActivity();
-            if ((cameraAspectRatioKit != null) && (activity != null)) {
-                activity.runOnUiThread(() -> {
-                    if (!needReturn()) {
-                        cameraAspectRatioKit.updateAspectRatio(activity, getCustomResolution().getWidth(), getCustomResolution().getHeight());
-                    }
-                });
-            }
+            safeRun(activity -> {
+                if (cameraAspectRatioKit != null) {
+                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, customResolution.getWidth(), customResolution.getHeight()));
+                }
+            });
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
             // 重新注册预览帧回调
@@ -244,31 +247,25 @@ public abstract class BaseCameraFragment extends CameraFragment {
     }
 
     /**
-     * 获取宿主 Activity
+     * 安全运行
      *
-     * @return 宿主 Activity
+     * @param consumer Consumer<Activity>
      */
-    @Nullable
-    public Activity getHostActivity() {
-        return getActivity();
-    }
-
-    /*public void safeRun(Consumer<Activity> action) {
-        Activity activity = getHostActivity();
-        if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
-            action.accept(activity);
-        } else {
-            Log.w(LogKit.TAG, "safeRun 终止 - 宿主 Activity 已销毁或解绑");
+    public void safeRun(@NonNull Consumer<Activity> consumer) {
+        if (needReturn()) {
+            Log.w(LogKit.TAG, "安全运行终止 - Fragment 已解绑或宿主 Activity 状态异常");
+            return;
         }
-    }*/
+        consumer.accept(requireActivity());
+    }
 
     /**
      * 是否需要返回
      *
      * @return 是否需要返回
      */
-    public boolean needReturn() {
-        Activity activity = getHostActivity();
+    private boolean needReturn() {
+        Activity activity = getActivity();
         return (!isAdded() || (activity == null) || activity.isFinishing() || activity.isDestroyed());
     }
 
