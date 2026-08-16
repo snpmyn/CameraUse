@@ -80,11 +80,11 @@ public enum CameraResolution {
     /**
      * 宽
      */
-    private final int width;
+    private int width;
     /**
      * 高
      */
-    private final int height;
+    private int height;
 
     /**
      * constructor
@@ -107,11 +107,29 @@ public enum CameraResolution {
     }
 
     /**
+     * 设置宽
+     *
+     * @param width 宽
+     */
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    /**
      * 获取高
      *
      * @return 高
      */
     public int getHeight() {
         return height;
+    }
+
+    /**
+     * 设置高
+     *
+     * @param height 高
+     */
+    public void setHeight(int height) {
+        this.height = height;
     }
 }
