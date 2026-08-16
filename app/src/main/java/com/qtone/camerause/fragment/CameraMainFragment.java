@@ -14,6 +14,7 @@ import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.fragment.kit.CameraMainFragmentKit;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.MultiRoiOverlayView;
 import com.qtone.camerause.widget.ViewFinderView;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,16 +29,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CameraMainFragment extends BaseCameraFragment implements View.OnClickListener {
     /**
-     * 默认分辨率
-     */
-    private static final CameraResolution DEFAULT_RESOLUTION = CameraResolution.RES_1280_720;
-    /**
      * 控件
      */
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
-    /*private MultiRoiOverlayView multiRoiOverlayView;*/
+    private MultiRoiOverlayView multiRoiOverlayView;
     /**
      * 相机主碎片配套原件
      */
@@ -74,6 +71,16 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     }
 
     /**
+     * 获取 MultiRoiOverlayView
+     *
+     * @return MultiRoiOverlayView
+     */
+    @Override
+    protected MultiRoiOverlayView getMultiRoiOverlayView() {
+        return multiRoiOverlayView;
+    }
+
+    /**
      * 初始化组件
      *
      * @param rootView 根视图
@@ -83,7 +90,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentFl = rootView.findViewById(R.id.cameraMainFragmentFl);
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
-        /*multiRoiOverlayView = rootView.findViewById(R.id.multiRoiOverlayView);*/
+        multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
         rootView.findViewById(R.id.cameraMainFragmentMbSingleCapture).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbBurstCapture).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbStopBurstCapture).setOnClickListener(this);
@@ -110,7 +117,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     protected void startLogic() {
         String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
         //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
-        cameraMainFragmentKit.getExamCropProcessor().processAsync(getHostActivity(), filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
+        safeRun(activity -> cameraMainFragmentKit.getExamCropProcessor().processAsync(activity, filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
             @Override
             public void onDocumentCropSuccess(String croppedPath, Bitmap resultBitmap) {
 
@@ -120,7 +127,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             public void onDocumentCropError(String errorMsg) {
 
             }
-        });
+        }));
     }
 
     /**
@@ -130,8 +137,8 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      */
     @NonNull
     @Override
-    protected CameraResolution getCustomResolution() {
-        return DEFAULT_RESOLUTION;
+    protected CameraResolution getCameraResolution() {
+        return CameraResolution.RES_1280_720;
     }
 
     /**
