@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -233,6 +234,46 @@ public class MultiRoiOverlayView extends View {
      */
     public void setOnRoiChangeListener(OnRoiChangeListener onRoiChangeListener) {
         this.onRoiChangeListener = onRoiChangeListener;
+    }
+
+    /**
+     * 更新宽高比
+     *
+     * @param width  物理帧宽
+     * @param height 物理帧高
+     */
+    public void updateAspectRatio(int width, int height) {
+        if ((width <= 0) || (height <= 0)) {
+            return;
+        }
+        int oldViewWidth = getWidth();
+        int oldViewHeight = getHeight();
+        // 1. 获取并更新 LayoutParams 以触发系统重新测量
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        if (layoutParams != null) {
+            layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            requestLayout();
+        }
+        // 2. 之前已有 View 尺寸且画布上已存在 ROI 则将旧 ROI 物理坐标按比例等比映射到新尺寸上
+        post(() -> {
+            int newViewWidth = getWidth();
+            int newViewHeight = getHeight();
+            if ((oldViewWidth > 0) && (oldViewHeight > 0) && (newViewWidth > 0) && (newViewHeight > 0)) {
+                if ((oldViewWidth != newViewWidth) || (oldViewHeight != newViewHeight)) {
+                    float scaleX = (float) newViewWidth / oldViewWidth;
+                    float scaleY = (float) newViewHeight / oldViewHeight;
+                    for (RoiItem roiItem : roiList) {
+                        roiItem.rect.set(
+                                roiItem.rect.left * scaleX,
+                                roiItem.rect.top * scaleY,
+                                roiItem.rect.right * scaleX,
+                                roiItem.rect.bottom * scaleY
+                        );
+                    }
+                    invalidate();
+                }
+            }
+        });
     }
 
     /**
