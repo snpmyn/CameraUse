@@ -1,6 +1,5 @@
 package com.qtone.camerause.fragment.kit;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
@@ -113,7 +112,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
         // 设置拍照策略
         captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
-        captureProcessor.startSingleCapture(cameraMainFragment.getHostActivity(), cameraMainFragment.getCurrentCamera(), this);
+        cameraMainFragment.safeRun(activity -> captureProcessor.startSingleCapture(activity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
     }
 
     /**
@@ -124,7 +123,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onBurstCaptureClicked(long interval) {
         // 开始连拍
-        captureProcessor.startBurstCapture(cameraMainFragment.getHostActivity(), cameraMainFragment.getCurrentCamera(), interval, this);
+        cameraMainFragment.safeRun(activity -> captureProcessor.startBurstCapture(activity, cameraMainFragment.getCurrentCamera(), interval, CameraMainFragmentKit.this));
     }
 
     /**
@@ -145,7 +144,9 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onScanCodeClicked(ViewFinderView viewFinderView, long interval) {
         ViewUtils.showView(viewFinderView);
-        /*scanCodeActivityVfv.showScanner();*/
+        viewFinderView.setFrameWidth(cameraMainFragment.customResolution.getWidth());
+        viewFinderView.setFrameHeight(cameraMainFragment.customResolution.getHeight());
+        // 设置扫描时间间隔
         scanCodeProcessor.setScanInterval(interval);
         // 允许扫码状态锁
         isAllowScanCode.set(true);
@@ -184,18 +185,21 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
             items[i] = (previewSizeWidth + " x " + previewSizeHeight);
         }
         final int initialSelectedIndex = selectedIndex;
-        AlertDialog alertDialog = new MaterialAlertDialogBuilder(cameraMainFragment.getHostActivity())
-                .setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
-                    if (which != initialSelectedIndex) {
-                        PreviewSize selectedPreviewSize = previewSizes.get(which);
-                        cameraMainFragment.updateResolution(selectedPreviewSize.getWidth(), selectedPreviewSize.getHeight());
-                    }
-                    dialog.dismiss();
-                })
-                .show();
-        if (alertDialog.getListView() != null) {
-            alertDialog.getListView().setVerticalScrollBarEnabled(false);
-        }
+        int finalSelectedIndex = selectedIndex;
+        cameraMainFragment.safeRun(activity -> {
+            AlertDialog alertDialog = new MaterialAlertDialogBuilder(activity)
+                    .setSingleChoiceItems(items, finalSelectedIndex, (dialog, which) -> {
+                        if (which != initialSelectedIndex) {
+                            PreviewSize selectedPreviewSize = previewSizes.get(which);
+                            cameraMainFragment.updateResolution(selectedPreviewSize.getWidth(), selectedPreviewSize.getHeight());
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+            if (alertDialog.getListView() != null) {
+                alertDialog.getListView().setVerticalScrollBarEnabled(false);
+            }
+        });
     }
 
     /**
@@ -230,15 +234,14 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
-        if (cameraMainFragment.needReturn()) {
-            return;
-        }
-        try {
-            // 文档裁剪处理器 - 异步处理 NV21
-            documentCropProcessor.processNv21Async(cameraMainFragment.getHostActivity(), data, width, height, this);
-        } catch (Exception e) {
-            Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
-        }
+        cameraMainFragment.safeRun(activity -> {
+            try {
+                // 文档裁剪处理器 - 异步处理 NV21
+                documentCropProcessor.processNv21Async(activity, data, width, height, CameraMainFragmentKit.this);
+            } catch (Exception e) {
+                Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
+            }
+        });
     }
 
     /**
@@ -251,76 +254,74 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
-        if (cameraMainFragment.needReturn()) {
-            return;
-        }
         ToastUtils.show("拍照成功");
-        Activity activity = cameraMainFragment.getHostActivity();
-        try {
-            // 1. 文档裁剪处理器 - 异步处理
-            documentCropProcessor.processAsync(activity, savePath, this);
-        } catch (Exception e) {
-            Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
-        }
-        // 2. 通用文字识别 (高精度含位置信息版)
-        BaiDuOcrHelper.recognizeAccurate(activity, savePath, new OnResultListener<GeneralResult>() {
-            @Override
-            public void onResult(GeneralResult generalResult) {
-                Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
+        cameraMainFragment.safeRun(activity -> {
+            try {
+                // 1. 文档裁剪处理器 - 异步处理
+                documentCropProcessor.processAsync(activity, savePath, CameraMainFragmentKit.this);
+            } catch (Exception e) {
+                Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
             }
+            // 2. 通用文字识别 (高精度含位置信息版)
+            BaiDuOcrHelper.recognizeAccurate(activity, savePath, new OnResultListener<GeneralResult>() {
+                @Override
+                public void onResult(GeneralResult generalResult) {
+                    Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
+                }
 
-            @Override
-            public void onError(OCRError ocrError) {
-                Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
-            }
-        }, false);
-        // 2. 通用文字识别 (含生僻字版)
-        BaiDuOcrHelper.recognizeGeneralEnhanced(activity, savePath, new OnResultListener<GeneralResult>() {
-            @Override
-            public void onResult(GeneralResult generalResult) {
-                Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 结果\n" + generalResult);
-            }
+                @Override
+                public void onError(OCRError ocrError) {
+                    Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
+                }
+            }, false);
+            // 2. 通用文字识别 (含生僻字版)
+            BaiDuOcrHelper.recognizeGeneralEnhanced(activity, savePath, new OnResultListener<GeneralResult>() {
+                @Override
+                public void onResult(GeneralResult generalResult) {
+                    Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 结果\n" + generalResult);
+                }
 
-            @Override
-            public void onError(OCRError ocrError) {
-                Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
-            }
-        }, false);
-        // 2. 试卷分析与识别
-        BaiDuOcrHelper.recognizeExampleDoc(activity, savePath, new OnResultListener<OcrResponseResult>() {
-            @Override
-            public void onResult(OcrResponseResult ocrResponseResult) {
-                Log.e(LogKit.TAG, "试卷分析与识别结果\n" + ocrResponseResult);
-            }
+                @Override
+                public void onError(OCRError ocrError) {
+                    Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
+                }
+            }, false);
+            // 2. 试卷分析与识别
+            BaiDuOcrHelper.recognizeExampleDoc(activity, savePath, new OnResultListener<OcrResponseResult>() {
+                @Override
+                public void onResult(OcrResponseResult ocrResponseResult) {
+                    Log.e(LogKit.TAG, "试卷分析与识别结果\n" + ocrResponseResult);
+                }
 
-            @Override
-            public void onError(OCRError ocrError) {
-                Log.e(LogKit.TAG, "试卷分析与识别错误\n" + ocrError.getMessage());
-            }
-        }, false);
-        // 2. 手写文字识别
-        BaiDuOcrHelper.recoginzeWrittenText(activity, savePath, new OnResultListener<OcrResponseResult>() {
-            @Override
-            public void onResult(OcrResponseResult ocrResponseResult) {
-                Log.e(LogKit.TAG, "手写文字识别结果\n" + ocrResponseResult);
-            }
+                @Override
+                public void onError(OCRError ocrError) {
+                    Log.e(LogKit.TAG, "试卷分析与识别错误\n" + ocrError.getMessage());
+                }
+            }, false);
+            // 2. 手写文字识别
+            BaiDuOcrHelper.recoginzeWrittenText(activity, savePath, new OnResultListener<OcrResponseResult>() {
+                @Override
+                public void onResult(OcrResponseResult ocrResponseResult) {
+                    Log.e(LogKit.TAG, "手写文字识别结果\n" + ocrResponseResult);
+                }
 
-            @Override
-            public void onError(OCRError ocrError) {
-                Log.e(LogKit.TAG, "手写文字识别错误\n" + ocrError.getMessage());
-            }
-        }, false);
-        // 3. 微信裁剪引擎 - 处理
-        WeChatCropEngine.getInstance(activity).process(activity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
-            @Override
-            public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
+                @Override
+                public void onError(OCRError ocrError) {
+                    Log.e(LogKit.TAG, "手写文字识别错误\n" + ocrError.getMessage());
+                }
+            }, false);
+            // 3. 微信裁剪引擎 - 处理
+            WeChatCropEngine.getInstance(activity).process(activity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
+                @Override
+                public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
 
-            }
+                }
 
-            @Override
-            public void onWeChatCropError(String errorMessage) {
+                @Override
+                public void onWeChatCropError(String errorMessage) {
 
-            }
+                }
+            });
         });
     }
 
@@ -331,9 +332,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        if (cameraMainFragment.needReturn()) {
-            return;
-        }
         ToastUtils.show("拍照错误");
     }
 
