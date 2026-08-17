@@ -8,14 +8,15 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="color_d7dae1">#D7DAE1</color>
     <color name="color_2f90b9">#2F90B9</color>
     <color name="color_aa6a4c">#AA6A4C</color>
 
     <color name="viewfinder_mask">#60000000</color>
+    <color name="viewfinder_laser">#FF1FB3E2</color>
     <color name="viewfinder_frame">#7F1FB3E2</color>
     <color name="viewfinder_corner">#FF1FB3E2</color>
-    <color name="viewfinder_laser">#FF1FB3E2</color>
     <color name="viewfinder_point">#FF1FB3E2</color>
-    <color name="viewfinder_point_stroke">#FFFFFFFF</color>
+    <color name="viewfinder_point_stroke">@color/white</color>
     <color name="viewfinder_label_text">#FFC0C0C0</color>
 </resources>
