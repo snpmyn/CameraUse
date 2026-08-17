@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils;
+package com.qtone.camerause.utils.camera;
 
 import android.app.Activity;
 import android.util.Log;
@@ -7,7 +7,8 @@ import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.utils.mmkv.MmkvKit;
+import com.qtone.camerause.value.MmkvConstant;
 import com.qtone.camerause.widget.MultiRoiOverlayView;
 
 /**
@@ -17,10 +18,6 @@ import com.qtone.camerause.widget.MultiRoiOverlayView;
  * @desc 相机宽高比配套原件
  */
 public class CameraAspectRatioKit {
-    /**
-     * 相机分辨率
-     */
-    private final CameraResolution cameraResolution;
     /**
      * 当前物理帧宽
      */
@@ -41,12 +38,10 @@ public class CameraAspectRatioKit {
     /**
      * constructor
      *
-     * @param cameraResolution       AspectRatioTextureView
      * @param aspectRatioTextureView AspectRatioTextureView
      * @param multiRoiOverlayView    MultiRoiOverlayView
      */
-    public CameraAspectRatioKit(CameraResolution cameraResolution, AspectRatioTextureView aspectRatioTextureView, MultiRoiOverlayView multiRoiOverlayView) {
-        this.cameraResolution = cameraResolution;
+    public CameraAspectRatioKit(AspectRatioTextureView aspectRatioTextureView, MultiRoiOverlayView multiRoiOverlayView) {
         this.aspectRatioTextureView = aspectRatioTextureView;
         this.multiRoiOverlayView = multiRoiOverlayView;
     }
@@ -64,15 +59,20 @@ public class CameraAspectRatioKit {
         }
         // 分辨率变化时更新 -> 规避高频触发 requestLayout() 导致卡顿
         if ((currentWidth != width) || (currentHeight != height)) {
+            // 当前物理帧宽
             currentWidth = width;
+            // 当前物理帧高
             currentHeight = height;
-            float ratio = (float) width / (float) height;
-            Log.d(LogKit.TAG, String.format("预览区更新宽高比 || %d:%d (宽高比 %.2f)", width, height, ratio));
+            // 宽高比
+            float aspectRatio = (float) width / (float) height;
+            // 存储
+            MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_WIDTH, width);
+            MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_HEIGHT, height);
+            MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_ASPECT_RATIO, aspectRatio);
+            Log.d(LogKit.TAG, String.format("预览区更新宽高比 || %d:%d (宽高比 %.2f)", width, height, aspectRatio));
             assert activity != null;
             activity.runOnUiThread(() -> {
                 if (aspectRatioTextureView != null) {
-                    cameraResolution.setWidth(width);
-                    cameraResolution.setHeight(height);
                     aspectRatioTextureView.setAspectRatio(width, height);
                 }
                 if (multiRoiOverlayView != null) {
