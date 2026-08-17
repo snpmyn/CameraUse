@@ -412,7 +412,6 @@ public class ViewFinderView extends View {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         initFrame(getWidth(), getHeight());
-
         invalidate();
     }
 
@@ -1278,6 +1277,28 @@ public class ViewFinderView extends View {
     }
 
     /**
+     * 设置扫描框的宽度和高度
+     *
+     * @param frameWidth  扫描框的宽度
+     * @param frameHeight 扫描框的高度
+     * @param scaleFactor 缩放系数
+     *                    1.0f - 原宽高
+     *                    0.8f - 缩小至 80%
+     *                    1.2f - 放大至 120%
+     */
+    public void setFrameWidthAndHeight(int frameWidth, int frameHeight, float scaleFactor) {
+        // 系数不合法重置为 1.0f
+        if (scaleFactor <= 0f) {
+            scaleFactor = 1.0f;
+        }
+        // 计算缩放后实际宽高
+        this.frameWidth = Math.round(frameWidth * scaleFactor);
+        this.frameHeight = Math.round(frameHeight * scaleFactor);
+        // 更新扫描框
+        updateFrame();
+    }
+
+    /**
      * 设置扫描框的与视图宽的占比
      * <p>
      * 默认 0.625
@@ -1444,6 +1465,27 @@ public class ViewFinderView extends View {
     }
 
     /**
+     * 更新扫描框
+     */
+    private void updateFrame() {
+        int width = getWidth();
+        int height = getHeight();
+        // 当前 View 已被测量且有有效尺寸则立即重新计算并重绘
+        if ((width > 0) && (height > 0)) {
+            initFrame(width, height);
+            // 重置 scannerStart
+            // 防止重置框大小后扫描线起点错乱
+            if (frame != null) {
+                scannerStart = frame.top;
+            }
+            // postInvalidate() 内部实现本身就是判断 “当前是不是主线程”
+            // 是主线程 -> 内部会顺畅地触发重绘
+            // 是子线程 -> 会通过 Handler 切到主线程刷新
+            postInvalidate();
+        }
+    }
+
+    /**
      * 设置条目点击监听
      *
      * @param onItemClickListener 条目点击监听
@@ -1539,16 +1581,15 @@ public class ViewFinderView extends View {
         /**
          * 经典样式
          * <p>
-         * 经典的扫描风格 (带扫描框)
+         * 经典扫描风格 (带扫描框)
          */
         int CLASSIC = 0;
         /**
          * 流行样式
          * <p>
-         * 类似于新版的微信全屏扫描 (无扫描框)
+         * 类似新版微信全屏扫描 (无扫描框)
          */
         int POPULAR = 1;
-
     }
 
     /**
