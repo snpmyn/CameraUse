@@ -19,7 +19,7 @@ import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.utils.CameraAspectRatioKit;
+import com.qtone.camerause.utils.camera.CameraAspectRatioKit;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.MultiRoiOverlayView;
@@ -34,13 +34,9 @@ import java.util.function.Consumer;
  * @author 郑少鹏
  * @desc 相机碎片基类
  * <p>
- * 继承自 AUSBC 库 {@link CameraFragment}
+ * 继承 AUSBC 库 {@link CameraFragment}
  */
 public abstract class BaseCameraFragment extends CameraFragment {
-    /**
-     * 相机分辨率
-     */
-    public CameraResolution customResolution;
     /**
      * 相机宽高比配套原件
      */
@@ -121,12 +117,8 @@ public abstract class BaseCameraFragment extends CameraFragment {
     @Override
     protected void initData() {
         super.initData();
-        // 相机分辨率
-        customResolution = getCameraResolution();
-        if (getTextureView() != null) {
-            // 相机宽高比配套原件
-            cameraAspectRatioKit = new CameraAspectRatioKit(customResolution, getTextureView(), getMultiRoiOverlayView());
-        }
+        // 相机宽高比配套原件
+        cameraAspectRatioKit = new CameraAspectRatioKit(getTextureView(), getMultiRoiOverlayView());
     }
 
     /**
@@ -204,11 +196,11 @@ public abstract class BaseCameraFragment extends CameraFragment {
                 .setRawPreviewData(false)
                 .create();*/
         return new CameraRequest.Builder()
-                .setPreviewWidth(customResolution.getWidth())
-                .setPreviewHeight(customResolution.getHeight())
+                .setPreviewWidth(getCameraResolution().getWidth())
+                .setPreviewHeight(getCameraResolution().getHeight())
                 // NORMAL - NV21
                 // OPENGL - RGBA
-                // NORMAL 效率较 OPENGL 高
+                // NORMAL 较 OPENGL 效率高
                 .setRenderMode(CameraRequest.RenderMode.NORMAL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)
@@ -224,7 +216,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
             // 预览区域动态适配
             safeRun(activity -> {
                 if (cameraAspectRatioKit != null) {
-                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, customResolution.getWidth(), customResolution.getHeight()));
+                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, getCameraResolution().getWidth(), getCameraResolution().getHeight()));
                 }
             });
             // 清除已有预览帧回调
