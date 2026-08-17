@@ -8,6 +8,7 @@ import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.mmkv.MmkvKit;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -21,6 +22,8 @@ public class App extends BaseApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        // 初始化 MMKV
+        MmkvKit.INSTANCE.init(this);
         // 初始化 OpenCV
         // 验证 OpenCV 依赖与 .so 库是否正常加载
         if (OpenCVLoader.initDebug()) {
