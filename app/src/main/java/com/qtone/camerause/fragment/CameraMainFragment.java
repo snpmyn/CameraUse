@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @author 郑少鹏
  * @desc 相机主碎片
  * <p>
- * 继承自 {@link BaseCameraFragment}
+ * 继承 {@link BaseCameraFragment}
  */
 public class CameraMainFragment extends BaseCameraFragment implements View.OnClickListener {
     /**
@@ -66,7 +66,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      * @return TextureView
      */
     @Override
-    protected AspectRatioTextureView getTextureView() {
+    public AspectRatioTextureView getTextureView() {
         return cameraMainFragmentArtv;
     }
 
@@ -102,7 +102,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     /**
      * 初始化数据
      * <p>
-     * 子类重写必须调用 super.initData()
+     * 子类重写须调 super.initData()
      */
     @Override
     protected void initData() {

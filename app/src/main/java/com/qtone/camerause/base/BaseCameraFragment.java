@@ -111,7 +111,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
     /**
      * 初始化数据
      * <p>
-     * 子类重写必须调用 super.initData()
+     * 子类重写须调 super.initData()
      */
     @CallSuper
     @Override
