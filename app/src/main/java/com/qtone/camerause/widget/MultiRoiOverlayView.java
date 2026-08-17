@@ -53,45 +53,49 @@ public class MultiRoiOverlayView extends View {
     /**
      * 未选中任何控制点
      * <p>
-     * 控制角点 (Anchor Handle) 索引常量定义
+     * 控制角点索引常量定义
      */
     private static final int HANDLE_NONE = -1;
     /**
      * 左上角控制点
      * <p>
-     * 控制角点 (Anchor Handle) 索引常量定义
+     * 控制角点索引常量定义
      */
     private static final int HANDLE_TOP_LEFT = 0;
     /**
      * 右上角控制点
      * <p>
-     * 控制角点 (Anchor Handle) 索引常量定义
+     * 控制角点索引常量定义
      */
     private static final int HANDLE_TOP_RIGHT = 1;
     /**
      * 右下角控制点
      * <p>
-     * 控制角点 (Anchor Handle) 索引常量定义
+     * 控制角点索引常量定义
      */
     private static final int HANDLE_BOTTOM_RIGHT = 2;
     /**
      * 左下角控制点
      * <p>
-     * 控制角点 (Anchor Handle) 索引常量定义
+     * 控制角点索引常量定义
      */
     private static final int HANDLE_BOTTOM_LEFT = 3;
     /**
      * 选中框四个角点的视觉绘制半径
      * <p>
-     * 触控与绘制参数 (单位 px)
+     * 单位 - px
+     * <p>
+     * 触控与绘制参数定义
      */
     private static final float HANDLE_RADIUS = 20f;
     /**
      * 角点触控感应区域半径
      * <p>
-     * 放大触控范围 -> 提高盲操命中率
+     * 放大触控范围以提高盲操命中率
      * <p>
-     * 触控与绘制参数 (单位 px)
+     * 单位 - px
+     * <p>
+     * 触控与绘制参数定义
      */
     private static final float TOUCH_TARGET_SIZE = 60f;
     /**
@@ -99,11 +103,13 @@ public class MultiRoiOverlayView extends View {
      * <p>
      * 防止框被缩灭或倒置
      * <p>
-     * 触控与绘制参数 (单位 px)
+     * 单位 - px
+     * <p>
+     * 触控与绘制参数定义
      */
     private static final float MIN_RECT_SIZE = 60f;
     /**
-     * 存储当前 View 所有 ROI 实例
+     * 存储当前 View 内所有的 ROI 实例
      * <p>
      * 数据与状态管理变量
      */
@@ -115,21 +121,21 @@ public class MultiRoiOverlayView extends View {
      */
     private final PointF startTouch = new PointF();
     /**
-     * 记录手势开始变化前 ActiveRoi 的原始坐标矩阵
+     * 记录手势开始变化前 activeRoi 的原始坐标矩形
      * <p>
      * 数据与状态管理变量
      */
     private final RectF startRect = new RectF();
     /**
-     * 当前处于被选中 / 被手势操控状态的 ROI 实例
+     * 当前处于被选中或被手势操控状态的 ROI 实例
      * <p>
      * 数据与状态管理变量
      */
     private RoiItem activeRoi = null;
     /**
-     * 递增的 ROI 唯一标识符
+     * 递增的 ROI 唯一标识符生成器
      * <p>
-     * 生成如 #1, #2 的标签
+     * 用于生成如 #1, #2 等标签
      * <p>
      * 数据与状态管理变量
      */
@@ -137,19 +143,21 @@ public class MultiRoiOverlayView extends View {
     /**
      * 当前处于拖拽变形状态的角点索引
      * <p>
+     * 取值范围 HANDLE_TOP_LEFT 至 HANDLE_BOTTOM_LEFT
+     * <p>
      * 数据与状态管理变量
      */
     private int activeHandle = HANDLE_NONE;
     /**
      * 当前 View 处于的手势操作模式
      * <p>
+     * 取值范围 MODE_NONE, MODE_DRAG, MODE_ZOOM, MODE_RESIZE
+     * <p>
      * 数据与状态管理变量
      */
     private int mode = MODE_NONE;
     /**
-     * 双指捏合开始时
-     * <p>
-     * 两指间的初始欧氏距离
+     * 双指捏合开始时两指间的初始欧氏距离
      * <p>
      * 数据与状态管理变量
      */
@@ -158,52 +166,64 @@ public class MultiRoiOverlayView extends View {
      * 手势检测器
      * <p>
      * 用于处理单指快速双击创建 ROI
+     * <p>
+     * 数据与状态管理变量
      */
     private GestureDetector gestureDetector;
     /**
      * 未选中状态下 ROI 框的 Paint
      * <p>
-     * 默认绿色细线
-     * <p>
      * 绘图 Paint 实例
+     * 默认绿色细线
      */
     private Paint boxPaint;
     /**
      * 选中状态下 ROI 框的 Paint
      * <p>
-     * 默认红色粗线
-     * <p>
      * 绘图 Paint 实例
+     * 默认红色粗线
      */
     private Paint selectedBoxPaint;
     /**
      * 四角控制点圆圈的 Paint
      * <p>
-     * 默认黄色填充
-     * <p>
      * 绘图 Paint 实例
+     * 默认黄色实心填充
      */
     private Paint handlePaint;
     /**
      * 绘制编号文本 (如 "#1") 的 Paint
      * <p>
-     * 默认白色文字
-     * <p>
      * 绘图 Paint 实例
+     * 默认白色文字
      */
     private Paint textPaint;
     /**
      * 状态变更监听回调接口
      * <p>
-     * 绘图 Paint 实例
+     * 用于向外部通知 ROI 数量变化或删除事件
      */
     private OnRoiChangeListener onRoiChangeListener;
 
     /**
      * constructor
+     * <p>
+     * 用于在代码中动态创建或加载 View
+     *
+     * @param context 上下文
+     */
+    public MultiRoiOverlayView(Context context) {
+        super(context);
+        init(context);
+    }
+
+    /**
+     * constructor
+     * <p>
+     * 用于在 XML 布局文件中声明并加载 View
      *
      * @param context      上下文
-     * @param attributeSet AttributeSet
+     * @param attributeSet 属性集
      */
     public MultiRoiOverlayView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
@@ -211,9 +231,9 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 初始化画笔属性与双击手势检测器
+     * 初始化
      * <p>
-     * 开启抗锯齿以保障图层边缘光滑
+     * 初始化画笔属性与双击手势检测器
      *
      * @param context 上下文
      */
@@ -236,8 +256,7 @@ public class MultiRoiOverlayView extends View {
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(36f);
-        // 初始化手势检测器
-        // 处理单指快速双击创建 ROI
+        // 初始化手势检测器：处理单指快速双击创建 ROI
         gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(@NotNull MotionEvent e) {
@@ -251,13 +270,20 @@ public class MultiRoiOverlayView extends View {
 
     /**
      * 设置 ROI 数量变动与删除事件的回调监听器
+     * <p>
+     * 对外事件监听注册接口
+     *
+     * @param onRoiChangeListener 监听器实例
      */
     public void setOnRoiChangeListener(OnRoiChangeListener onRoiChangeListener) {
         this.onRoiChangeListener = onRoiChangeListener;
     }
 
     /**
-     * 更新宽高比
+     * 更新视图宽高比并重新映射原有 ROI 坐标
+     * <p>
+     * 布局适配接口
+     * 当预览比例变化时自动对齐已有 ROI 框坐标
      *
      * @param width  物理帧宽
      * @param height 物理帧高
@@ -274,7 +300,7 @@ public class MultiRoiOverlayView extends View {
             layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             requestLayout();
         }
-        // 2. 之前已有 View 尺寸且画布上已存在 ROI 则将旧 ROI 物理坐标按比例等比映射到新尺寸上
+        // 2. 之前已有 View 尺寸且画布上已存在 ROI，则将旧 ROI 物理坐标按比例等比映射到新尺寸上。
         post(() -> {
             int newViewWidth = getWidth();
             int newViewHeight = getHeight();
@@ -300,6 +326,9 @@ public class MultiRoiOverlayView extends View {
      * 核心手势处理函数
      * <p>
      * 分发并响应单指点击、单指拖动、角点拉伸、双指捏合等动作
+     *
+     * @param event 触摸事件
+     * @return 总是返回 true 表示消费该事件
      */
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -327,8 +356,8 @@ public class MultiRoiOverlayView extends View {
                     startRect.set(activeRoi.rect);
                 } else {
                     // 3. 未命中角点
+                    // 倒序遍历 + 优先响应最上层
                     // 尝试查找按下的坐标是否位于某个已有 ROI 的矩形内部
-                    // 倒序遍历，优先响应最上层。
                     RoiItem touchedRoi = findTouchedRoi(x, y);
                     if (touchedRoi != null) {
                         activeRoi = touchedRoi;
@@ -350,7 +379,6 @@ public class MultiRoiOverlayView extends View {
                 // 第二根手指按下
                 // 处理 [双指捏合缩放]
                 if (event.getPointerCount() == 2) {
-                    // 计算两手指间距
                     float dist = spacing(event);
                     // 过滤极微小误触
                     if (dist > 20f) {
@@ -359,7 +387,7 @@ public class MultiRoiOverlayView extends View {
                         PointF center = getCenterPoint(event);
                         startTouch.set(center.x, center.y);
                         if (activeRoi != null) {
-                            // 已有选中 ROI 时，正常进行缩放。
+                            // 已有选中 ROI 时正常进行缩放
                             mode = MODE_ZOOM;
                             startRect.set(activeRoi.rect);
                         }
@@ -375,11 +403,11 @@ public class MultiRoiOverlayView extends View {
                     float dy = y - startTouch.y;
                     // 根据相对位移更新 activeRoi 的 Rect 坐标
                     resizeRoi(activeRoi.rect, startRect, activeHandle, dx, dy);
-                    // 实时同步基准坐标
-                    // 消除连续拖动时的跳变闪烁现象
+                    // 实时同步基准坐标，消除连续拖动时的跳变闪烁现象。
                     startTouch.set(x, y);
                     startRect.set(activeRoi.rect);
-                    invalidate(); // 触发重绘
+                    // 触发重绘
+                    invalidate();
                 } else if (mode == MODE_DRAG && event.getPointerCount() == 1) {
                     if (activeRoi == null) break;
                     // 模式 B
@@ -404,9 +432,8 @@ public class MultiRoiOverlayView extends View {
                             // 计算缩放比例
                             float scale = newDist / oldDist;
                             PointF newCenter = getCenterPoint(event);
-                            // 中心点平移 X 偏移量
+                            // 中心点平移 X / Y 轴偏移量
                             float cDx = (newCenter.x - startTouch.x);
-                            // 中心点平移 Y 偏移量
                             float cDy = (newCenter.y - startTouch.y);
                             float currentWidth = startRect.width() * scale;
                             float currentHeight = startRect.height() * scale;
@@ -420,6 +447,9 @@ public class MultiRoiOverlayView extends View {
                                         cx + currentWidth / 2f,
                                         cy + currentHeight / 2f
                                 );
+                                oldDist = newDist;
+                                startTouch.set(newCenter.x, newCenter.y);
+                                startRect.set(activeRoi.rect);
                                 invalidate();
                             }
                         }
@@ -445,14 +475,12 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 重测 ROI
-     * <p>
      * 根据当前拖拽的控制角点重新计算并设定矩形的四边边界坐标
-     * 包含了 View 的视口边界截断保护与矩形最小尺寸约束
+     * 包含了 View 的视口边界截断保护与矩形最小尺寸约束，防止框体反转与挤压过小。
      *
      * @param target 需要修改的目标 RectF 对象
      * @param start  变形开始前 RectF 的基准坐标
-     * @param handle 当前正在拖动的角点类型 (Top-Left, Top-Right, 等)
+     * @param handle 当前正在拖动的角点类型 (Top-Left, Top-Right 等)
      * @param dx     X 轴方向上的移动偏移量
      * @param dy     Y 轴方向上的移动偏移量
      */
@@ -466,24 +494,31 @@ public class MultiRoiOverlayView extends View {
         switch (handle) {
             case HANDLE_TOP_LEFT:
                 // 拖动左上角：修改 left 与 top
-                // 边界限制：不能低于 View 边缘 0 且保证 width / height 不小于 MIN_RECT_SIZE
-                left = Math.max(0, Math.min(start.left + dx, right - MIN_RECT_SIZE));
-                top = Math.max(0, Math.min(start.top + dy, bottom - MIN_RECT_SIZE));
+                left = Math.min(start.left + dx, right - MIN_RECT_SIZE);
+                left = Math.max(0, left);
+                top = Math.min(start.top + dy, bottom - MIN_RECT_SIZE);
+                top = Math.max(0, top);
                 break;
             case HANDLE_TOP_RIGHT:
                 // 拖动右上角：修改 right 与 top
-                right = Math.min(viewW, Math.max(start.right + dx, left + MIN_RECT_SIZE));
-                top = Math.max(0, Math.min(start.top + dy, bottom - MIN_RECT_SIZE));
+                right = Math.max(start.right + dx, left + MIN_RECT_SIZE);
+                right = Math.min(viewW, right);
+                top = Math.min(start.top + dy, bottom - MIN_RECT_SIZE);
+                top = Math.max(0, top);
                 break;
             case HANDLE_BOTTOM_RIGHT:
                 // 拖动右下角：修改 right 与 bottom
-                right = Math.min(viewW, Math.max(start.right + dx, left + MIN_RECT_SIZE));
-                bottom = Math.min(viewH, Math.max(start.bottom + dy, top + MIN_RECT_SIZE));
+                right = Math.max(start.right + dx, left + MIN_RECT_SIZE);
+                right = Math.min(viewW, right);
+                bottom = Math.max(start.bottom + dy, top + MIN_RECT_SIZE);
+                bottom = Math.min(viewH, bottom);
                 break;
             case HANDLE_BOTTOM_LEFT:
                 // 拖动左下角：修改 left 与 bottom
-                left = Math.max(0, Math.min(start.left + dx, right - MIN_RECT_SIZE));
-                bottom = Math.min(viewH, Math.max(start.bottom + dy, top + MIN_RECT_SIZE));
+                left = Math.min(start.left + dx, right - MIN_RECT_SIZE);
+                left = Math.max(0, left);
+                bottom = Math.max(start.bottom + dy, top + MIN_RECT_SIZE);
+                bottom = Math.min(viewH, bottom);
                 break;
         }
         // 重新赋值给目标的 RectF
@@ -491,11 +526,14 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 碰撞检测
+     * 角点碰撞检测算法
      * <p>
      * 检查触控点是否落在了给定矩形框的 4 个顶点触控敏感区内
      *
-     * @return 返回命中的角点索引常量 (若未命中任何角点则返回 HANDLE_NONE)
+     * @param rect 目标 ROI 矩形
+     * @param x    触摸点 X 坐标
+     * @param y    触摸点 Y 坐标
+     * @return 返回命中的角点索引常量，若未命中任何角点则返回 HANDLE_NONE
      */
     private int hitTestHandle(@NotNull RectF rect, float x, float y) {
         if (isNear(x, y, rect.left, rect.top)) {
@@ -514,11 +552,14 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 辅助几何计算
-     * <p>
      * 判定点 (x1, y1) 是否位于以 (x2, y2) 为中心、TOUCH_TARGET_SIZE 为半径的圆形感应区域内
-     * 使用欧式距离平方计算
-     * 避免调用平方根 (Math.sqrt) 带来性能损耗
+     * 使用欧式距离平方计算，避免调用 Math.sqrt 带来性能损耗。
+     *
+     * @param x1 触摸点 X
+     * @param y1 触摸点 Y
+     * @param x2 目标角点 X
+     * @param y2 目标角点 Y
+     * @return true 表示在感应区域内，false 表示超出
      */
     private boolean isNear(float x1, float y1, float x2, float y2) {
         float dx = (x1 - x2);
@@ -527,18 +568,23 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 以给定的中心点 (cx, cy) 为基准，生成并新建一个默认尺寸为 240x160 px 的矩形 ROI 项。
+     * 以给定的中心点 (cx, cy) 为基准生成新的 ROI 项
+     * 生成默认尺寸为 240x160 px 的矩形 ROI 项并添加到列表中
+     *
+     * @param cx 中心点 X 坐标
+     * @param cy 中心点 Y 坐标
+     * @return 新创建的 RoiItem 实例
      */
     private @NotNull RoiItem createNewRoi(float cx, float cy) {
-        // 默认宽度 240px
+        // 默认
+        // 宽度 240px
+        // 高度 160px
         float halfW = 120f;
-        // 默认高度 160px
         float halfH = 80f;
         RectF rect = new RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
         RoiItem roiItem = new RoiItem(nextRoiId++, rect);
         roiList.add(roiItem);
-        // 触发监听回调
-        // 告知外部数量变化
+        // 触发监听回调，告知外部数量变化。
         if (onRoiChangeListener != null) {
             onRoiChangeListener.onRoiCountChanged(roiList.size());
         }
@@ -548,28 +594,26 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 越界安全校验
-     * <p>
      * 判定 ROI 是否移出 View 视口边缘
+     * 若满足删除条件则自动丢弃该 ROI
      * <p>
      * 判定规则
-     * 只要 ROI 的中心点越界
-     * 或者 ROI 移出 View 边缘超过自身尺寸的一半
-     * 即判定为需要丢弃并自动删除
+     * 只要 ROI 的中心点越界，或者 ROI 移出 View 边缘超过自身尺寸的一半，即判定为移出屏幕。
+     *
+     * @param roi 待校验的 ROI 项
      */
     private void checkAndRemoveIfOutOfBounds(@NotNull RoiItem roi) {
         float halfW = roi.rect.width() / 2f;
         float halfH = roi.rect.height() / 2f;
         int viewWidth = getWidth();
         int viewHeight = getHeight();
-        // 判定 1：中心点是否已不在 View 区域内部
-        boolean isOutOfBounds = (roi.rect.centerX() < 0) || (roi.rect.centerX() > viewWidth)
-                || (roi.rect.centerY() < 0) || (roi.rect.centerY() > viewHeight);
-        // 判定 2：四边移出 View 边界是否超过了自身宽度 / 高度的一半
-        boolean isHalfOut = (roi.rect.left + halfW < 0) || (roi.rect.right - halfW > viewWidth)
-                || (roi.rect.top + halfH < 0) || (roi.rect.bottom - halfH > viewHeight);
-        // 符合任意删除条件
-        // 则清空该 ROI 框
+        // 判定 1
+        // 中心点是否已不在 View 区域内部
+        boolean isOutOfBounds = (roi.rect.centerX() < 0) || (roi.rect.centerX() > viewWidth) || (roi.rect.centerY() < 0) || (roi.rect.centerY() > viewHeight);
+        // 判定 2
+        // 四边移出 View 边界是否超过了自身宽度 / 高度的一半
+        boolean isHalfOut = (roi.rect.left + halfW < 0) || (roi.rect.right - halfW > viewWidth) || (roi.rect.top + halfH < 0) || (roi.rect.bottom - halfH > viewHeight);
+        // 符合任意删除条件则清空该 ROI 框
         if (isHalfOut || isOutOfBounds) {
             roiList.remove(roi);
             // 清空活跃引用
@@ -577,9 +621,8 @@ public class MultiRoiOverlayView extends View {
                 activeRoi = null;
             }
             if (onRoiChangeListener != null) {
-                // 通知特定 ROI 被删除
+                // 通知特定 ROI 被删除并更新剩余总数
                 onRoiChangeListener.onRoiDeleted(roi.id);
-                // 通知剩余总数
                 onRoiChangeListener.onRoiCountChanged(roiList.size());
             }
             // 刷新画布
@@ -588,7 +631,10 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 设置特定 ROI 的高亮选中状态，非目标 ROI 取消高亮。
+     * 设置特定 ROI 的高亮选中状态，非目标 ROI 取消高亮状态更新方法。
+     *
+     * @param target 需要高亮的 ROI 实例
+     *               传入 null 表示全不选中
      */
     private void highlightRoi(RoiItem target) {
         for (RoiItem roiItem : roiList) {
@@ -598,11 +644,14 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 给定触摸坐标 (x, y)
-     * 寻找落在此坐标之下的 ROI 项
+     * 给定触摸坐标寻找落在此坐标之下的 ROI 项
      * <p>
      * 使用倒序遍历 (反向 List)
-     * 确保最晚添加 / 位于图层最上方的 ROI 优先响应点击
+     * 确保最晚添加或位于图层最上方的 ROI 优先响应点击
+     *
+     * @param x 触摸点 X
+     * @param y 触摸点 Y
+     * @return 命中的 RoiItem [未命中任何 ROI 则返回 null]
      */
     private @Nullable RoiItem findTouchedRoi(float x, float y) {
         for (int i = (roiList.size() - 1); i >= 0; i--) {
@@ -614,7 +663,13 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 计算 MotionEvent 中前两个触摸点 (Index 0 和 Index 1) 之间的直线欧氏距离
+     * 计算 MotionEvent 中前两个触摸点之间的直线欧氏距离
+     * <p>
+     * 触摸计算辅助方法
+     * 用于 Index 0 和 Index 1 两点间距离计算
+     *
+     * @param event 手势事件
+     * @return 两点间的像素距离
      */
     private float spacing(@NotNull MotionEvent event) {
         float x = (event.getX(0) - event.getX(1));
@@ -624,6 +679,12 @@ public class MultiRoiOverlayView extends View {
 
     /**
      * 计算 MotionEvent 中前两个触摸点的中心点坐标
+     * <p>
+     * 触摸计算辅助方法
+     * 用于双指中心平移处理
+     *
+     * @param event 手势事件
+     * @return 中心点 PointF
      */
     private @NotNull PointF getCenterPoint(@NotNull MotionEvent event) {
         float x = (event.getX(0) + event.getX(1)) / 2;
@@ -635,14 +696,15 @@ public class MultiRoiOverlayView extends View {
      * 绘制函数
      * <p>
      * 渲染所有 ROI 矩形框、ID 标签文本以及选中框的四角控制点
+     *
+     * @param canvas 画布
      */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         for (RoiItem roi : roiList) {
             // 根据选中状态选择画笔样式
-            // 高亮为红粗线
-            // 常态为绿细线
+            // 高亮为红粗线，常态为绿细线
             Paint paint = roi.isSelected ? selectedBoxPaint : boxPaint;
             // 1. 绘制 ROI 矩形边框
             canvas.drawRect(roi.rect, paint);
@@ -656,7 +718,12 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
+     * 绘制辅助方法
+     * <p>
      * 在矩形框的四个顶点上绘制控制点圆圈
+     *
+     * @param canvas 画布
+     * @param rect   目标矩形
      */
     private void drawHandles(@NotNull Canvas canvas, @NotNull RectF rect) {
         canvas.drawCircle(rect.left, rect.top, HANDLE_RADIUS, handlePaint);
@@ -666,13 +733,9 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 核心接口工具
-     * <p>
-     * 获取所有 ROI 框的归一化相对百分比坐标比例 (取值范围：0.0f ~ 1.0f)
-     * <p>
-     * 使用场景
-     * UI 层的 View 物理分辨率与摄像头 Preview / ImageAnalysis 的真实像素分辨率通常不一致
-     * 通过返回相对比例，业务层只需乘以相机实际分辨率即可精确还原对应的图像 ROI 区域。
+     * 获取所有 ROI 框的归一化相对百分比坐标比例
+     * 转换并返回 [0.0, 1.0] 范围内的比例数据
+     * 便于业务层换算相机像素点
      *
      * @return 归一化的 RectF 列表 (left, top, right, bottom 均在 [0.0, 1.0] 范围内)
      */
@@ -685,19 +748,20 @@ public class MultiRoiOverlayView extends View {
             return percentList;
         }
         for (RoiItem roiItem : roiList) {
-            RectF p = new RectF(
+            RectF rectF = new RectF(
                     roiItem.rect.left / w,
                     roiItem.rect.top / h,
                     roiItem.rect.right / w,
                     roiItem.rect.bottom / h
             );
-            percentList.add(p);
+            percentList.add(rectF);
         }
         return percentList;
     }
 
     /**
      * 清空当前所有 ROI 框并重置选中状态与视图绘制
+     * 外部数据重置接口
      */
     public void clearAllRoi() {
         roiList.clear();
@@ -710,17 +774,20 @@ public class MultiRoiOverlayView extends View {
 
     /**
      * ROI 状态变化监听接口定义
+     * 用于监听屏幕 ROI 数量变动或特定项的清理事件
      */
     public interface OnRoiChangeListener {
         /**
          * 当前屏幕上的 ROI 框总数量发生变化时回调
+         * 包含新增、手势滑出删除、清空等操作触发的数量变更
          *
          * @param count 当前剩余的 ROI 总数
          */
         void onRoiCountChanged(int count);
 
         /**
-         * 某个特定 ID 的 ROI 框被移除 / 清理时回调
+         * 某个特定 ID 的 ROI 框被移除或清理时回调
+         * 单项移除事件通知
          *
          * @param roiId 被删除的 ROI 唯一标识符
          */
@@ -729,27 +796,32 @@ public class MultiRoiOverlayView extends View {
 
     /**
      * 单个 ROI 数据模型实体类
+     * 包含其物理坐标矩形、唯一标识以及选中状态标志
      */
     public static class RoiItem {
         /**
-         * 对应在 View 屏幕物理坐标系下的矩形边界 (像素点坐标)
-         * <p>
-         * 单个 ROI 数据模型实体类
+         * 对应在 View 屏幕物理坐标系下的矩形边界
+         * 像素点坐标 RectF 实例
          */
         public RectF rect;
         /**
          * 唯一数字 ID
-         * <p>
-         * 单个 ROI 数据模型实体类
+         * 自动递增的数值标识
          */
         public int id;
         /**
          * 是否处于高亮选中状态
-         * <p>
-         * 单个 ROI 数据模型实体类
+         * 手势交互与绘制标记位
          */
         public boolean isSelected;
 
+        /**
+         * 构造函数
+         * 用于创建新的 RoiItem 实体
+         *
+         * @param id   唯一标识 ID
+         * @param rect 初始矩形区域
+         */
         public RoiItem(int id, RectF rect) {
             this.id = id;
             this.rect = rect;
