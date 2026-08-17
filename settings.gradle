@@ -1,7 +1,6 @@
 rootProject.name = "CameraUse"
 include ':app'
 include ':libausbc'
-include ':libutils'
 include ':libnative'
 include ':libuvc'
 include ':libuvccommon'
