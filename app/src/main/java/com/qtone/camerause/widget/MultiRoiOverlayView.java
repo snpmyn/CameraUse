@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,13 +103,7 @@ public class MultiRoiOverlayView extends View {
      */
     private static final float MIN_RECT_SIZE = 60f;
     /**
-     * 双指扩散创建 ROI 的最小扩张距离阈值
-     * <p>
-     * 单位 px
-     */
-    private static final float CREATE_ROI_THRESHOLD = 30f;
-    /**
-     * 存储当前 View 上的所有 ROI 实例
+     * 存储当前 View 所有 ROI 实例
      * <p>
      * 数据与状态管理变量
      */
@@ -152,12 +147,6 @@ public class MultiRoiOverlayView extends View {
      */
     private int mode = MODE_NONE;
     /**
-     * 标识双指按下后是否处于等待向外扩散以创建 ROI 的状态
-     * <p>
-     * 数据与状态管理变量
-     */
-    private boolean isPendingCreate = false;
-    /**
      * 双指捏合开始时
      * <p>
      * 两指间的初始欧氏距离
@@ -165,6 +154,12 @@ public class MultiRoiOverlayView extends View {
      * 数据与状态管理变量
      */
     private float oldDist = 1f;
+    /**
+     * 手势检测器
+     * <p>
+     * 用于处理单指快速双击创建 ROI
+     */
+    private GestureDetector gestureDetector;
     /**
      * 未选中状态下 ROI 框的 Paint
      * <p>
@@ -212,15 +207,17 @@ public class MultiRoiOverlayView extends View {
      */
     public MultiRoiOverlayView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        init();
+        init(context);
     }
 
     /**
-     * 初始化画笔属性
+     * 初始化画笔属性与双击手势检测器
      * <p>
      * 开启抗锯齿以保障图层边缘光滑
+     *
+     * @param context 上下文
      */
-    private void init() {
+    private void init(Context context) {
         // 未选中框：绿色、线框模式、线宽 6px
         boxPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         boxPaint.setColor(Color.GREEN);
@@ -239,6 +236,17 @@ public class MultiRoiOverlayView extends View {
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.WHITE);
         textPaint.setTextSize(36f);
+        // 初始化手势检测器
+        // 处理单指快速双击创建 ROI
+        gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(@NotNull MotionEvent e) {
+                // 以双击触摸点坐标为中心创建新的 ROI
+                activeRoi = createNewRoi(e.getX(), e.getY());
+                highlightRoi(activeRoi);
+                return true;
+            }
+        });
     }
 
     /**
@@ -296,6 +304,8 @@ public class MultiRoiOverlayView extends View {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(@NotNull MotionEvent event) {
+        // 将事件委托给 gestureDetector 进行双击判定
+        gestureDetector.onTouchEvent(event);
         int action = event.getAction() & MotionEvent.ACTION_MASK;
         float x = event.getX();
         float y = event.getY();
@@ -338,23 +348,18 @@ public class MultiRoiOverlayView extends View {
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 // 第二根手指按下
-                // 处理 [双指捏合缩放] 或 [双指新建 ROI]
+                // 处理 [双指捏合缩放]
                 if (event.getPointerCount() == 2) {
                     // 计算两手指间距
                     float dist = spacing(event);
-                    // 过滤极微小的误触
+                    // 过滤极微小误触
                     if (dist > 20f) {
                         oldDist = dist;
-                        // 获取两指交汇的中心点
+                        // 获取两指交汇中心点
                         PointF center = getCenterPoint(event);
                         startTouch.set(center.x, center.y);
-                        if (activeRoi == null) {
-                            // 若当前在空白处双指按下，暂不创建 ROI，标记为等待扩散创建。
-                            isPendingCreate = true;
-                            mode = MODE_ZOOM;
-                        } else {
+                        if (activeRoi != null) {
                             // 已有选中 ROI 时，正常进行缩放。
-                            isPendingCreate = false;
                             mode = MODE_ZOOM;
                             startRect.set(activeRoi.rect);
                         }
@@ -395,19 +400,6 @@ public class MultiRoiOverlayView extends View {
                     // 双指等比例缩放与中心平移
                     float newDist = spacing(event);
                     if (newDist > 20f) {
-                        // 双指处于等待创建状态，且向外扩散超过阈值时才生成方框。
-                        if (isPendingCreate) {
-                            if (newDist - oldDist > CREATE_ROI_THRESHOLD) {
-                                // 在初始双指中心点创建一个默认矩形 ROI
-                                activeRoi = createNewRoi(startTouch.x, startTouch.y);
-                                highlightRoi(activeRoi);
-                                startRect.set(activeRoi.rect);
-                                // 已成功创建，解除等待状态。
-                                isPendingCreate = false;
-                            } else {
-                                break;
-                            }
-                        }
                         if (activeRoi != null) {
                             // 计算缩放比例
                             float scale = newDist / oldDist;
@@ -438,7 +430,6 @@ public class MultiRoiOverlayView extends View {
                 // 当多指操作过程中有一根手指抬起时，强制重置手势模式。
                 // 防止 ACTION_MOVE 继续读取已被释放的手指 Index 导致 IndexOutOfBoundsException
                 mode = MODE_NONE;
-                isPendingCreate = false;
                 break;
             case MotionEvent.ACTION_UP:
                 // 最后一根手指抬起，检查当前活跃的 ROI 是否超出了 View 的边界范围，超出则执行移除。
@@ -448,7 +439,6 @@ public class MultiRoiOverlayView extends View {
                 // 重置所有手势标志位
                 mode = MODE_NONE;
                 activeHandle = HANDLE_NONE;
-                isPendingCreate = false;
                 break;
         }
         return true;
