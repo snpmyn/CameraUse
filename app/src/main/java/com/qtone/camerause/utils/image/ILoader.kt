@@ -1,33 +1,18 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package com.jiangdg.utils.imageloader
+package com.qtone.camerause.utils.image
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 
 /**
- * Image loader
+ * 加载器
  *
  * @param T image view
  * @author Created by jiangdg on 2022/3/16
  */
 interface ILoader<T> {
     /**
-     * Load image from url
+     * load image from url
      *
      * @param imageView image view
      * @param url image uri
@@ -36,7 +21,7 @@ interface ILoader<T> {
     fun load(imageView: T, url: String?, placeHolder: Int)
 
     /**
-     * Load image from url width default place holder
+     * load image from url width default place holder
      *
      * @param imageView image view
      * @param url image url
@@ -44,7 +29,7 @@ interface ILoader<T> {
     fun load(imageView: T, url: String?)
 
     /**
-     * Load image from resource id
+     * load image from resource id
      *
      * @param imageView image view
      * @param resId resource id
@@ -52,7 +37,7 @@ interface ILoader<T> {
     fun load(imageView: T, resId: Int)
 
     /**
-     * Load image from url with transform
+     * load image from url with transform
      *
      * @param imageView image view
      * @param url image url
@@ -67,7 +52,7 @@ interface ILoader<T> {
     )
 
     /**
-     * Load rounded from url
+     * load rounded from url
      *
      * @param imageView image view
      * @param url image url
@@ -77,7 +62,7 @@ interface ILoader<T> {
     fun loadRounded(imageView: T, url: String?, placeHolder: Int, radius: Float)
 
     /**
-     * Load rounded from url
+     * load rounded from url
      *
      * @param imageView image view
      * @param url image url
@@ -87,7 +72,7 @@ interface ILoader<T> {
     fun loadRounded(imageView: T, url: String?, placeHolder: Drawable?, radius: Float)
 
     /**
-     * Load rounded from url
+     * load rounded from url
      *
      * @param imageView image view
      * @param url image url
@@ -96,7 +81,7 @@ interface ILoader<T> {
     fun loadRounded(imageView: T, url: String?, radius: Float)
 
     /**
-     * Load circle from url
+     * load circle from url
      *
      * @param imageView image view
      * @param url image url
@@ -105,7 +90,7 @@ interface ILoader<T> {
     fun loadCircle(imageView: T, url: String?, placeHolder: Int)
 
     /**
-     * Load circle from url
+     * load circle from url
      *
      * @param imageView image view
      * @param url image url
@@ -113,7 +98,7 @@ interface ILoader<T> {
     fun loadCircle(imageView: T, url: String?)
 
     /**
-     * Load circle from url
+     * load circle from url
      *
      * @param imageView image view
      * @param resId image resId
@@ -122,15 +107,13 @@ interface ILoader<T> {
     fun loadCircle(imageView: T, resId: Int, placeHolder: Int)
 
     /**
-     * Load circle from resource id
+     * load circle from resource id
      *
      * @param imageView image view
      * @param resId image resId
      */
     fun loadCircle(imageView: T, resId: Int)
-
     fun loadAsBitmap(url: String?, width: Int, height: Int, listener: OnLoadedResultListener)
-
     interface OnLoadedResultListener {
         fun onLoadedSuccess(bitmap: Bitmap?)
         fun onLoadedFailed(error: Exception?)

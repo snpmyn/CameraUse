@@ -1,19 +1,4 @@
-/*
- * Copyright 2017-2022 Jiangdg
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package com.jiangdg.utils.imageloader
+package com.qtone.camerause.utils.image
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -38,20 +23,19 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
-import com.jiangdg.utils.R
-import java.lang.IllegalArgumentException
+import com.qtone.camerause.R
 
-/**GlideImageLoader by glide
+/**
+ * Glide 加载器
  *
  * @param target imageview owner
- *
  * @author Created by jiangdg on 2022/3/16
  */
 class GlideLoader<T>(target: T) : ILoader<ImageView> {
-    private var mRequestManager: RequestManager? = null
+    private var requestManager: RequestManager? = null
 
     init {
-        mRequestManager = when (target) {
+        requestManager = when (target) {
             is Fragment -> Glide.with(target)
             is FragmentActivity -> Glide.with(target)
             is Activity -> Glide.with(target)
@@ -63,7 +47,7 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
 
     override fun load(imageView: ImageView, url: String?, placeHolder: Int) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
-        mRequestManager!!.load(url).optionalTransform(centerCrop)
+        requestManager!!.load(url).optionalTransform(centerCrop)
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
             .placeholder(placeHolder)
             .into(imageView)
@@ -71,17 +55,17 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
 
     override fun load(imageView: ImageView, url: String?) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
-        mRequestManager!!.load(url).optionalTransform(centerCrop)
+        requestManager!!.load(url).optionalTransform(centerCrop)
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
-            .placeholder(R.drawable.imageloader_default_cover_bg)
+            .placeholder(R.drawable.color_d7dae1_solid)
             .into(imageView)
     }
 
     override fun load(imageView: ImageView, resId: Int) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
-        mRequestManager!!.load(resId).optionalTransform(centerCrop)
+        requestManager!!.load(resId).optionalTransform(centerCrop)
             .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
-            .placeholder(R.drawable.imageloader_default_cover_bg)
+            .placeholder(R.drawable.color_d7dae1_solid)
             .into(imageView)
     }
 
@@ -91,7 +75,7 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
         placeHolder: Int,
         bitmapTransformation: BitmapTransformation?
     ) {
-        mRequestManager!!.load(url).optionalTransform(bitmapTransformation!!)
+        requestManager!!.load(url).optionalTransform(bitmapTransformation!!)
             .optionalTransform(
                 WebpDrawable::class.java,
                 WebpDrawableTransformation(bitmapTransformation)
@@ -108,7 +92,7 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
                 transform(RoundedCorners(dp2px(imageView.context, radius)))
             }
         }.also { options ->
-            mRequestManager!!.load(url)
+            requestManager!!.load(url)
                 .placeholder(placeHolder)
                 .apply(options)
                 .into(imageView)
@@ -129,7 +113,7 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
                 transform(RoundedCorners(dp2px(imageView.context, radius)))
             }
         }.also { options ->
-            mRequestManager!!.load(url)
+            requestManager!!.load(url)
                 .placeholder(placeHolder)
                 .apply(options)
                 .into(imageView)
@@ -137,11 +121,11 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     }
 
     override fun loadRounded(imageView: ImageView, url: String?, radius: Float) {
-        loadRounded(imageView, url, R.drawable.imageloader_default_cover_bg, radius)
+        loadRounded(imageView, url, R.drawable.color_d7dae1_solid, radius)
     }
 
     override fun loadCircle(imageView: ImageView, url: String?, placeHolder: Int) {
-        mRequestManager?.apply {
+        requestManager?.apply {
             this.load(url)
                 .placeholder(placeHolder)
                 .apply(RequestOptions.bitmapTransform(CircleCrop()))
@@ -150,16 +134,16 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     }
 
     override fun loadCircle(imageView: ImageView, url: String?) {
-        mRequestManager?.apply {
+        requestManager?.apply {
             this.load(url)
-                .placeholder(R.drawable.imageloader_default_cover_bg)
+                .placeholder(R.drawable.color_d7dae1_solid)
                 .apply(RequestOptions.bitmapTransform(CircleCrop()))
                 .into(imageView)
         }
     }
 
     override fun loadCircle(imageView: ImageView, resId: Int, placeHolder: Int) {
-        mRequestManager?.apply {
+        requestManager?.apply {
             this.load(resId)
                 .placeholder(placeHolder)
                 .apply(RequestOptions.bitmapTransform(CircleCrop()))
@@ -168,9 +152,9 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     }
 
     override fun loadCircle(imageView: ImageView, resId: Int) {
-        mRequestManager?.apply {
+        requestManager?.apply {
             this.load(resId)
-                .placeholder(R.drawable.imageloader_default_cover_bg)
+                .placeholder(R.drawable.color_d7dae1_solid)
                 .apply(RequestOptions.bitmapTransform(CircleCrop()))
                 .into(imageView)
         }
@@ -182,7 +166,7 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
         height: Int,
         listener: ILoader.OnLoadedResultListener
     ) {
-        mRequestManager?.apply {
+        requestManager?.apply {
             this.asBitmap()
                 .centerCrop()
                 .load(url)
@@ -207,7 +191,6 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
                         listener.onLoadedSuccess(resource)
                         return true
                     }
-
                 })
                 .submit(width, height)
         }
