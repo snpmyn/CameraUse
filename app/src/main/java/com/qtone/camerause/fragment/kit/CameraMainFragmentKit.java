@@ -144,8 +144,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      */
     public void onScanCodeClicked(ViewFinderView viewFinderView, long interval) {
         ViewUtils.showView(viewFinderView);
-        viewFinderView.setFrameWidth(cameraMainFragment.customResolution.getWidth());
-        viewFinderView.setFrameHeight(cameraMainFragment.customResolution.getHeight());
+        viewFinderView.setFrameWidthAndHeight(cameraMainFragment.getTextureView().getWidth(), cameraMainFragment.getTextureView().getHeight(), 0.8f);
         // 设置扫描时间间隔
         scanCodeProcessor.setScanInterval(interval);
         // 允许扫码状态锁
