@@ -127,6 +127,14 @@ public class MultiRoiOverlayView extends View {
      */
     private final RectF startRect = new RectF();
     /**
+     * 复用中心点对象
+     * <p>
+     * 避免在 onTouchEvent 高频分配内存引发频繁 GC
+     * <p>
+     * 数据与状态管理变量
+     */
+    private final PointF reuseCenterPoint = new PointF();
+    /**
      * 当前处于被选中或被手势操控状态的 ROI 实例
      * <p>
      * 数据与状态管理变量
@@ -263,6 +271,12 @@ public class MultiRoiOverlayView extends View {
                 // 以双击触摸点坐标为中心创建新的 ROI
                 activeRoi = createNewRoi(e.getX(), e.getY());
                 highlightRoi(activeRoi);
+                // 重置手势状态，拦截后续单击判定。
+                mode = MODE_NONE;
+                activeHandle = HANDLE_NONE;
+                if (activeRoi != null) {
+                    startRect.set(activeRoi.rect);
+                }
                 return true;
             }
         });
@@ -292,6 +306,7 @@ public class MultiRoiOverlayView extends View {
         if ((width <= 0) || (height <= 0)) {
             return;
         }
+        // 记录重新测量前的旧 View 物理尺寸
         int oldViewWidth = getWidth();
         int oldViewHeight = getHeight();
         // 1. 获取并更新 LayoutParams 以触发系统重新测量
@@ -300,7 +315,7 @@ public class MultiRoiOverlayView extends View {
             layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             requestLayout();
         }
-        // 2. 之前已有 View 尺寸且画布上已存在 ROI，则将旧 ROI 物理坐标按比例等比映射到新尺寸上。
+        // 2. 将旧 ROI 物理坐标按旧新尺寸比例等比映射到新尺寸上
         post(() -> {
             int newViewWidth = getWidth();
             int newViewHeight = getHeight();
@@ -308,7 +323,9 @@ public class MultiRoiOverlayView extends View {
                 if ((oldViewWidth != newViewWidth) || (oldViewHeight != newViewHeight)) {
                     float scaleX = (float) newViewWidth / oldViewWidth;
                     float scaleY = (float) newViewHeight / oldViewHeight;
-                    for (RoiItem roiItem : roiList) {
+                    // 防御性浅拷贝，避免并发修改异常
+                    List<RoiItem> tempMapList = new ArrayList<>(roiList);
+                    for (RoiItem roiItem : tempMapList) {
                         roiItem.rect.set(
                                 roiItem.rect.left * scaleX,
                                 roiItem.rect.top * scaleY,
@@ -333,8 +350,11 @@ public class MultiRoiOverlayView extends View {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(@NotNull MotionEvent event) {
-        // 将事件委托给 gestureDetector 进行双击判定
-        gestureDetector.onTouchEvent(event);
+        // 1. 优先交给 GestureDetector 处理
+        // 若消费了事件 (如双击新建) 则直接拦截返回，防止手势冲突。
+        if (gestureDetector.onTouchEvent(event)) {
+            return true;
+        }
         int action = event.getAction() & MotionEvent.ACTION_MASK;
         float x = event.getX();
         float y = event.getY();
@@ -343,7 +363,7 @@ public class MultiRoiOverlayView extends View {
                 // 记录首指按下的屏幕物理坐标
                 startTouch.set(x, y);
                 // 1. 优先判定
-                // 若当前已有选中的 activeRoi，检查按下的点是否落在其 4 个控制角点范围内。
+                // 若当前已有选中的 activeRoi 则检查按下的点是否落在其 4 个控制角点范围内
                 if (activeRoi != null) {
                     activeHandle = hitTestHandle(activeRoi.rect, x, y);
                 } else {
@@ -368,9 +388,8 @@ public class MultiRoiOverlayView extends View {
                         startRect.set(activeRoi.rect);
                     } else {
                         // 4. 点击了没有任何 ROI 的空白区域
-                        // 取消当前的所有选中状态
-                        activeRoi = null;
-                        highlightRoi(null);
+                        // 延缓清除高亮
+                        // 不在此处设 activeRoi = null，防止双击的第一下点击误解高亮框。
                         mode = MODE_NONE;
                     }
                 }
@@ -383,9 +402,9 @@ public class MultiRoiOverlayView extends View {
                     // 过滤极微小误触
                     if (dist > 20f) {
                         oldDist = dist;
-                        // 获取两指交汇中心点
-                        PointF center = getCenterPoint(event);
-                        startTouch.set(center.x, center.y);
+                        // 计算两指交汇中心点并填充给复用变量 reuseCenterPoint
+                        calculateCenterPoint(event, reuseCenterPoint);
+                        startTouch.set(reuseCenterPoint.x, reuseCenterPoint.y);
                         if (activeRoi != null) {
                             // 已有选中 ROI 时正常进行缩放
                             mode = MODE_ZOOM;
@@ -403,9 +422,6 @@ public class MultiRoiOverlayView extends View {
                     float dy = y - startTouch.y;
                     // 根据相对位移更新 activeRoi 的 Rect 坐标
                     resizeRoi(activeRoi.rect, startRect, activeHandle, dx, dy);
-                    // 实时同步基准坐标，消除连续拖动时的跳变闪烁现象。
-                    startTouch.set(x, y);
-                    startRect.set(activeRoi.rect);
                     // 触发重绘
                     invalidate();
                 } else if (mode == MODE_DRAG && event.getPointerCount() == 1) {
@@ -431,10 +447,10 @@ public class MultiRoiOverlayView extends View {
                         if (activeRoi != null) {
                             // 计算缩放比例
                             float scale = newDist / oldDist;
-                            PointF newCenter = getCenterPoint(event);
+                            calculateCenterPoint(event, reuseCenterPoint);
                             // 中心点平移 X / Y 轴偏移量
-                            float cDx = (newCenter.x - startTouch.x);
-                            float cDy = (newCenter.y - startTouch.y);
+                            float cDx = (reuseCenterPoint.x - startTouch.x);
+                            float cDy = (reuseCenterPoint.y - startTouch.y);
                             float currentWidth = startRect.width() * scale;
                             float currentHeight = startRect.height() * scale;
                             // 满足最小尺寸限制时，计算缩放及位移后的矩形边界。
@@ -447,9 +463,6 @@ public class MultiRoiOverlayView extends View {
                                         cx + currentWidth / 2f,
                                         cy + currentHeight / 2f
                                 );
-                                oldDist = newDist;
-                                startTouch.set(newCenter.x, newCenter.y);
-                                startRect.set(activeRoi.rect);
                                 invalidate();
                             }
                         }
@@ -457,11 +470,28 @@ public class MultiRoiOverlayView extends View {
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
-                // 当多指操作过程中有一根手指抬起时，强制重置手势模式。
-                // 防止 ACTION_MOVE 继续读取已被释放的手指 Index 导致 IndexOutOfBoundsException
-                mode = MODE_NONE;
+                // 安全获取剩余手指索引，防止 IndexOutOfBoundsException 崩溃。
+                int upIndex = event.getActionIndex();
+                int remainIndex = findRemainingPointerIndex(event, upIndex);
+                if (remainIndex != -1) {
+                    startTouch.set(event.getX(remainIndex), event.getY(remainIndex));
+                    if (activeRoi != null) {
+                        startRect.set(activeRoi.rect);
+                        // 无缝切换为单指拖拽模式，避免松开一指后继续滑动失效的问题
+                        mode = MODE_DRAG;
+                    } else {
+                        mode = MODE_NONE;
+                    }
+                } else {
+                    mode = MODE_NONE;
+                }
                 break;
             case MotionEvent.ACTION_UP:
+                // 在单击抬起且未命中任何 ROI 时，取消当前的选择状态。
+                if (mode == MODE_NONE && activeHandle == HANDLE_NONE && findTouchedRoi(x, y) == null) {
+                    activeRoi = null;
+                    highlightRoi(null);
+                }
                 // 最后一根手指抬起，检查当前活跃的 ROI 是否超出了 View 的边界范围，超出则执行移除。
                 if (activeRoi != null && mode != MODE_NONE) {
                     checkAndRemoveIfOutOfBounds(activeRoi);
@@ -472,6 +502,23 @@ public class MultiRoiOverlayView extends View {
                 break;
         }
         return true;
+    }
+
+    /**
+     * 安全查找抬起一根手指后，剩余的第一根有效手指 Pointer 索引。
+     *
+     * @param event   手势事件
+     * @param upIndex 当前抬起的手指索引
+     * @return 依然按在屏幕上的有效手指索引 [若无则返回 -1]
+     */
+    private int findRemainingPointerIndex(MotionEvent event, int upIndex) {
+        int count = event.getPointerCount();
+        for (int i = 0; i < count; i++) {
+            if (i != upIndex) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -528,7 +575,7 @@ public class MultiRoiOverlayView extends View {
     /**
      * 角点碰撞检测算法
      * <p>
-     * 检查触控点是否落在了给定矩形框的 4 个顶点触控敏感区内
+     * 遍历检测触控点落在哪一个角点的感应范围内，并自动取距离最近的那个 (全局最近邻法) 从而彻底消除角点重叠死锁。
      *
      * @param rect 目标 ROI 矩形
      * @param x    触摸点 X 坐标
@@ -536,40 +583,30 @@ public class MultiRoiOverlayView extends View {
      * @return 返回命中的角点索引常量，若未命中任何角点则返回 HANDLE_NONE
      */
     private int hitTestHandle(@NotNull RectF rect, float x, float y) {
-        if (isNear(x, y, rect.left, rect.top)) {
-            return HANDLE_TOP_LEFT;
+        int bestHandle = HANDLE_NONE;
+        float minSqDist = Float.MAX_VALUE;
+        float touchRadiusSq = TOUCH_TARGET_SIZE * TOUCH_TARGET_SIZE;
+        float[][] handles = {
+                {rect.left, rect.top},
+                {rect.right, rect.top},
+                {rect.right, rect.bottom},
+                {rect.left, rect.bottom}
+        };
+        for (int i = 0; i < handles.length; i++) {
+            float dx = (x - handles[i][0]);
+            float dy = (y - handles[i][1]);
+            float sqDist = (dx * dx + dy * dy);
+            if ((sqDist <= touchRadiusSq) && (sqDist < minSqDist)) {
+                minSqDist = sqDist;
+                bestHandle = i;
+            }
         }
-        if (isNear(x, y, rect.right, rect.top)) {
-            return HANDLE_TOP_RIGHT;
-        }
-        if (isNear(x, y, rect.right, rect.bottom)) {
-            return HANDLE_BOTTOM_RIGHT;
-        }
-        if (isNear(x, y, rect.left, rect.bottom)) {
-            return HANDLE_BOTTOM_LEFT;
-        }
-        return HANDLE_NONE;
-    }
-
-    /**
-     * 判定点 (x1, y1) 是否位于以 (x2, y2) 为中心、TOUCH_TARGET_SIZE 为半径的圆形感应区域内
-     * 使用欧式距离平方计算，避免调用 Math.sqrt 带来性能损耗。
-     *
-     * @param x1 触摸点 X
-     * @param y1 触摸点 Y
-     * @param x2 目标角点 X
-     * @param y2 目标角点 Y
-     * @return true 表示在感应区域内，false 表示超出
-     */
-    private boolean isNear(float x1, float y1, float x2, float y2) {
-        float dx = (x1 - x2);
-        float dy = (y1 - y2);
-        return ((dx * dx + dy * dy) <= (TOUCH_TARGET_SIZE * TOUCH_TARGET_SIZE));
+        return bestHandle;
     }
 
     /**
      * 以给定的中心点 (cx, cy) 为基准生成新的 ROI 项
-     * 生成默认尺寸为 240x160 px 的矩形 ROI 项并添加到列表中
+     * 生成默认尺寸为 240x160 px 的矩形 ROI 项并添加到列表中，对边界施加收敛保护防止被误判删除。
      *
      * @param cx 中心点 X 坐标
      * @param cy 中心点 Y 坐标
@@ -581,8 +618,16 @@ public class MultiRoiOverlayView extends View {
         // 高度 160px
         float halfW = 120f;
         float halfH = 80f;
-        RectF rect = new RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
-        RoiItem roiItem = new RoiItem(nextRoiId++, rect);
+        // 边界钳位控制
+        // 防止框生成在视口边界外导致刚创建就被自动判定移除
+        int viewW = getWidth();
+        int viewH = getHeight();
+        if ((viewW > 0) && (viewH > 0)) {
+            cx = Math.max(halfW, Math.min(cx, viewW - halfW));
+            cy = Math.max(halfH, Math.min(cy, viewH - halfH));
+        }
+        RectF rectF = new RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH);
+        RoiItem roiItem = new RoiItem(nextRoiId++, rectF);
         roiList.add(roiItem);
         // 触发监听回调，告知外部数量变化。
         if (onRoiChangeListener != null) {
@@ -672,24 +717,25 @@ public class MultiRoiOverlayView extends View {
      * @return 两点间的像素距离
      */
     private float spacing(@NotNull MotionEvent event) {
+        if (event.getPointerCount() < 2) return 0f;
         float x = (event.getX(0) - event.getX(1));
         float y = (event.getY(0) - event.getY(1));
         return (float) Math.sqrt(x * x + y * y);
     }
 
     /**
-     * 计算 MotionEvent 中前两个触摸点的中心点坐标
+     * 计算 MotionEvent 中前两个触摸点的中心点坐标并写入复用 PointF 变量
      * <p>
-     * 触摸计算辅助方法
-     * 用于双指中心平移处理
+     * 触摸计算辅助方法，避免内存高频分配。
      *
-     * @param event 手势事件
-     * @return 中心点 PointF
+     * @param event    手势事件
+     * @param outPoint 用于接收输出结果的 PointF 实例
      */
-    private @NotNull PointF getCenterPoint(@NotNull MotionEvent event) {
-        float x = (event.getX(0) + event.getX(1)) / 2;
-        float y = (event.getY(0) + event.getY(1)) / 2;
-        return new PointF(x, y);
+    private void calculateCenterPoint(@NotNull MotionEvent event, PointF outPoint) {
+        if (event.getPointerCount() < 2) return;
+        float x = (event.getX(0) + event.getX(1)) / 2f;
+        float y = (event.getY(0) + event.getY(1)) / 2f;
+        outPoint.set(x, y);
     }
 
     /**
@@ -709,7 +755,8 @@ public class MultiRoiOverlayView extends View {
             // 1. 绘制 ROI 矩形边框
             canvas.drawRect(roi.rect, paint);
             // 2. 在矩形左上角绘制编号标签文本 (如 "#1")
-            canvas.drawText("#" + roi.id, roi.rect.left + 10, roi.rect.top + 40, textPaint);
+            // 直接使用缓存文本避免内存抖动
+            canvas.drawText(roi.labelText, roi.rect.left + 10, roi.rect.top + 40, textPaint);
             // 3. 若当前框处于选中状态，在其 4 个顶点绘制拉伸控制圆圈。
             if (roi.isSelected) {
                 drawHandles(canvas, roi.rect);
@@ -761,6 +808,7 @@ public class MultiRoiOverlayView extends View {
 
     /**
      * 清空当前所有 ROI 框并重置选中状态与视图绘制
+     * <p>
      * 外部数据重置接口
      */
     public void clearAllRoi() {
@@ -814,6 +862,11 @@ public class MultiRoiOverlayView extends View {
          * 手势交互与绘制标记位
          */
         public boolean isSelected;
+        /**
+         * 预渲染缓存文本
+         * 用于解决 onDraw 内高频拼接 String 导致的 GC 卡顿问题
+         */
+        public String labelText;
 
         /**
          * 构造函数
@@ -826,6 +879,7 @@ public class MultiRoiOverlayView extends View {
             this.id = id;
             this.rect = rect;
             this.isSelected = false;
+            this.labelText = ("#" + id);
         }
     }
 }
