@@ -10,9 +10,9 @@ public enum CaptureMode {
     /**
      * 单拍
      */
-    SINGLE,
+    SINGLE_CAPTURE,
     /**
      * 连拍
      */
-    BURST
+    BURST_CAPTURE
 }

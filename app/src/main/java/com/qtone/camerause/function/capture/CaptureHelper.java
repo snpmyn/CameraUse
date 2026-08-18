@@ -45,7 +45,7 @@ public class CaptureHelper {
      * @param onCaptureCallBack 拍照回调
      * @return 相机是否未准备就绪
      */
-    public static boolean isCameraNotReady(MultiCameraClient.ICamera iCamera, Handler handler, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    public static boolean isCameraNotReady(MultiCameraClient.ICamera iCamera, Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         if ((iCamera == null) || !iCamera.isCameraOpened()) {
             notifyError(handler, onCaptureCallBack, "相机未准备就绪");
             return true;
@@ -61,7 +61,7 @@ public class CaptureHelper {
      * @param onCaptureCallBack 拍照回调
      * @return 保存路径
      */
-    public static @Nullable String generateSavePath(Context context, Handler handler, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    public static @Nullable String generateSavePath(Context context, Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         Context appContext = (context != null) ? context.getApplicationContext() : null;
         File mediaDir = (appContext != null) ? appContext.getExternalFilesDir("Pictures") : null;
         if ((mediaDir != null) && !mediaDir.exists()) {
@@ -99,7 +99,7 @@ public class CaptureHelper {
      * @param handler           线程消息调度器
      * @param onCaptureCallBack 拍照回调
      */
-    public static void notifyBegin(@NotNull Handler handler, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    public static void notifyBegin(@NotNull Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         handler.post(() -> {
             if (onCaptureCallBack != null) {
                 Log.d(LogKit.TAG, "拍照开始");
@@ -115,7 +115,7 @@ public class CaptureHelper {
      * @param onCaptureCallBack 拍照回调
      * @param errorMsg          错误消息
      */
-    public static void notifyError(@NotNull Handler handler, CaptureProcessor.OnCaptureCallBack onCaptureCallBack, String errorMsg) {
+    public static void notifyError(@NotNull Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack, String errorMsg) {
         handler.post(() -> {
             if (onCaptureCallBack != null) {
                 Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
