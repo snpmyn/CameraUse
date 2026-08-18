@@ -2,14 +2,15 @@ package com.qtone.camerause.function.crop;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.media.MediaScannerConnection;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.media.MediaScanKit;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -69,26 +70,24 @@ public class DocumentCropProcessor {
                 notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
-            // 内部自动生成裁剪后输出路径
-            File mediaDir = context.getExternalFilesDir("Pictures");
+            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
-                if (!isCreated) {
+                if (!isCreated && !mediaDir.exists()) {
                     Log.w(LogKit.TAG, "创建裁剪图片保存目录失败");
                 }
             }
-            String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+            if (mediaDir == null) {
+                croppedMat.release();
+                notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
+                return;
+            }
+            String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
             boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
             if (saved && (resultBitmap != null)) {
-                // 触发系统 MediaScanner 媒体库刷新
-                MediaScannerConnection.scanFile(
-                        context,
-                        new String[]{outputPath},
-                        new String[]{"image/jpeg"},
-                        (path, uri) -> Log.d(LogKit.TAG, "媒体库刷新完成 - Uri || " + uri)
-                );
+                MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
                 handler.post(() -> {
                     Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 已拍照片 - 保存路径 || " + outputPath);
                     if (onDocumentCropCallback != null) {
@@ -131,25 +130,24 @@ public class DocumentCropProcessor {
                 notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
-            File mediaDir = context.getExternalFilesDir("Pictures");
+            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
-                if (!isCreated) {
+                if (!isCreated && !mediaDir.exists()) {
                     Log.w(LogKit.TAG, "创建 Pictures 图片保存目录失败");
                 }
             }
-            String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+            if (mediaDir == null) {
+                croppedMat.release();
+                notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
+                return;
+            }
+            String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
             boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
             if (saved && (resultBitmap != null)) {
-                // 触发系统 MediaScanner 媒体库刷新
-                MediaScannerConnection.scanFile(
-                        context,
-                        new String[]{outputPath},
-                        new String[]{"image/jpeg"},
-                        (path, uri) -> Log.d(LogKit.TAG, "媒体库刷新完成 - Uri || " + uri)
-                );
+                MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
                 handler.post(() -> {
                     Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 原始数据 - 保存路径 || " + outputPath);
                     if (onDocumentCropCallback != null) {
