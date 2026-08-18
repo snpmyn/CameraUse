@@ -25,7 +25,6 @@ public class App extends BaseApplication {
         // 初始化 MMKV
         MmkvKit.INSTANCE.init(this);
         // 初始化 OpenCV
-        // 验证 OpenCV 依赖与 .so 库是否正常加载
         if (OpenCVLoader.initDebug()) {
             Log.d(LogKit.TAG, "OpenCV 初始化成功");
         } else {
