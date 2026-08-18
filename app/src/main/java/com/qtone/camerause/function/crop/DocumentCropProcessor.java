@@ -69,12 +69,12 @@ public class DocumentCropProcessor {
                 notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
                 return;
             }
-            // 内部自动生成裁剪后的输出路径
+            // 内部自动生成裁剪后输出路径
             File mediaDir = context.getExternalFilesDir("Pictures");
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated) {
-                    Log.w(LogKit.TAG, "创建 Pictures 图片保存目录失败");
+                    Log.w(LogKit.TAG, "创建裁剪图片保存目录失败");
                 }
             }
             String outputPath = new File(mediaDir, "CROP_EXAM_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
@@ -96,7 +96,7 @@ public class DocumentCropProcessor {
                     }
                 });
             } else {
-                notifyError(onDocumentCropCallback, "保存裁剪图像失败");
+                notifyError(onDocumentCropCallback, "保存裁剪图片失败");
             }
         });
     }
@@ -143,7 +143,7 @@ public class DocumentCropProcessor {
             Bitmap resultBitmap = matToBitmap(croppedMat);
             croppedMat.release();
             if (saved && (resultBitmap != null)) {
-                // 内部自动触发系统 MediaScanner 媒体库刷新
+                // 触发系统 MediaScanner 媒体库刷新
                 MediaScannerConnection.scanFile(
                         context,
                         new String[]{outputPath},
@@ -157,7 +157,7 @@ public class DocumentCropProcessor {
                     }
                 });
             } else {
-                notifyError(onDocumentCropCallback, "保存裁剪图像失败");
+                notifyError(onDocumentCropCallback, "保存裁剪图片失败");
             }
         });
     }
