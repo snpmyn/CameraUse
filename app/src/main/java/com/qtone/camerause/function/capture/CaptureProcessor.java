@@ -59,7 +59,7 @@ public class CaptureProcessor {
      * @param height     帧物理高
      * @param dataFormat 数据格式
      */
-    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, OnCaptureCallBack onCaptureCallBack) {
+    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.FRAME_CAPTURE) {
             frameCaptureProcessor.processFrame(data, width, height, dataFormat, onCaptureCallBack);
         }
@@ -72,7 +72,7 @@ public class CaptureProcessor {
      * @param iCamera           相机实例
      * @param onCaptureCallBack 拍照回調
      */
-    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, OnCaptureCallBack onCaptureCallBack) {
+    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.SDK_CAPTURE) {
             sdkCaptureProcessor.startSingleCapture(context, iCamera, onCaptureCallBack);
         } else {
@@ -85,15 +85,14 @@ public class CaptureProcessor {
      *
      * @param context           上下文
      * @param iCamera           相机实例
-     * @param interval          时间间隔
-     *                          单位 - 毫秒
+     * @param intervalMs        间隔毫秒
      * @param onCaptureCallBack 拍照回調
      */
-    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long interval, OnCaptureCallBack onCaptureCallBack) {
+    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.SDK_CAPTURE) {
-            sdkCaptureProcessor.startBurstCapture(context, iCamera, interval, onCaptureCallBack);
+            sdkCaptureProcessor.startBurstCapture(context, iCamera, intervalMs, onCaptureCallBack);
         } else {
-            frameCaptureProcessor.startBurstCapture(context, iCamera, interval, onCaptureCallBack);
+            frameCaptureProcessor.startBurstCapture(context, iCamera, intervalMs, onCaptureCallBack);
         }
     }
 
@@ -116,7 +115,7 @@ public class CaptureProcessor {
     /**
      * 拍照回调
      */
-    public interface OnCaptureCallBack {
+    public interface OnCaptureCallback {
         /**
          * 拍照开始
          */
