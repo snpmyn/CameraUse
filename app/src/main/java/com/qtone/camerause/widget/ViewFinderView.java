@@ -171,11 +171,9 @@ public class ViewFinderView extends View {
      */
     private float laserLineHeight;
     /**
-     * 扫描动画延迟间隔时间
-     * <p>
-     * 默认 20 毫秒
+     * 扫描动画延迟间隔毫秒
      */
-    private int laserAnimationInterval;
+    private int laserAnimationIntervalMs;
     /**
      * 是否完全刷新
      */
@@ -220,7 +218,7 @@ public class ViewFinderView extends View {
      */
     private boolean isPointAnimation = true;
     /**
-     * 结果点动画间隔时间
+     * 结果点动画间隔毫秒
      */
     private int pointAnimationInterval;
     /**
@@ -331,7 +329,7 @@ public class ViewFinderView extends View {
 
         laserLineHeight = array.getDimension(R.styleable.ViewFinderView_vvLaserLineHeight, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, displayMetrics));
         laserMovementSpeed = array.getDimension(R.styleable.ViewFinderView_vvLaserMovementSpeed, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, displayMetrics));
-        laserAnimationInterval = array.getInteger(R.styleable.ViewFinderView_vvLaserAnimationInterval, 20);
+        laserAnimationIntervalMs = array.getInteger(R.styleable.ViewFinderView_vvLaserAnimationInterval, 20);
 
         laserGridColumn = array.getInt(R.styleable.ViewFinderView_vvLaserGridColumn, 20);
         laserGridHeight = array.getDimension(R.styleable.ViewFinderView_vvLaserGridHeight, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, displayMetrics));
@@ -500,11 +498,11 @@ public class ViewFinderView extends View {
             drawTextInfo(canvas, frame);
             if (fullRefresh) {
                 // 完全刷新
-                postInvalidateDelayed(laserAnimationInterval);
+                postInvalidateDelayed(laserAnimationIntervalMs);
             } else {
                 // 局部刷新
                 // 更高效
-                postInvalidateDelayed(laserAnimationInterval, (int) frame.left, (int) frame.top, (int) frame.right, (int) frame.bottom);
+                postInvalidateDelayed(laserAnimationIntervalMs, (int) frame.left, (int) frame.top, (int) frame.right, (int) frame.bottom);
             }
         } else if (viewfinderStyle == ViewfinderStyle.POPULAR) {
             // POPULAR 样式
@@ -513,7 +511,7 @@ public class ViewFinderView extends View {
             drawLaserScanner(canvas, frame);
             // 绘制提示信息
             drawTextInfo(canvas, frame);
-            postInvalidateDelayed(laserAnimationInterval);
+            postInvalidateDelayed(laserAnimationIntervalMs);
         }
     }
 
@@ -677,7 +675,6 @@ public class ViewFinderView extends View {
                 new int[]{shadeColor(laserColor), laserColor},
                 null,
                 Shader.TileMode.CLAMP);
-
         paint.setShader(linearGradient);
         // 椭圆
         RectF rectF = new RectF(frame.left + frameCornerSize, scannerStart, frame.right - frameCornerSize, scannerStart + laserLineHeight);
@@ -811,7 +808,7 @@ public class ViewFinderView extends View {
         }
         // 每间隔 3 秒触发一套缩放动画
         // 一套动画缩放三个回合 (即每次 zoomCount 累加到 2 后重置为 0 时)
-        postInvalidateDelayed(((zoomCount == 0) && (lastZoomRatio == 1f)) ? pointAnimationInterval : laserAnimationInterval * 2L);
+        postInvalidateDelayed(((zoomCount == 0) && (lastZoomRatio == 1f)) ? pointAnimationInterval : laserAnimationIntervalMs * 2L);
     }
 
     /**
@@ -1149,14 +1146,12 @@ public class ViewFinderView extends View {
     }
 
     /**
-     * 设置扫描动画延迟间隔时间
-     * <p>
-     * 单位 - 毫秒
+     * 设置扫描动画延迟间隔毫秒
      *
-     * @param laserAnimationInterval 扫描动画延迟间隔时间
+     * @param laserAnimationIntervalMs 扫描动画延迟间隔毫秒
      */
-    public void setLaserAnimationInterval(int laserAnimationInterval) {
-        this.laserAnimationInterval = laserAnimationInterval;
+    public void setLaserAnimationIntervalMs(int laserAnimationIntervalMs) {
+        this.laserAnimationIntervalMs = laserAnimationIntervalMs;
     }
 
     /**
@@ -1236,14 +1231,12 @@ public class ViewFinderView extends View {
     }
 
     /**
-     * 设置结果点的动画间隔时长
-     * <p>
-     * 单位 - 毫秒
+     * 设置结果点动画间隔毫秒
      *
-     * @param pointAnimationInterval 结果点的动画间隔时长
+     * @param pointAnimationIntervalMs 结果点动画间隔毫秒
      */
-    public void setPointAnimationInterval(int pointAnimationInterval) {
-        this.pointAnimationInterval = pointAnimationInterval;
+    public void setPointAnimationInterval(int pointAnimationIntervalMs) {
+        this.pointAnimationInterval = pointAnimationIntervalMs;
     }
 
     /**
@@ -1397,7 +1390,7 @@ public class ViewFinderView extends View {
     /**
      * 设置显示结果点动画的缩放速度
      * <p>
-     * 默认 0.02 / {@link  #laserAnimationInterval}
+     * 默认 0.02 / {@link  #laserAnimationIntervalMs}
      *
      * @param zoomSpeed 显示结果点动画的缩放速度
      */
