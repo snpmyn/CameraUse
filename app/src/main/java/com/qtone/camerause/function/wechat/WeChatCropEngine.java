@@ -49,7 +49,7 @@ public class WeChatCropEngine {
      * @param context 上下文
      */
     private WeChatCropEngine(@NotNull Context context) {
-        // 使用 ApplicationContext 防止 Context 泄漏
+        // 使用 ApplicationContext 规避 Context 泄漏
         Context appContext = context.getApplicationContext();
         weChatCropHelper = new WeChatCropHelper();
         weChatCropHelper.init(appContext);
@@ -58,10 +58,10 @@ public class WeChatCropEngine {
     }
 
     /**
-     * 获取单例实例
+     * 获取单例
      *
      * @param context 上下文
-     * @return WeChatCropEngine 单例
+     * @return 单例
      */
     public static WeChatCropEngine getInstance(Context context) {
         if (instance == null) {
@@ -86,16 +86,16 @@ public class WeChatCropEngine {
      *                             如 /sdcard/Pictures/test.jpg
      * @param autoSaveResult       是否自动保存结果
      *                             是否将裁剪后的结果自动保存为文件
-     * @param onWeChatCropListener 微信裁剪监听
+     * @param onWeChatCropCallback 微信裁剪回调
      */
-    public void process(Context context, String imagePath, boolean autoSaveResult, OnWeChatCropListener onWeChatCropListener) {
+    public void process(Context context, String imagePath, boolean autoSaveResult, OnWeChatCropCallback onWeChatCropCallback) {
         if ((imagePath == null) || imagePath.trim().isEmpty()) {
-            notifyError(onWeChatCropListener, "图片路径不能为空");
+            notifyError(onWeChatCropCallback, "图片路径不能为空");
             return;
         }
         File file = new File(imagePath);
         if (!file.exists() || !file.isFile()) {
-            notifyError(onWeChatCropListener, "找不到目标文件 - 请检查路径 || " + imagePath);
+            notifyError(onWeChatCropCallback, "找不到目标文件 - 请检查路径 || " + imagePath);
             return;
         }
         // 预先获取 ApplicationContext 安全保存
@@ -108,13 +108,13 @@ public class WeChatCropEngine {
                 // A. 使用 OpenCV 安全读取绝对路径图片
                 srcMat = Imgcodecs.imread(imagePath);
                 if (srcMat.empty()) {
-                    notifyError(onWeChatCropListener, "OpenCV 读取图片失败 (请检查是否有存储读取权限或路径中是否包含中文)");
+                    notifyError(onWeChatCropCallback, "OpenCV 读取图片失败 (请检查是否有存储读取权限或路径中是否包含中文)");
                     return;
                 }
                 // B. 调用 WeChatCropHelper 进行 AI 定位与透视校正裁剪
                 resultMat = weChatCropHelper.detectAndCrop(srcMat);
                 if (resultMat == null || resultMat.empty()) {
-                    notifyError(onWeChatCropListener, "微信 AI 未在图中定位到可矫正的目标");
+                    notifyError(onWeChatCropCallback, "微信 AI 未在图中定位到可矫正的目标");
                     return;
                 }
                 // C. 将处理好的 Mat 转换为 Android 的 Bitmap 供 UI 展示
@@ -136,13 +136,13 @@ public class WeChatCropEngine {
                 // E. 切换回主线程回调结果
                 final String finalSavePath = savePath;
                 handler.post(() -> {
-                    if (onWeChatCropListener != null) {
+                    if (onWeChatCropCallback != null) {
                         Log.e(LogKit.TAG, "微信裁剪成功 || " + finalSavePath);
-                        onWeChatCropListener.onWeChatCropSuccess(resultBitmap, finalSavePath);
+                        onWeChatCropCallback.onWeChatCropSuccess(resultBitmap, finalSavePath);
                     }
                 });
             } catch (Exception e) {
-                notifyError(onWeChatCropListener, "图像处理异常 || " + e.getMessage());
+                notifyError(onWeChatCropCallback, "图像处理异常 || " + e.getMessage());
             } finally {
                 // F. 必须手动释放 C++ 底层 Mat 内存，防止内存泄漏爆发崩溃。
                 if (srcMat != null) {
@@ -158,22 +158,22 @@ public class WeChatCropEngine {
     /**
      * 通知错误
      *
-     * @param onWeChatCropListener 微信裁剪监听
+     * @param onWeChatCropCallback 微信裁剪回调
      * @param errorMessage         错误消息
      */
-    private void notifyError(OnWeChatCropListener onWeChatCropListener, String errorMessage) {
+    private void notifyError(OnWeChatCropCallback onWeChatCropCallback, String errorMessage) {
         handler.post(() -> {
-            if (onWeChatCropListener != null) {
+            if (onWeChatCropCallback != null) {
                 Log.e(LogKit.TAG, "微信裁剪错误 || " + errorMessage);
-                onWeChatCropListener.onWeChatCropError(errorMessage);
+                onWeChatCropCallback.onWeChatCropError(errorMessage);
             }
         });
     }
 
     /**
-     * 微信裁剪监听
+     * 微信裁剪回调
      */
-    public interface OnWeChatCropListener {
+    public interface OnWeChatCropCallback {
         /**
          * 微信裁剪成功
          *

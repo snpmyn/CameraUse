@@ -32,7 +32,7 @@ public class WeChatCropHelper {
      */
     private WeChatQRCode weChatQRCode;
     /**
-     * 是否已经初始化
+     * 是否已初始化
      */
     private volatile boolean isInitialized = false;
 
@@ -47,10 +47,10 @@ public class WeChatCropHelper {
             return;
         }
         try {
-            String p1 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "detect.prototxt");
-            String p2 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "detect.caffemodel");
-            String p3 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "sr.prototxt");
-            String p4 = AssetFileKit.copyAssetFileToCache(context, "wechat_models", "sr.caffemodel");
+            String p1 = AssetFileKit.copyAssetFileToCache(context, "wechat_model", "detect.prototxt");
+            String p2 = AssetFileKit.copyAssetFileToCache(context, "wechat_model", "detect.caffemodel");
+            String p3 = AssetFileKit.copyAssetFileToCache(context, "wechat_model", "sr.prototxt");
+            String p4 = AssetFileKit.copyAssetFileToCache(context, "wechat_model", "sr.caffemodel");
             weChatQRCode = new WeChatQRCode(p1, p2, p3, p4);
             isInitialized = true;
             Log.d(LogKit.TAG, "微信视觉模型加载成功");

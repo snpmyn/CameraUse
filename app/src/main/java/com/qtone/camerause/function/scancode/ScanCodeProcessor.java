@@ -21,19 +21,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ScanCodeProcessor {
     /**
-     * 默认扫描时间间隔
-     * <p>
-     * 默认成功后 1.5s 内不重复触发
-     */
-    private static final long DEFAULT_SCAN_INTERVAL = 1500;
-    /**
      * BarcodeScanner
      */
     private final BarcodeScanner barcodeScanner;
     /**
-     * 扫码监听
+     * 扫码回调
      */
-    private final OnScanCodeListener onScanCodeListener;
+    private final OnScanCodeCallBack onScanCodeCallBack;
     /**
      * 处理中状态锁
      * <p>
@@ -41,12 +35,11 @@ public class ScanCodeProcessor {
      */
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
     /**
-     * 扫描时间间隔
+     * 缓存 Bitmap 对象
      * <p>
-     * 扫码成功冷却时间
-     * 单位 - 毫秒
+     * 避免 RGBA 模式下频繁创建对象导致 GC 卡顿
      */
-    private volatile long scanInterval = DEFAULT_SCAN_INTERVAL;
+    private Bitmap reusableBitmap;
     /**
      * 防抖
      * <p>
@@ -54,31 +47,32 @@ public class ScanCodeProcessor {
      */
     private volatile long lastSuccessTime = 0;
     /**
-     * 缓存 Bitmap 对象
+     * 扫描间隔毫秒
      * <p>
-     * 避免 RGBA 模式下频繁创建对象导致 GC 卡顿
+     * 扫码成功冷却时间
      */
-    private Bitmap reusableBitmap;
+    private volatile long scanIntervalMs = 1500;
 
     /**
      * constructor
      *
-     * @param onScanCodeListener 扫码监听
+     * @param onScanCodeCallBack 扫码回调
      */
-    public ScanCodeProcessor(OnScanCodeListener onScanCodeListener) {
-        this.onScanCodeListener = onScanCodeListener;
+    public ScanCodeProcessor(OnScanCodeCallBack onScanCodeCallBack) {
+        // BarcodeScanner
         this.barcodeScanner = BarcodeScanning.getClient();
+        // 扫码回调
+        this.onScanCodeCallBack = onScanCodeCallBack;
     }
 
     /**
-     * 设置扫描时间间隔
+     * 设置扫描间隔毫秒
      *
-     * @param interval 时间间隔
-     *                 扫码成功冷却时间
-     *                 单位 - 毫秒
+     * @param scanIntervalMs 扫描间隔毫秒
+     *                       扫码成功冷却时间
      */
-    public void setScanInterval(long interval) {
-        this.scanInterval = interval;
+    public void setScanIntervalMs(long scanIntervalMs) {
+        this.scanIntervalMs = scanIntervalMs;
     }
 
     /**
@@ -95,7 +89,7 @@ public class ScanCodeProcessor {
             return;
         }
         // 扫码防抖
-        if ((System.currentTimeMillis() - lastSuccessTime) < scanInterval) {
+        if ((System.currentTimeMillis() - lastSuccessTime) < scanIntervalMs) {
             return;
         }
         // 丢帧机制
@@ -136,17 +130,17 @@ public class ScanCodeProcessor {
                         if ((barcodes != null) && !barcodes.isEmpty()) {
                             Barcode barcode = barcodes.get(0);
                             String rawValue = barcode.getRawValue();
-                            if ((rawValue != null) && (onScanCodeListener != null)) {
+                            if ((rawValue != null) && (onScanCodeCallBack != null)) {
                                 lastSuccessTime = System.currentTimeMillis();
                                 Log.d(LogKit.TAG, "扫码成功 || " + rawValue);
-                                onScanCodeListener.onScanCodeSuccess(rawValue, barcode);
+                                onScanCodeCallBack.onScanCodeSuccess(rawValue, barcode);
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
-                        if (onScanCodeListener != null) {
+                        if (onScanCodeCallBack != null) {
                             Log.e(LogKit.TAG, "扫码失败 || ", e);
-                            onScanCodeListener.onScanCodeFailure(e);
+                            onScanCodeCallBack.onScanCodeFailure(e);
                         }
                     })
                     .addOnCompleteListener(task -> isProcessing.set(false));
@@ -171,9 +165,9 @@ public class ScanCodeProcessor {
     }
 
     /**
-     * 扫码监听
+     * 扫码回调
      */
-    public interface OnScanCodeListener {
+    public interface OnScanCodeCallBack {
         /**
          * 扫码成功
          *
