@@ -69,14 +69,15 @@ public class CameraAspectRatioKit {
             MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_WIDTH, width);
             MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_HEIGHT, height);
             MmkvKit.INSTANCE.set(MmkvConstant.CAMERA_ASPECT_RATIO, aspectRatio);
-            Log.d(LogKit.TAG, String.format("预览区更新宽高比 || %d:%d (宽高比 %.2f)", width, height, aspectRatio));
             assert activity != null;
             activity.runOnUiThread(() -> {
                 if (aspectRatioTextureView != null) {
                     aspectRatioTextureView.setAspectRatio(width, height);
+                    Log.d(LogKit.TAG, String.format("更新宽高比 - 预览区域 || %d:%d (宽高比 %.2f)", width, height, aspectRatio));
                 }
                 if (multiRoiOverlayView != null) {
                     multiRoiOverlayView.updateAspectRatio(width, height);
+                    Log.d(LogKit.TAG, String.format("更新宽高比 - 多 ROI 覆盖视图 || %d:%d (宽高比 %.2f)", width, height, aspectRatio));
                 }
             });
         }
