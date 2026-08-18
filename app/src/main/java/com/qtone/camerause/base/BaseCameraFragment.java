@@ -33,8 +33,6 @@ import java.util.function.Consumer;
  *
  * @author 郑少鹏
  * @desc 相机碎片基类
- * <p>
- * 继承 AUSBC 库 {@link CameraFragment}
  */
 public abstract class BaseCameraFragment extends CameraFragment {
     /**

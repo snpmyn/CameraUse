@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author 郑少鹏
  * @desc 相机主碎片
- * <p>
- * 继承 {@link BaseCameraFragment}
  */
 public class CameraMainFragment extends BaseCameraFragment implements View.OnClickListener {
     /**
