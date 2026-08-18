@@ -56,7 +56,7 @@ public class FrameCaptureProcessor {
      * <p>
      * 使用 volatile 保证多线程读写可见性
      */
-    private volatile CaptureMode currentCaptureMode = CaptureMode.SINGLE;
+    private volatile CaptureMode currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
     /**
      * 连拍模式上次成功捕获预览帧时间戳
      * <p>
@@ -64,12 +64,9 @@ public class FrameCaptureProcessor {
      */
     private volatile long lastCaptureTimestamp = 0L;
     /**
-     * 连拍间隔
-     * <p>
-     * 单位 - 毫秒
-     * 默认 500ms
+     * 连拍间隔毫秒
      */
-    private volatile long burstInterval = 500L;
+    private volatile long burstIntervalMs = 500L;
     /**
      * 增强实现
      */
@@ -89,8 +86,8 @@ public class FrameCaptureProcessor {
      * @param iCamera           相机实例
      * @param onCaptureCallBack 拍照回调
      */
-    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
-        Log.d(LogKit.TAG, "帧拍照 - 开始单拍");
+    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        Log.d(LogKit.TAG, "开始单拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -98,7 +95,7 @@ public class FrameCaptureProcessor {
             applicationContext = context.getApplicationContext();
         }
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 单拍状态锁
         isSingleActive.set(true);
         // 连拍状态锁
@@ -112,12 +109,11 @@ public class FrameCaptureProcessor {
      *
      * @param context           上下文
      * @param iCamera           相机实例
-     * @param interval          时间间隔
-     *                          单位 - 毫秒
+     * @param intervalMs        间隔毫秒
      * @param onCaptureCallBack 拍照回调
      */
-    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long interval, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
-        Log.d(LogKit.TAG, "帧拍照 - 开始连拍");
+    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        Log.d(LogKit.TAG, "开始连拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -125,7 +121,7 @@ public class FrameCaptureProcessor {
             applicationContext = context.getApplicationContext();
         }
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.BURST;
+        currentCaptureMode = CaptureMode.BURST_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(true);
         // 单拍状态锁
@@ -134,10 +130,10 @@ public class FrameCaptureProcessor {
         CaptureHelper.resetBurstSequence();
         // 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
-        // 连拍间隔
+        // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
-        burstInterval = Math.max(150L, interval);
-        Log.d(LogKit.TAG, "帧拍照 - 连拍间隔 || " + burstInterval + " 毫秒");
+        burstIntervalMs = Math.max(150L, intervalMs);
+        Log.d(LogKit.TAG, "连拍间隔毫秒 - 帧拍照 || " + burstIntervalMs);
         // 通知开始
         CaptureHelper.notifyBegin(handler, onCaptureCallBack);
     }
@@ -146,11 +142,11 @@ public class FrameCaptureProcessor {
      * 停止连拍
      */
     public void stopBurstCapture() {
-        Log.d(LogKit.TAG, "帧拍照 - 停止连拍");
+        Log.d(LogKit.TAG, "停止连拍 - 帧拍照");
         // 连拍状态锁
         isBurstActive.set(false);
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
     }
 
     /**
@@ -161,20 +157,20 @@ public class FrameCaptureProcessor {
      * @param height     帧物理高
      * @param dataFormat 数据格式
      */
-    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         if (data == null) {
             return;
         }
         boolean shouldCapture = false;
-        if (currentCaptureMode == CaptureMode.SINGLE) {
+        if (currentCaptureMode == CaptureMode.SINGLE_CAPTURE) {
             // 单拍
             shouldCapture = isSingleActive.compareAndSet(true, false);
-        } else if (currentCaptureMode == CaptureMode.BURST) {
+        } else if (currentCaptureMode == CaptureMode.BURST_CAPTURE) {
             // 连拍
-            // 依据 上一次成功捕获预览帧的时间戳 + 最小拍照时间间隔 控制频率
+            // 依据 [上一次成功捕获预览帧的时间戳 + 最小拍照时间间隔] 控制频率
             if (isBurstActive.get()) {
                 long currentTime = System.currentTimeMillis();
-                if ((currentTime - lastCaptureTimestamp) >= burstInterval) {
+                if ((currentTime - lastCaptureTimestamp) >= burstIntervalMs) {
                     lastCaptureTimestamp = currentTime;
                     shouldCapture = true;
                 }
@@ -200,7 +196,7 @@ public class FrameCaptureProcessor {
      * @param savePath          保存路径
      * @param onCaptureCallBack 拍照回调
      */
-    private void processFrameAsync(@NotNull byte @NotNull [] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    private void processFrameAsync(@NotNull byte @NotNull [] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         // 校验 NV21 物理空间合法性
         // width * height * 1.5 Byte
         int minRequiredSize = width * height * 3 / 2;
@@ -239,7 +235,7 @@ public class FrameCaptureProcessor {
      * @param savePath          保存路径
      * @param onCaptureCallBack 拍照回调
      */
-    private void processToJpeg(Context context, byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    private void processToJpeg(Context context, byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         try {
             YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
             File targetFile = new File(savePath);
@@ -271,12 +267,12 @@ public class FrameCaptureProcessor {
         // 2. 连拍状态锁
         isBurstActive.set(false);
         // 3. 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 4. 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
-        // 5. 线程消息调度器（清空主线程待执行任务）
+        // 5. 线程消息调度器
         handler.removeCallbacksAndMessages(null);
-        // 6. 增强实现（关闭后台线程池）
+        // 6. 增强实现
         if (executorService != null) {
             if (!executorService.isShutdown()) {
                 executorService.shutdownNow();

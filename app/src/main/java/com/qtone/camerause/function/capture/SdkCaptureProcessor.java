@@ -41,14 +41,11 @@ public class SdkCaptureProcessor {
      * <p>
      * 使用 volatile 保证多线程读写可见性
      */
-    private volatile CaptureMode currentCaptureMode = CaptureMode.SINGLE;
+    private volatile CaptureMode currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
     /**
-     * 连拍间隔
-     * <p>
-     * 单位 - 毫秒
-     * 默认 500ms
+     * 连拍间隔毫秒
      */
-    private volatile long burstInterval = 500L;
+    private volatile long burstIntervalMs = 500L;
     /**
      * 相机实例
      */
@@ -56,7 +53,7 @@ public class SdkCaptureProcessor {
     /**
      * 拍照回调
      */
-    private CaptureProcessor.OnCaptureCallBack onCaptureCallBack;
+    private CaptureProcessor.OnCaptureCallback onCaptureCallBack;
     /**
      * SDK 连拍定时器任务
      */
@@ -65,7 +62,7 @@ public class SdkCaptureProcessor {
         public void run() {
             if (isBurstActive.get()) {
                 executeSdkCapture(iCamera, onCaptureCallBack);
-                handler.postDelayed(this, burstInterval);
+                handler.postDelayed(this, burstIntervalMs);
             }
         }
     };
@@ -77,8 +74,8 @@ public class SdkCaptureProcessor {
      * @param iCamera           相机实例
      * @param onCaptureCallBack 拍照回调
      */
-    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
-        Log.d(LogKit.TAG, "SDK 拍照 - 开始单拍");
+    public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        Log.d(LogKit.TAG, "开始单拍 - SDK 拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -86,7 +83,7 @@ public class SdkCaptureProcessor {
             applicationContext = context.getApplicationContext();
         }
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(false);
         // 线程消息调度器
@@ -106,12 +103,11 @@ public class SdkCaptureProcessor {
      *
      * @param context           上下文
      * @param iCamera           相机实例
-     * @param interval          时间间隔
-     *                          单位 - 毫秒
+     * @param intervalMs        间隔毫秒
      * @param onCaptureCallBack 拍照回调
      */
-    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long interval, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
-        Log.d(LogKit.TAG, "SDK 拍照 - 开始连拍");
+    public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        Log.d(LogKit.TAG, "开始连拍 - SDK 拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -119,15 +115,15 @@ public class SdkCaptureProcessor {
             applicationContext = context.getApplicationContext();
         }
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.BURST;
+        currentCaptureMode = CaptureMode.BURST_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(true);
         // 重置连拍序号
         CaptureHelper.resetBurstSequence();
-        // 连拍间隔
+        // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
-        burstInterval = Math.max(150L, interval);
-        Log.d(LogKit.TAG, "SDK 拍照 - 连拍间隔 || " + burstInterval + " 毫秒");
+        burstIntervalMs = Math.max(150L, intervalMs);
+        Log.d(LogKit.TAG, "连拍间隔毫秒 - SDK 拍照 || " + burstIntervalMs);
         // 线程消息调度器
         handler.removeCallbacks(sdkBurstRunnable);
         // 相机实例
@@ -139,18 +135,18 @@ public class SdkCaptureProcessor {
         // 执行 SDK 拍照
         executeSdkCapture(iCamera, onCaptureCallBack);
         // 线程消息调度器
-        handler.postDelayed(sdkBurstRunnable, this.burstInterval);
+        handler.postDelayed(sdkBurstRunnable, this.burstIntervalMs);
     }
 
     /**
      * 停止连拍
      */
     public void stopBurstCapture() {
-        Log.d(LogKit.TAG, "SDK 拍照 - 停止连拍");
+        Log.d(LogKit.TAG, "停止连拍 - SDK 拍照");
         // 连拍状态锁
         isBurstActive.set(false);
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 线程消息调度器
         handler.removeCallbacks(sdkBurstRunnable);
     }
@@ -161,7 +157,7 @@ public class SdkCaptureProcessor {
      * @param iCamera           相机实例
      * @param onCaptureCallBack 拍照回调
      */
-    public void executeSdkCapture(MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallBack onCaptureCallBack) {
+    public void executeSdkCapture(MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -203,7 +199,7 @@ public class SdkCaptureProcessor {
         // 连拍状态锁
         isBurstActive.set(false);
         // 当前拍照模式
-        currentCaptureMode = CaptureMode.SINGLE;
+        currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 线程消息调度器
         handler.removeCallbacks(sdkBurstRunnable);
         handler.removeCallbacksAndMessages(null);
