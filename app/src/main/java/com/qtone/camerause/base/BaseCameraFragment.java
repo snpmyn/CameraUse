@@ -48,11 +48,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         @Override
         public void onPreviewData(@org.jetbrains.annotations.Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
             // 预览区域动态适配
-            safeRun(activity -> {
-                if (cameraAspectRatioKit != null) {
-                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, width, height));
-                }
-            });
+            safeRun(activity -> activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, width, height)));
             // 实时分发原始数据
             if (data != null) {
                 onPreviewFrame(data, width, height, format);
@@ -214,11 +210,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
             // 预览区域动态适配
-            safeRun(activity -> {
-                if (cameraAspectRatioKit != null) {
-                    activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, getCameraResolution().getWidth(), getCameraResolution().getHeight()));
-                }
-            });
+            safeRun(activity -> activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
             // 重新注册预览帧回调
