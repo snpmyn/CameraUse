@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeListener {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack {
     /**
      * 允许扫码状态锁
      * <p>
@@ -118,12 +118,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
     /**
      * 连拍按钮点击事件
      *
-     * @param interval 时间间隔
-     *                 单位 - 毫秒
+     * @param intervalMs 间隔毫秒
      */
-    public void onBurstCaptureClicked(long interval) {
+    public void onBurstCaptureClicked(long intervalMs) {
         // 开始连拍
-        cameraMainFragment.safeRun(activity -> captureProcessor.startBurstCapture(activity, cameraMainFragment.getCurrentCamera(), interval, CameraMainFragmentKit.this));
+        cameraMainFragment.safeRun(activity -> captureProcessor.startBurstCapture(activity, cameraMainFragment.getCurrentCamera(), intervalMs, CameraMainFragmentKit.this));
     }
 
     /**
@@ -138,15 +137,13 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
      * 扫码按钮点击事件
      *
      * @param viewFinderView 取景框视图
-     * @param interval       时间间隔
-     *                       扫码成功冷却时间
-     *                       单位 - 毫秒
+     * @param scanIntervalMs 扫描间隔毫秒
      */
-    public void onScanCodeClicked(ViewFinderView viewFinderView, long interval) {
+    public void onScanCodeClicked(ViewFinderView viewFinderView, long scanIntervalMs) {
         ViewUtils.showView(viewFinderView);
         viewFinderView.setFrameWidthAndHeight(cameraMainFragment.getTextureView().getWidth(), cameraMainFragment.getTextureView().getHeight(), 0.8f);
-        // 设置扫描时间间隔
-        scanCodeProcessor.setScanInterval(interval);
+        // 设置扫描间隔毫秒
+        scanCodeProcessor.setScanIntervalMs(scanIntervalMs);
         // 允许扫码状态锁
         isAllowScanCode.set(true);
     }
@@ -310,7 +307,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallBack
                 }
             }, false);
             // 3. 微信裁剪引擎 - 处理
-            WeChatCropEngine.getInstance(activity).process(activity, savePath, true, new WeChatCropEngine.OnWeChatCropListener() {
+            WeChatCropEngine.getInstance(activity).process(activity, savePath, true, new WeChatCropEngine.OnWeChatCropCallback() {
                 @Override
                 public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
 
