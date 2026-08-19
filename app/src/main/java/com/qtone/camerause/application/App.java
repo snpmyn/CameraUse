@@ -7,6 +7,7 @@ import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
+import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.utils.mmkv.MmkvKit;
 
@@ -24,6 +25,8 @@ public class App extends BaseApplication {
         super.onCreate();
         // 初始化 MMKV
         MmkvKit.INSTANCE.init(this);
+        // 初始化媒体存储配置
+        MediaStorageConfig.getInstance().init(this, "CU");
         // 初始化 OpenCV
         if (OpenCVLoader.initDebug()) {
             Log.d(LogKit.TAG, "OpenCV 初始化成功");
