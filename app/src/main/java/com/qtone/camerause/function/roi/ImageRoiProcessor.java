@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,6 +33,124 @@ import java.util.List;
  * @desc 图片 ROI 处理器
  */
 public class ImageRoiProcessor {
+    /**
+     * 从图片文件裁剪 ROI
+     *
+     * @param context             上下文
+     * @param imagePath           图片路径
+     * @param multiRoiOverlayView MultiRoiOverlayView
+     * @return 从图片文件裁剪 ROI 后路径集
+     */
+    public static List<String> cropRoiFromImageFile(Context context, String imagePath, MultiRoiOverlayView multiRoiOverlayView) {
+        // 参数合法性校验
+        if ((imagePath == null) || (multiRoiOverlayView == null)) {
+            return Collections.emptyList();
+        }
+        // 获取所有 ROI 区域相对百分比列表
+        List<RectF> percentages = multiRoiOverlayView.getAllRoiPercentages();
+        if ((percentages == null) || percentages.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 1. 读取原图 Bitmap 并自动纠正 Exif 旋转角并得到直立 Bitmap
+        Bitmap srcBitmap = decodeAndRotateBitmap(imagePath);
+        if (srcBitmap == null) {
+            return Collections.emptyList();
+        }
+        int imgWidth = srcBitmap.getWidth();
+        int imgHeight = srcBitmap.getHeight();
+        // 2. 获取 View 测量尺寸
+        int viewWidth = multiRoiOverlayView.getWidth();
+        int viewHeight = multiRoiOverlayView.getHeight();
+        if ((viewWidth <= 0) || (viewHeight <= 0)) {
+            viewWidth = imgWidth;
+            viewHeight = imgHeight;
+        }
+        // 3. 计算相机预览画面 (CenterCrop 模式) 在 View 中的真实显示区域与偏移量
+        float viewRatio = (float) viewWidth / (float) viewHeight;
+        float imgRatio = (float) imgWidth / (float) imgHeight;
+        float scale;
+        float dx = 0f;
+        float dy = 0f;
+        if (viewRatio > imgRatio) {
+            scale = (float) viewWidth / (float) imgWidth;
+            dy = (viewHeight - imgHeight * scale) / 2f;
+        } else {
+            scale = (float) viewHeight / (float) imgHeight;
+            dx = (viewWidth - imgWidth * scale) / 2f;
+        }
+        // 4. 确定裁剪图片的保存目录
+        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        if ((mediaDir != null) && !mediaDir.exists()) {
+            boolean isCreated = mediaDir.mkdirs();
+            if (!isCreated && !mediaDir.exists()) {
+                Log.w(LogKit.TAG, "创建图片 ROI 裁剪保存目录失败");
+            }
+        }
+        List<String> croppedPaths = new ArrayList<>();
+        long timestamp = System.currentTimeMillis();
+        try {
+            // 5. 遍历各个 ROI 区域并执行裁剪
+            for (int i = 0; i < percentages.size(); i++) {
+                RectF percent = percentages.get(i);
+                // ① 还原为 View 上的物理像素坐标
+                float vLeft = percent.left * viewWidth;
+                float vTop = percent.top * viewHeight;
+                float vRight = percent.right * viewWidth;
+                float vBottom = percent.bottom * viewHeight;
+                // ② 逆向消除 CenterCrop 的缩放与偏移量
+                float left = (vLeft - dx) / scale;
+                float top = (vTop - dy) / scale;
+                float right = (vRight - dx) / scale;
+                float bottom = (vBottom - dy) / scale;
+                // ③ 边界裁剪保护 (转成整数像素矩形)
+                int cropLeft = Math.max(0, Math.min((int) left, imgWidth));
+                int cropTop = Math.max(0, Math.min((int) top, imgHeight));
+                int cropRight = Math.max(0, Math.min((int) right, imgWidth));
+                int cropBottom = Math.max(0, Math.min((int) bottom, imgHeight));
+                int cropWidth = (cropRight - cropLeft);
+                int cropHeight = (cropBottom - cropTop);
+                // 过滤掉无效 (宽高 <= 0) 区域
+                if ((cropWidth <= 0) || (cropHeight <= 0)) {
+                    continue;
+                }
+                // ④ 创建裁剪子图 Bitmap
+                Bitmap croppedBitmap = Bitmap.createBitmap(srcBitmap, cropLeft, cropTop, cropWidth, cropHeight);
+                // ⑤ 生成输出文件路径
+                String outputPath;
+                if (mediaDir != null) {
+                    outputPath = new File(mediaDir, "ROI_CROP_" + timestamp + "_" + (i + 1) + ".jpg").getAbsolutePath();
+                } else {
+                    int dotIndex = imagePath.lastIndexOf(".");
+                    if (dotIndex != -1) {
+                        outputPath = (imagePath.substring(0, dotIndex) + "_CROP_" + (i + 1) + imagePath.substring(dotIndex));
+                    } else {
+                        outputPath = (imagePath + "_CROP_" + (i + 1) + ".jpg");
+                    }
+                }
+                // ⑥ 写入文件并更新媒体库
+                try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
+                    croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                    fileOutputStream.flush();
+                    MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
+                    croppedPaths.add(outputPath);
+                } catch (IOException e) {
+                    Log.e(LogKit.TAG, "从图片文件裁剪 ROI 失败 || " + outputPath, e);
+                } finally {
+                    // 回收单张裁剪 Bitmap
+                    if (!croppedBitmap.isRecycled()) {
+                        croppedBitmap.recycle();
+                    }
+                }
+            }
+        } finally {
+            // 显式回收原图 Bitmap 内存
+            if (!srcBitmap.isRecycled()) {
+                srcBitmap.recycle();
+            }
+        }
+        return croppedPaths;
+    }
+
     /**
      * 绘制 ROI 到图片文件
      *
@@ -147,19 +267,19 @@ public class ImageRoiProcessor {
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated && !mediaDir.exists()) {
-                    Log.w(LogKit.TAG, "创建 ROI 图片保存目录失败");
+                    Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败");
                 }
             }
             if (mediaDir != null) {
-                outputPath = new File(mediaDir, "ROI_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+                outputPath = new File(mediaDir, "ROI_OVERLAY" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
             } else {
                 // 兜底退化方案
                 // 统一目录为空则退化为原始目录追加后缀模式
                 int dotIndex = imagePath.lastIndexOf(".");
                 if (dotIndex != -1) {
-                    outputPath = (imagePath.substring(0, dotIndex) + "_ROI" + imagePath.substring(dotIndex));
+                    outputPath = (imagePath.substring(0, dotIndex) + "_OVERLAY" + imagePath.substring(dotIndex));
                 } else {
-                    outputPath = (imagePath + "_ROI.jpg");
+                    outputPath = (imagePath + "_OVERLAY.jpg");
                 }
             }
         }
@@ -170,7 +290,7 @@ public class ImageRoiProcessor {
             fileOutputStream.flush();
             MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
         } catch (IOException e) {
-            Log.e(LogKit.TAG, "绘制 ROI 到图片文件失败", e);
+            Log.e(LogKit.TAG, "绘制 ROI 到图片文件失败 || " + outputPath, e);
             return imagePath;
         } finally {
             // 显式回收 Bitmap 内存资源
