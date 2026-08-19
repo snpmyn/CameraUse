@@ -21,6 +21,7 @@ import com.qtone.camerause.function.capture.CaptureProcessor;
 import com.qtone.camerause.function.capture.CaptureStrategy;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
+import com.qtone.camerause.function.roi.ImageRoiProcessor;
 import com.qtone.camerause.function.scancode.ScanCodeProcessor;
 import com.qtone.camerause.function.wechat.WeChatCropEngine;
 import com.qtone.camerause.utils.list.ListUtils;
@@ -210,6 +211,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         documentCropProcessor.release();
         // 扫码处理器
         scanCodeProcessor.release();
+        // MultiRoiOverlayView
+        cameraMainFragment.getMultiRoiOverlayView().clearAllRoi();
     }
 
     /**
@@ -232,8 +235,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
         cameraMainFragment.safeRun(activity -> {
             try {
-                // 文档裁剪处理器 - 异步处理 NV21
-                documentCropProcessor.processNv21Async(activity, data, width, height, CameraMainFragmentKit.this);
+                // 文档裁剪处理器 - 通过图像帧字节数组处理
+                documentCropProcessor.processByData(activity, data, width, height, CameraMainFragmentKit.this);
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
             }
@@ -253,8 +256,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         ToastUtils.show("拍照成功");
         cameraMainFragment.safeRun(activity -> {
             try {
-                // 1. 文档裁剪处理器 - 异步处理
-                documentCropProcessor.processAsync(activity, savePath, CameraMainFragmentKit.this);
+                // 1. 文档裁剪处理器 - 通过路径处理
+                documentCropProcessor.processByPath(activity, savePath, CameraMainFragmentKit.this);
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
             }
@@ -318,6 +321,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
 
                 }
             });
+            // 4. 图片 ROI 处理器 - 绘制 ROI 到图片文件
+            ImageRoiProcessor.drawRoiToImageFile(activity, savePath, cameraMainFragment.getMultiRoiOverlayView(), false);
         });
     }
 

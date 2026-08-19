@@ -74,7 +74,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      * @return MultiRoiOverlayView
      */
     @Override
-    protected MultiRoiOverlayView getMultiRoiOverlayView() {
+    public MultiRoiOverlayView getMultiRoiOverlayView() {
         return multiRoiOverlayView;
     }
 
@@ -115,7 +115,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     protected void startLogic() {
         String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
         //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
-        safeRun(activity -> cameraMainFragmentKit.getExamCropProcessor().processAsync(activity, filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
+        safeRun(activity -> cameraMainFragmentKit.getExamCropProcessor().processByPath(activity, filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
             @Override
             public void onDocumentCropSuccess(String croppedPath, Bitmap resultBitmap) {
 
