@@ -123,9 +123,9 @@ public class WeChatCropEngine {
                 Bitmap resultBitmap = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
                 Utils.matToBitmap(resultMat, resultBitmap);
                 String savePath = null;
-                // D. 如果开启了自动保存，将结果写入统一托管目录。
+                // D. 如开启自动保存，将结果写入统一托管目录。
                 if (autoSaveResult && (appContext != null)) {
-                    File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+                    File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.WE_CHAT_CROP);
                     if ((mediaDir != null) && !mediaDir.exists()) {
                         boolean isCreated = mediaDir.mkdirs();
                         if (!isCreated && !mediaDir.exists()) {

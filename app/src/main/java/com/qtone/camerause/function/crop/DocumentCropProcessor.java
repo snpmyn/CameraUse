@@ -103,7 +103,7 @@ public class DocumentCropProcessor {
             notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
             return;
         }
-        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.DOCUMENT_CROP);
         if ((mediaDir != null) && !mediaDir.exists()) {
             boolean isCreated = mediaDir.mkdirs();
             if (!isCreated && !mediaDir.exists()) {

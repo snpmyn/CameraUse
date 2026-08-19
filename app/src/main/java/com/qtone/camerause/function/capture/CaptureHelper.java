@@ -59,7 +59,7 @@ public class CaptureHelper {
      * @return 保存路径
      */
     public static @Nullable String generateSavePath(Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.CAPTURE);
         if (mediaDir == null) {
             notifyError(handler, onCaptureCallBack, "无法获取图片存储目录");
             return null;
