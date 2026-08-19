@@ -16,7 +16,7 @@ import java.io.File;
  * @desc 媒体存储配置
  * <p>
  * - 内部存储 (Internal Storage)
- * App 独占私有空间
+ * 应用独占私有空间
  * 位于 /data/user/0/com.qtone.camerause/files/
  * 电脑连接时完全不可见且无需权限
  * 由 appContext.getFilesDir() 获取
@@ -25,6 +25,18 @@ import java.io.File;
  * 所有应用共享的公共存储区
  * 位于 /storage/emulated/0/
  * 电脑连接时显示的 [内部共享存储空间] 对应此位置
+ * <p>
+ * - 外部私有存储 (External Private Storage)
+ * 位于 /storage/emulated/0/Android/data/PackageName/...
+ * 电脑连接时在 Android/data 专有目录下可见
+ * 无需申请存储权限
+ * 由 appContext.getExternalFilesDir(...) 获取
+ * <p>
+ * - 外部公共存储 (External Public Storage)
+ * 位于 /storage/emulated/0/DCIM/ 或其它公共目录 (如 Pictures、Movies)
+ * 电脑连接时根目录可见
+ * 保存的媒体文件可直接在相册中展示
+ * 由 Environment.getExternalStoragePublicDirectory(...) 获取
  */
 public class MediaStorageConfig {
     /**
@@ -68,7 +80,7 @@ public class MediaStorageConfig {
      * @param folderName 目录名称
      */
     public void init(Context context, String folderName) {
-        init(context, folderName, StorageMode.EXTERNAL);
+        init(context, folderName, StorageMode.EXTERNAL_PRIVATE);
     }
 
     /**
@@ -79,30 +91,50 @@ public class MediaStorageConfig {
      * @param storageMode 存储模式
      */
     public void init(Context context, String folderName, StorageMode storageMode) {
+        init(context, folderName, storageMode, Environment.DIRECTORY_DCIM);
+    }
+
+    /**
+     * 初始化
+     *
+     * @param context                     上下文
+     * @param folderName                  目录名称
+     * @param storageMode                 存储模式
+     * @param externalPublicDirectoryType 外部公共目录类型
+     *                                    仅 StorageMode.EXTERNAL_PUBLIC 模式下生效
+     *                                    如 Environment.DIRECTORY_DCIM / Environment.DIRECTORY_PICTURES
+     */
+    public void init(Context context, String folderName, StorageMode storageMode, String externalPublicDirectoryType) {
         if (context == null) {
             return;
         }
         Context appContext = context.getApplicationContext();
-        String targetFolderName = TextUtils.isEmpty(folderName) ? "CameraUse" : folderName;
+        String targetFolderName = TextUtils.isEmpty(folderName) ? "ZYR" : folderName;
         StorageMode mode = (storageMode == null) ? StorageMode.INTERNAL : storageMode;
         File baseDir;
-        if (mode == StorageMode.EXTERNAL) {
-            // 优先使用 App 私有外部存储目录 (不需要动态申请 WRITE_EXTERNAL_STORAGE 权限 + 适用 Android 10+)
+        if (mode == StorageMode.EXTERNAL_PUBLIC) {
+            // 外部公共存储
+            // 如 /storage/emulated/0/DCIM 或 /storage/emulated/0/Pictures
+            String dirType = TextUtils.isEmpty(externalPublicDirectoryType) ? Environment.DIRECTORY_DCIM : externalPublicDirectoryType;
+            baseDir = Environment.getExternalStoragePublicDirectory(dirType);
+        } else if (mode == StorageMode.EXTERNAL_PRIVATE) {
+            // 外部私有存储
+            // 无需动态申请 WRITE_EXTERNAL_STORAGE 权限 + 适用 Android 10+
             baseDir = appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             if (baseDir == null) {
-                // 外存挂载异常时自动退化使用内部存储目录
+                // 外存挂载异常自动退化使用内部存储
                 baseDir = appContext.getFilesDir();
             }
         } else {
-            // 强制使用 App 私有内部存储目录
+            // 内部存储
             baseDir = appContext.getFilesDir();
         }
         imageDirectoryFile = new File(baseDir, targetFolderName);
         if (!imageDirectoryFile.exists()) {
             boolean isSuccess = imageDirectoryFile.mkdirs();
-            Log.d(LogKit.TAG, "图片存储文件夹初始化 || " + imageDirectoryFile.getAbsolutePath() + "\n结果 || " + isSuccess);
+            Log.d(LogKit.TAG, "图片存储文件夹初始化\n绝对路径 || " + imageDirectoryFile.getAbsolutePath() + "\n结果 || " + isSuccess);
         } else {
-            Log.d(LogKit.TAG, "图片存储文件夹已存在 || " + imageDirectoryFile.getAbsolutePath());
+            Log.d(LogKit.TAG, "图片存储文件夹已存在\n绝对路径 || " + imageDirectoryFile.getAbsolutePath());
         }
     }
 
@@ -123,12 +155,16 @@ public class MediaStorageConfig {
      */
     public enum StorageMode {
         /**
-         * 外部存储
-         */
-        EXTERNAL,
-        /**
          * 内部存储
          */
-        INTERNAL
+        INTERNAL,
+        /**
+         * 外部私有存储
+         */
+        EXTERNAL_PRIVATE,
+        /**
+         * 外部公共存储
+         */
+        EXTERNAL_PUBLIC
     }
 }
