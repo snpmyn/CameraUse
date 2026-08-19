@@ -47,117 +47,89 @@ public class DocumentCropProcessor {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
-     * 异步处理
-     * <p>
-     * 异步处理本地图片文件的裁剪与透视矫正
+     * 通过路径处理
      *
      * @param context                上下文
-     *                               用于获取外部存储目录以及触发系统媒体库刷新
-     * @param inputPath              输入路径
-     *                               原始图像文件路径
-     * @param onDocumentCropCallback 试卷裁剪回调
+     * @param path                   路径
+     * @param onDocumentCropCallback 文档裁剪回调
      */
-    public void processAsync(@NonNull Context context, String inputPath, OnDocumentCropCallback onDocumentCropCallback) {
+    public void processByPath(@NonNull Context context, String path, OnDocumentCropCallback onDocumentCropCallback) {
         executorService.execute(() -> {
-            Mat srcMat = Imgcodecs.imread(inputPath);
+            Mat srcMat = Imgcodecs.imread(path);
             if (srcMat.empty()) {
                 notifyError(onDocumentCropCallback, "加载原图失败");
                 return;
             }
-            Mat croppedMat = cropPaperBody(srcMat);
-            srcMat.release();
-            if ((croppedMat == null) || croppedMat.empty()) {
-                notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
-                return;
-            }
-            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
-            if ((mediaDir != null) && !mediaDir.exists()) {
-                boolean isCreated = mediaDir.mkdirs();
-                if (!isCreated && !mediaDir.exists()) {
-                    Log.w(LogKit.TAG, "创建裁剪图片保存目录失败");
-                }
-            }
-            if (mediaDir == null) {
-                croppedMat.release();
-                notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
-                return;
-            }
-            String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
-            boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
-            Bitmap resultBitmap = matToBitmap(croppedMat);
-            croppedMat.release();
-            if (saved && (resultBitmap != null)) {
-                MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
-                handler.post(() -> {
-                    Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 已拍照片 - 保存路径 || " + outputPath);
-                    if (onDocumentCropCallback != null) {
-                        onDocumentCropCallback.onDocumentCropSuccess(outputPath, resultBitmap);
-                    }
-                });
-            } else {
-                notifyError(onDocumentCropCallback, "保存裁剪图片失败");
-            }
+            processMatAsync(context, srcMat, "已拍照片", onDocumentCropCallback);
         });
     }
 
     /**
-     * 异步处理 NV21
-     * <p>
-     * 异步处理摄像头实时采集的 NV21 数据帧的裁剪与透视矫正
+     * 通过图像帧字节数组处理
      *
      * @param context                上下文
-     *                               用于获取外部存储目录以及触发系统媒体库刷新
-     * @param nv21Data               NV21 数据
-     *                               NV21 格式的图像字节数组
-     * @param width                  宽
-     * @param height                 高
-     * @param onDocumentCropCallback 试卷裁剪回调
+     * @param data                   图像帧字节数组
+     * @param width                  物理帧宽
+     * @param height                 物理帧高
+     * @param onDocumentCropCallback 文档裁剪回调
      */
-    public void processNv21Async(@NonNull Context context, byte[] nv21Data, int width, int height, OnDocumentCropCallback onDocumentCropCallback) {
+    public void processByData(@NonNull Context context, byte[] data, int width, int height, OnDocumentCropCallback onDocumentCropCallback) {
         executorService.execute(() -> {
-            if ((nv21Data == null) || (nv21Data.length < (width * height * 3 / 2))) {
-                notifyError(onDocumentCropCallback, "NV21 数据帧异常");
+            if ((data == null) || (data.length < (width * height * 3 / 2))) {
+                notifyError(onDocumentCropCallback, "图像帧字节数组异常");
                 return;
             }
             Mat yuvMat = new Mat(height + height / 2, width, CvType.CV_8UC1);
-            yuvMat.put(0, 0, nv21Data);
+            yuvMat.put(0, 0, data);
             Mat bgrMat = new Mat();
             Imgproc.cvtColor(yuvMat, bgrMat, Imgproc.COLOR_YUV2BGR_NV21);
             yuvMat.release();
-            Mat croppedMat = cropPaperBody(bgrMat);
-            bgrMat.release();
-            if ((croppedMat == null) || croppedMat.empty()) {
-                notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
-                return;
-            }
-            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
-            if ((mediaDir != null) && !mediaDir.exists()) {
-                boolean isCreated = mediaDir.mkdirs();
-                if (!isCreated && !mediaDir.exists()) {
-                    Log.w(LogKit.TAG, "创建 Pictures 图片保存目录失败");
-                }
-            }
-            if (mediaDir == null) {
-                croppedMat.release();
-                notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
-                return;
-            }
-            String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
-            boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
-            Bitmap resultBitmap = matToBitmap(croppedMat);
-            croppedMat.release();
-            if (saved && (resultBitmap != null)) {
-                MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
-                handler.post(() -> {
-                    Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 原始数据 - 保存路径 || " + outputPath);
-                    if (onDocumentCropCallback != null) {
-                        onDocumentCropCallback.onDocumentCropSuccess(outputPath, resultBitmap);
-                    }
-                });
-            } else {
-                notifyError(onDocumentCropCallback, "保存裁剪图片失败");
-            }
+            processMatAsync(context, bgrMat, "原始数据", onDocumentCropCallback);
         });
+    }
+
+    /**
+     * 异步处理 Mat 矩阵
+     *
+     * @param context                上下文
+     * @param inputMat               输入 Mat 矩阵
+     * @param logTagSource           日志来源标识
+     * @param onDocumentCropCallback 文档裁剪回调
+     */
+    private void processMatAsync(@NonNull Context context, Mat inputMat, String logTagSource, OnDocumentCropCallback onDocumentCropCallback) {
+        Mat croppedMat = cropPaperBody(inputMat);
+        inputMat.release();
+        if ((croppedMat == null) || croppedMat.empty()) {
+            notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
+            return;
+        }
+        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        if ((mediaDir != null) && !mediaDir.exists()) {
+            boolean isCreated = mediaDir.mkdirs();
+            if (!isCreated && !mediaDir.exists()) {
+                Log.w(LogKit.TAG, "创建裁剪图片保存目录失败");
+            }
+        }
+        if (mediaDir == null) {
+            croppedMat.release();
+            notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
+            return;
+        }
+        String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+        boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
+        Bitmap resultBitmap = matToBitmap(croppedMat);
+        croppedMat.release();
+        if (saved && (resultBitmap != null)) {
+            MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
+            handler.post(() -> {
+                Log.d(LogKit.TAG, "试卷四角透视矫正成功 - " + logTagSource + " - 保存路径 || " + outputPath);
+                if (onDocumentCropCallback != null) {
+                    onDocumentCropCallback.onDocumentCropSuccess(outputPath, resultBitmap);
+                }
+            });
+        } else {
+            notifyError(onDocumentCropCallback, "保存裁剪图片失败");
+        }
     }
 
     /**
@@ -344,7 +316,7 @@ public class DocumentCropProcessor {
     /**
      * 通知错误
      *
-     * @param onDocumentCropCallback 试卷裁剪回调
+     * @param onDocumentCropCallback 文档裁剪回调
      * @param errorMsg               错误消息
      */
     private void notifyError(OnDocumentCropCallback onDocumentCropCallback, String errorMsg) {
