@@ -8,16 +8,18 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.media.MediaScannerConnection;
 import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
 
+import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.media.MediaScanKit;
 import com.qtone.camerause.widget.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -141,12 +143,24 @@ public class ImageRoiProcessor {
             // 覆盖原图保存
             outputPath = imagePath;
         } else {
-            // 生成带 "_roi" 后缀的新图片路径
-            int dotIndex = imagePath.lastIndexOf(".");
-            if (dotIndex != -1) {
-                outputPath = (imagePath.substring(0, dotIndex) + "_ROI" + imagePath.substring(dotIndex));
+            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+            if ((mediaDir != null) && !mediaDir.exists()) {
+                boolean isCreated = mediaDir.mkdirs();
+                if (!isCreated && !mediaDir.exists()) {
+                    Log.w(LogKit.TAG, "创建 ROI 图片保存目录失败");
+                }
+            }
+            if (mediaDir != null) {
+                outputPath = new File(mediaDir, "ROI_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
             } else {
-                outputPath = (imagePath + "_ROI.jpg");
+                // 兜底退化方案
+                // 统一目录为空则退化为原始目录追加后缀模式
+                int dotIndex = imagePath.lastIndexOf(".");
+                if (dotIndex != -1) {
+                    outputPath = (imagePath.substring(0, dotIndex) + "_ROI" + imagePath.substring(dotIndex));
+                } else {
+                    outputPath = (imagePath + "_ROI.jpg");
+                }
             }
         }
         try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
@@ -154,17 +168,9 @@ public class ImageRoiProcessor {
             // JPEG 格式 + 品质 100
             resultBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
             fileOutputStream.flush();
-            if (context != null) {
-                // 触发系统 MediaScanner 媒体库刷新
-                MediaScannerConnection.scanFile(
-                        context.getApplicationContext(),
-                        new String[]{outputPath},
-                        null,
-                        (path, uri) -> Log.d(LogKit.TAG, "媒体库刷新完成 - Uri || " + uri)
-                );
-            }
+            MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
         } catch (IOException e) {
-            Log.e(LogKit.TAG, "绘制 ROI 到图片文件", e);
+            Log.e(LogKit.TAG, "绘制 ROI 到图片文件失败", e);
             return imagePath;
         } finally {
             // 显式回收 Bitmap 内存资源
