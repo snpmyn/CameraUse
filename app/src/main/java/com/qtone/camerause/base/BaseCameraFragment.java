@@ -22,7 +22,7 @@ import com.jiangdg.ausbc.widget.IAspectRatio;
 import com.qtone.camerause.utils.camera.CameraAspectRatioKit;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
-import com.qtone.camerause.widget.MultiRoiOverlayView;
+import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
 

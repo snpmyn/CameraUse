@@ -14,8 +14,8 @@ import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.fragment.kit.CameraMainFragmentKit;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.value.CameraResolution;
-import com.qtone.camerause.widget.MultiRoiOverlayView;
 import com.qtone.camerause.widget.ViewFinderView;
+import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
 
