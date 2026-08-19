@@ -11,6 +11,7 @@ import android.util.Log;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.media.MediaScanKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +47,7 @@ public class FrameCaptureProcessor {
      */
     private final Handler handler = new Handler(Looper.getMainLooper());
     /**
-     * 全局 Application Context 引用
+     * 全局 Application Context
      * <p>
      * 规避 Activity / Fragment 内存泄漏
      */
@@ -178,7 +179,7 @@ public class FrameCaptureProcessor {
         }
         if (shouldCapture) {
             Log.d(LogKit.TAG, "捕获帧成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
-            String savePath = CaptureHelper.generateSavePath(applicationContext, handler, onCaptureCallBack);
+            String savePath = CaptureHelper.generateSavePath(handler, onCaptureCallBack);
             if (savePath == null) {
                 return;
             }
@@ -244,7 +245,7 @@ public class FrameCaptureProcessor {
                 fileOutputStream.flush();
             }
             if (context != null) {
-                CaptureHelper.scanMediaFile(context, targetFile.getAbsolutePath());
+                MediaScanKit.scanSingleFile(context, targetFile.getAbsolutePath());
             }
             handler.post(() -> {
                 if (onCaptureCallBack != null) {
@@ -279,7 +280,7 @@ public class FrameCaptureProcessor {
             }
             executorService = null;
         }
-        // 7. 全局 Application Context 引用
+        // 7. 全局 Application Context
         applicationContext = null;
     }
 }
