@@ -38,7 +38,7 @@
             app:vvMaskColor="@color/viewfinder_mask"
             app:vvViewFinderStyle="classic" />
 
-        <com.qtone.camerause.widget.MultiRoiOverlayView
+        <com.qtone.camerause.widget.roi.MultiRoiOverlayView
             android:id="@+id/cameraMainFragmentMrov"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
