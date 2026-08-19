@@ -1,11 +1,10 @@
 package com.qtone.camerause.function.capture;
 
-import android.content.Context;
-import android.media.MediaScannerConnection;
 import android.os.Handler;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
+import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +24,7 @@ public class CaptureHelper {
     /**
      * 连拍序号
      * <p>
-     * 自动生成
-     * 解决同毫秒生成文件名冲突覆盖
+     * 自动生成 + 规避同毫秒生成文件名冲突覆盖
      */
     private static final AtomicLong burstSequence = new AtomicLong(0);
 
@@ -56,15 +54,17 @@ public class CaptureHelper {
     /**
      * 生成保存路径
      *
-     * @param context           上下文
      * @param handler           线程消息调度器
      * @param onCaptureCallBack 拍照回调
      * @return 保存路径
      */
-    public static @Nullable String generateSavePath(Context context, Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        Context appContext = (context != null) ? context.getApplicationContext() : null;
-        File mediaDir = (appContext != null) ? appContext.getExternalFilesDir("Pictures") : null;
-        if ((mediaDir != null) && !mediaDir.exists()) {
+    public static @Nullable String generateSavePath(Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        if (mediaDir == null) {
+            notifyError(handler, onCaptureCallBack, "无法获取图片存储目录");
+            return null;
+        }
+        if (!mediaDir.exists()) {
             boolean created = mediaDir.mkdirs();
             if (!created && !mediaDir.exists()) {
                 Log.e(LogKit.TAG, "创建图片存储目录失败 || " + mediaDir.getAbsolutePath());
@@ -72,25 +72,10 @@ public class CaptureHelper {
                 return null;
             }
         }
-        if (mediaDir == null) {
-            notifyError(handler, onCaptureCallBack, "无法获取图片存储目录");
-            return null;
-        }
+        // 文件名
+        // IMG_毫秒时间戳_序号.jpg
         String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", System.currentTimeMillis(), burstSequence.incrementAndGet());
         return new File(mediaDir, fileName).getAbsolutePath();
-    }
-
-    /**
-     * 扫描媒体文件
-     *
-     * @param context  上下文
-     * @param savePath 保存路径
-     */
-    public static void scanMediaFile(Context context, String savePath) {
-        if ((context != null) && (savePath != null)) {
-            Context appContext = context.getApplicationContext();
-            MediaScannerConnection.scanFile(appContext, new String[]{savePath}, null, null);
-        }
     }
 
     /**
