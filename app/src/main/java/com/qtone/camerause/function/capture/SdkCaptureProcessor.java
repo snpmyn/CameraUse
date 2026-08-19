@@ -8,6 +8,7 @@ import android.util.Log;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.ICaptureCallBack;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.media.MediaScanKit;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,7 @@ public class SdkCaptureProcessor {
      */
     private final Handler handler = new Handler(Looper.getMainLooper());
     /**
-     * 全局 Application Context 引用
+     * 全局 Application Context
      * <p>
      * 规避 Activity / Fragment 内存泄漏
      */
@@ -161,7 +162,7 @@ public class SdkCaptureProcessor {
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
-        String savePath = CaptureHelper.generateSavePath(applicationContext, handler, onCaptureCallBack);
+        String savePath = CaptureHelper.generateSavePath(handler, onCaptureCallBack);
         if (savePath == null) {
             return;
         }
@@ -180,7 +181,7 @@ public class SdkCaptureProcessor {
             @Override
             public void onComplete(@Nullable String path) {
                 if (appContext != null) {
-                    CaptureHelper.scanMediaFile(appContext, path);
+                    MediaScanKit.scanSingleFile(appContext, path);
                 }
                 handler.post(() -> {
                     if (onCaptureCallBack != null) {
@@ -207,7 +208,7 @@ public class SdkCaptureProcessor {
         iCamera = null;
         // 拍照回调
         onCaptureCallBack = null;
-        // 全局 Application Context 引用
+        // 全局 Application Context
         applicationContext = null;
     }
 }
