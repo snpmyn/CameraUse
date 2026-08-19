@@ -23,11 +23,16 @@
     <!--并非 UVC 必须-->
     <!--而是避免一些厂家系统限制-->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- 普通读写权限 -->
-    <!-- Android 10- -->
+    <!--普通读权限-->
+    <!--Android 12- (API 32-)-->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!--普通写权限-->
+    <!--Android 9- (API 28-)-->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+        android:maxSdkVersion="28" />
     <!--所有文件管理权限-->
     <!--Android 11+ (API 30+)-->
     <uses-permission
