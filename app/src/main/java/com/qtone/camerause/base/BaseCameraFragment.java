@@ -192,9 +192,10 @@ public abstract class BaseCameraFragment extends CameraFragment {
         return new CameraRequest.Builder()
                 .setPreviewWidth(getCameraResolution().getWidth())
                 .setPreviewHeight(getCameraResolution().getHeight())
-                // NORMAL - NV21
                 // OPENGL - RGBA
-                // NORMAL 较 OPENGL 效率高
+                // RGBA: width * height * 4 Byte
+                // NORMAL - NV21
+                // NV21: width * height * 1.5 Byte
                 .setRenderMode(CameraRequest.RenderMode.NORMAL)
                 .setDefaultRotateType(RotateType.ANGLE_0)
                 .setAspectRatioShow(true)

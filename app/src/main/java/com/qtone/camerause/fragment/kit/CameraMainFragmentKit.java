@@ -238,7 +238,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
                 // 文档裁剪处理器 - 通过图像帧字节数组处理
                 documentCropProcessor.processByData(activity, data, width, height, CameraMainFragmentKit.this);
             } catch (Exception e) {
-                Log.e(LogKit.TAG, "processNv21Async 失败 || " + e.getMessage());
+                Log.e(LogKit.TAG, "通过图像帧字节数组处理 - 失败 || " + e.getMessage());
             }
         });
     }
@@ -259,7 +259,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
                 // 1. 文档裁剪处理器 - 通过路径处理
                 documentCropProcessor.processByPath(activity, savePath, CameraMainFragmentKit.this);
             } catch (Exception e) {
-                Log.e(LogKit.TAG, "processAsync 失败 || " + e.getMessage());
+                Log.e(LogKit.TAG, "通过路径处理 - 失败 || " + e.getMessage());
             }
             // 2. 通用文字识别 (高精度含位置信息版)
             BaiDuOcrHelper.recognizeAccurate(activity, savePath, new OnResultListener<GeneralResult>() {
