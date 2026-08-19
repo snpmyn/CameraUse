@@ -132,22 +132,55 @@ public class MediaStorageConfig {
         imageDirectoryFile = new File(baseDir, targetFolderName);
         if (!imageDirectoryFile.exists()) {
             boolean isSuccess = imageDirectoryFile.mkdirs();
-            Log.d(LogKit.TAG, "图片存储文件夹初始化\n绝对路径 || " + imageDirectoryFile.getAbsolutePath() + "\n结果 || " + isSuccess);
+            Log.d(LogKit.TAG, "媒体存储文件夹初始化\n绝对路径 || " + imageDirectoryFile.getAbsolutePath() + "\n结果 || " + isSuccess);
         } else {
-            Log.d(LogKit.TAG, "图片存储文件夹已存在\n绝对路径 || " + imageDirectoryFile.getAbsolutePath());
+            Log.d(LogKit.TAG, "媒体存储文件夹已存在\n绝对路径 || " + imageDirectoryFile.getAbsolutePath());
         }
     }
 
     /**
-     * 获取图片目录文件
+     * 获取基础根目录文件
+     * <p>
+     * 场景一
+     * 无需划分细分子目录、直接保存到根目录时调
+     * 对应 Application 初始化时配置的主文件夹目录
+     * 未指定 folderName 则默认目录名位 ZYR
      *
-     * @return 图片目录文件
+     * @return 基础根目录文件
      */
-    public File getImageDirectoryFile() {
+    public File getDirectoryFile() {
         if (imageDirectoryFile == null) {
             Log.w(LogKit.TAG, "媒体存储配置未在 Application 初始化");
         }
         return imageDirectoryFile;
+    }
+
+    /**
+     * 通过存储类型获取专属子目录文件
+     * <p>
+     * 场景二
+     * 针对不同业务模块划分独立子目录时调
+     * 路径规则 [基础根目录]/[StorageType.subFolderName]
+     * 注意 storageType 为 null 或未定义子目录将自动退化返回基础根目录文件
+     *
+     * @param storageType 存储类型
+     *                    参考 {@link StorageType}
+     * @return 专属子目录文件
+     */
+    public File getDirectoryFileByStorageType(StorageType storageType) {
+        File parentDir = getDirectoryFile();
+        if (parentDir == null) {
+            return null;
+        }
+        if ((storageType == null) || TextUtils.isEmpty(storageType.getSubFolderName())) {
+            return parentDir;
+        }
+        File targetDir = new File(parentDir, storageType.getSubFolderName());
+        if (!targetDir.exists()) {
+            boolean isSuccess = targetDir.mkdirs();
+            Log.d(LogKit.TAG, "媒体存储文件夹初始化 [" + storageType.name() + "]\n绝对路径 || " + targetDir.getAbsolutePath() + "\n结果 || " + isSuccess);
+        }
+        return targetDir;
     }
 
     /**
@@ -166,5 +199,53 @@ public class MediaStorageConfig {
          * 外部公共存储
          */
         EXTERNAL_PUBLIC
+    }
+
+    /**
+     * 存储类型
+     */
+    public enum StorageType {
+        /**
+         * 拍照
+         */
+        CAPTURE("capture"),
+        /**
+         * ROI 裁剪
+         */
+        ROI_CROP("RoiCrop"),
+        /**
+         * ROI 叠加
+         */
+        ROI_OVERLAY("RoiOverlay"),
+        /**
+         * 微信裁剪
+         */
+        WE_CHAT_CROP("WeChatCrop"),
+        /**
+         * 文档裁剪
+         */
+        DOCUMENT_CROP("DocumentCrop");
+        /**
+         * 子文件夹名称
+         */
+        private final String subFolderName;
+
+        /**
+         * constructor
+         *
+         * @param subFolderName 子文件夹名称
+         */
+        StorageType(String subFolderName) {
+            this.subFolderName = subFolderName;
+        }
+
+        /**
+         * 获取子文件夹名称
+         *
+         * @return 子文件夹名称
+         */
+        public String getSubFolderName() {
+            return subFolderName;
+        }
     }
 }
