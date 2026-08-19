@@ -12,6 +12,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,11 +209,11 @@ public class MultiRoiOverlayView extends View {
      */
     private Paint textPaint;
     /**
-     * 状态变更监听回调接口
+     * ROI 变化回调
      * <p>
      * 用于向外部通知 ROI 数量变化或删除事件
      */
-    private OnRoiChangeListener onRoiChangeListener;
+    private OnRoiChangeCallback onRoiChangeCallback;
 
     /**
      * constructor
@@ -283,14 +285,12 @@ public class MultiRoiOverlayView extends View {
     }
 
     /**
-     * 设置 ROI 数量变动与删除事件的回调监听器
-     * <p>
-     * 对外事件监听注册接口
+     * 设置 ROI 变化回调
      *
-     * @param onRoiChangeListener 监听器实例
+     * @param onRoiChangeCallback ROI 变化回调
      */
-    public void setOnRoiChangeListener(OnRoiChangeListener onRoiChangeListener) {
-        this.onRoiChangeListener = onRoiChangeListener;
+    public void setOnRoiChangeCallback(OnRoiChangeCallback onRoiChangeCallback) {
+        this.onRoiChangeCallback = onRoiChangeCallback;
     }
 
     /**
@@ -306,16 +306,48 @@ public class MultiRoiOverlayView extends View {
         if ((width <= 0) || (height <= 0)) {
             return;
         }
-        // 记录重新测量前的旧 View 物理尺寸
         int oldViewWidth = getWidth();
         int oldViewHeight = getHeight();
-        // 1. 获取并更新 LayoutParams 以触发系统重新测量
+        // 1. 获取 View 父容器的可用宽度和高度
+        View parentView = (View) getParent();
+        if (parentView == null) {
+            return;
+        }
+        int parentWidth = parentView.getWidth();
+        int parentHeight = parentView.getHeight();
+        if ((parentWidth <= 0) || (parentHeight <= 0)) {
+            return;
+        }
+        // 2. 根据相机的宽高比计算等比例渲染时的实际 View 宽高
+        float targetRatio = (float) width / (float) height;
+        float parentRatio = (float) parentWidth / (float) parentHeight;
+        int calculatedWidth;
+        int calculatedHeight;
+        if (parentRatio > targetRatio) {
+            // 父容器太宽 -> 以父容器高度为基准计算宽度
+            calculatedHeight = parentHeight;
+            calculatedWidth = (int) (parentHeight * targetRatio);
+        } else {
+            // 父容器太高 (全面屏最常见) -> 以父容器宽度为基准计算高度
+            calculatedWidth = parentWidth;
+            calculatedHeight = (int) (parentWidth / targetRatio);
+        }
+        // 3. 动态更新 Overlay View 的 LayoutParams 并强制设置居中 (Gravity.CENTER)
         ViewGroup.LayoutParams layoutParams = getLayoutParams();
         if (layoutParams != null) {
-            layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            requestLayout();
+            layoutParams.width = calculatedWidth;
+            layoutParams.height = calculatedHeight;
+            // 如果父容器是 FrameLayout
+            if (layoutParams instanceof FrameLayout.LayoutParams) {
+                ((FrameLayout.LayoutParams) layoutParams).gravity = android.view.Gravity.CENTER;
+            }
+            // 如果父容器是 RelativeLayout
+            else if (layoutParams instanceof RelativeLayout.LayoutParams) {
+                ((RelativeLayout.LayoutParams) layoutParams).addRule(RelativeLayout.CENTER_IN_PARENT);
+            }
+            setLayoutParams(layoutParams);
         }
-        // 2. 将旧 ROI 物理坐标按旧新尺寸比例等比映射到新尺寸上
+        // 4. 将原有 ROI 坐标按比例映射到新的 View 物理尺寸上
         post(() -> {
             int newViewWidth = getWidth();
             int newViewHeight = getHeight();
@@ -323,7 +355,6 @@ public class MultiRoiOverlayView extends View {
                 if ((oldViewWidth != newViewWidth) || (oldViewHeight != newViewHeight)) {
                     float scaleX = (float) newViewWidth / oldViewWidth;
                     float scaleY = (float) newViewHeight / oldViewHeight;
-                    // 防御性浅拷贝，避免并发修改异常
                     List<RoiItem> tempMapList = new ArrayList<>(roiList);
                     for (RoiItem roiItem : tempMapList) {
                         roiItem.rect.set(
@@ -630,8 +661,8 @@ public class MultiRoiOverlayView extends View {
         RoiItem roiItem = new RoiItem(nextRoiId++, rectF);
         roiList.add(roiItem);
         // 触发监听回调，告知外部数量变化。
-        if (onRoiChangeListener != null) {
-            onRoiChangeListener.onRoiCountChanged(roiList.size());
+        if (onRoiChangeCallback != null) {
+            onRoiChangeCallback.onRoiCountChanged(roiList.size());
         }
         // 刷新画布
         invalidate();
@@ -665,10 +696,10 @@ public class MultiRoiOverlayView extends View {
             if (activeRoi == roi) {
                 activeRoi = null;
             }
-            if (onRoiChangeListener != null) {
+            if (onRoiChangeCallback != null) {
                 // 通知特定 ROI 被删除并更新剩余总数
-                onRoiChangeListener.onRoiDeleted(roi.id);
-                onRoiChangeListener.onRoiCountChanged(roiList.size());
+                onRoiChangeCallback.onRoiDeleted(roi.id);
+                onRoiChangeCallback.onRoiCountChanged(roiList.size());
             }
             // 刷新画布
             invalidate();
@@ -815,16 +846,17 @@ public class MultiRoiOverlayView extends View {
         roiList.clear();
         activeRoi = null;
         invalidate();
-        if (onRoiChangeListener != null) {
-            onRoiChangeListener.onRoiCountChanged(0);
+        if (onRoiChangeCallback != null) {
+            onRoiChangeCallback.onRoiCountChanged(0);
         }
     }
 
     /**
-     * ROI 状态变化监听接口定义
+     * ROI 变化回调
+     * <p>
      * 用于监听屏幕 ROI 数量变动或特定项的清理事件
      */
-    public interface OnRoiChangeListener {
+    public interface OnRoiChangeCallback {
         /**
          * 当前屏幕上的 ROI 框总数量发生变化时回调
          * 包含新增、手势滑出删除、清空等操作触发的数量变更
