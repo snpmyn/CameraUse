@@ -2,6 +2,11 @@
 
 摄像头应用
 
+## 注解
+
+* @SuppressWarnings("unused")
+* @SuppressWarnings("UnusedReturnValue")
+
 ## 介绍
 
 ![introduction_1](introduction/introduction_1.png)

@@ -27,6 +27,7 @@ import java.util.List;
  * @date: 2026/8/8 21:54
  * @version: v 1.0
  */
+@SuppressWarnings("unused")
 public class MultiRoiOverlayView extends View {
     /**
      * 空闲状态：未触发任何有效手势操作

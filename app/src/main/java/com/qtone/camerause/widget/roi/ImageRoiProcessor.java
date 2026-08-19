@@ -40,6 +40,7 @@ public class ImageRoiProcessor {
      * @param multiRoiOverlayView MultiRoiOverlayView
      * @return 从图片文件裁剪 ROI 后路径集
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static List<String> cropRoiFromImageFile(Context context, String imagePath, MultiRoiOverlayView multiRoiOverlayView) {
         CenterCropTransform centerCropTransform = calculateMappedRoiRects(imagePath, multiRoiOverlayView);
         if (centerCropTransform == null) {
@@ -56,7 +57,27 @@ public class ImageRoiProcessor {
             }
         }
         List<String> croppedPaths = new ArrayList<>();
-        long timestamp = System.currentTimeMillis();
+        // 解析原图文件名
+        // 用于生成对应规则的 ROI 裁剪文件名
+        String srcFileName = new File(imagePath).getName();
+        String fileSuffix;
+        String extension = ".jpg";
+        int dotIndex = srcFileName.lastIndexOf(".");
+        if (dotIndex != -1) {
+            extension = srcFileName.substring(dotIndex);
+            String nameWithoutExt = srcFileName.substring(0, dotIndex);
+            if (nameWithoutExt.startsWith("IMG_")) {
+                fileSuffix = nameWithoutExt.substring(4);
+            } else {
+                fileSuffix = nameWithoutExt;
+            }
+        } else {
+            if (srcFileName.startsWith("IMG_")) {
+                fileSuffix = srcFileName.substring(4);
+            } else {
+                fileSuffix = srcFileName;
+            }
+        }
         try {
             // 遍历各个 ROI 区域并执行裁剪
             for (int i = 0; i < mappedRects.size(); i++) {
@@ -75,16 +96,12 @@ public class ImageRoiProcessor {
                 // 创建裁剪子图 Bitmap
                 Bitmap croppedBitmap = Bitmap.createBitmap(srcBitmap, cropLeft, cropTop, cropWidth, cropHeight);
                 // 生成输出文件路径
+                String fileName = "ROI_CROP_" + fileSuffix + "_" + (i + 1) + extension;
                 String outputPath;
                 if (mediaDir != null) {
-                    outputPath = new File(mediaDir, "ROI_CROP_" + timestamp + "_" + (i + 1) + ".jpg").getAbsolutePath();
+                    outputPath = new File(mediaDir, fileName).getAbsolutePath();
                 } else {
-                    int dotIndex = imagePath.lastIndexOf(".");
-                    if (dotIndex != -1) {
-                        outputPath = (imagePath.substring(0, dotIndex) + "_CROP_" + (i + 1) + imagePath.substring(dotIndex));
-                    } else {
-                        outputPath = (imagePath + "_CROP_" + (i + 1) + ".jpg");
-                    }
+                    outputPath = new File(new File(imagePath).getParent(), fileName).getAbsolutePath();
                 }
                 // 写入文件
                 try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
@@ -122,6 +139,7 @@ public class ImageRoiProcessor {
      * @param isOverwrite         是否覆盖
      * @return 绘制 ROI 到图片文件后路径
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static String drawRoiToImageFile(Context context, String imagePath, MultiRoiOverlayView multiRoiOverlayView, boolean isOverwrite) {
         CenterCropTransform transform = calculateMappedRoiRects(imagePath, multiRoiOverlayView);
         if (transform == null) {
@@ -175,17 +193,26 @@ public class ImageRoiProcessor {
                     Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败");
                 }
             }
+            // 解析原图文件名
+            // 用于生成对应规则的 ROI 叠加文件名
+            String srcFileName = new File(imagePath).getName();
+            String overlayFileName;
+            if (srcFileName.startsWith("IMG_")) {
+                overlayFileName = "ROI_OVERLAY_" + srcFileName.substring(4);
+            } else {
+                int dotIndex = srcFileName.lastIndexOf(".");
+                if (dotIndex != -1) {
+                    overlayFileName = "ROI_OVERLAY_" + srcFileName.substring(0, dotIndex) + srcFileName.substring(dotIndex);
+                } else {
+                    overlayFileName = "ROI_OVERLAY_" + srcFileName + ".jpg";
+                }
+            }
             if (mediaDir != null) {
-                outputPath = new File(mediaDir, "ROI_OVERLAY_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+                outputPath = new File(mediaDir, overlayFileName).getAbsolutePath();
             } else {
                 // 兜底退化方案
                 // 统一目录为空则退化为原始目录追加后缀模式
-                int dotIndex = imagePath.lastIndexOf(".");
-                if (dotIndex != -1) {
-                    outputPath = (imagePath.substring(0, dotIndex) + "_OVERLAY" + imagePath.substring(dotIndex));
-                } else {
-                    outputPath = (imagePath + "_OVERLAY.jpg");
-                }
+                outputPath = new File(new File(imagePath).getParent(), overlayFileName).getAbsolutePath();
             }
         }
         try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
