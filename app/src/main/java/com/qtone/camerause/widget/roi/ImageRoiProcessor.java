@@ -48,8 +48,7 @@ public class ImageRoiProcessor {
         }
         Bitmap srcBitmap = centerCropTransform.srcBitmap;
         List<RectF> mappedRects = centerCropTransform.mappedRects;
-        // 确定裁剪图片的保存目录
-        File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.ROI_CROP);
         if ((mediaDir != null) && !mediaDir.exists()) {
             boolean isCreated = mediaDir.mkdirs();
             if (!isCreated && !mediaDir.exists()) {
@@ -180,13 +179,12 @@ public class ImageRoiProcessor {
             float textBaseLineY = (targetRect.top + (strokeWidth / 2f) + Math.abs(fontMetrics.ascent));
             canvas.drawText(label, textX, textBaseLineY, textPaint);
         }
-        // 保存图片文件
         String outputPath;
         if (isOverwrite) {
-            // 覆盖原图保存
+            // 覆盖原图
             outputPath = imagePath;
         } else {
-            File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+            File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.ROI_OVERLAY);
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated && !mediaDir.exists()) {
