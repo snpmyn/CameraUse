@@ -6,7 +6,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.utils.media.MediaScanKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
@@ -81,7 +83,7 @@ public class WeChatCropEngine {
      * 自动进行微信 AI 识别与透视校正裁剪
      *
      * @param context              上下文
-     * @param imagePath            图像路径
+     * @param imagePath            图片路径
      *                             原图绝对路径
      *                             如 /sdcard/Pictures/test.jpg
      * @param autoSaveResult       是否自动保存结果
@@ -121,23 +123,36 @@ public class WeChatCropEngine {
                 Bitmap resultBitmap = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
                 Utils.matToBitmap(resultMat, resultBitmap);
                 String savePath = null;
-                // D. 如果开启了自动保存，将结果写入 app 的 cache/Pictures 目录。
-                if (autoSaveResult && appContext != null) {
-                    File outputDir = new File(appContext.getExternalFilesDir(null), "CroppedImages");
-                    if (!outputDir.exists() && !outputDir.mkdirs()) {
-                        Log.e(LogKit.TAG, "创建输出目录失败: " + outputDir.getAbsolutePath());
+                // D. 如果开启了自动保存，将结果写入统一托管目录。
+                if (autoSaveResult && (appContext != null)) {
+                    File mediaDir = MediaStorageConfig.getInstance().getImageDirectoryFile();
+                    if ((mediaDir != null) && !mediaDir.exists()) {
+                        boolean isCreated = mediaDir.mkdirs();
+                        if (!isCreated && !mediaDir.exists()) {
+                            Log.w(LogKit.TAG, "创建微信裁剪图片保存目录失败");
+                        }
                     }
-                    File outputFile = new File(outputDir, "CROP_" + System.currentTimeMillis() + ".jpg");
-                    savePath = outputFile.getAbsolutePath();
-                    // 用 Imgcodecs 写入图片
-                    Imgcodecs.imwrite(savePath, resultMat);
-                    Log.d(LogKit.TAG, "裁剪拉平结果已成功存入 || " + savePath);
+                    if (mediaDir != null) {
+                        File outputFile = new File(mediaDir, "WECHAT_CROP" + System.currentTimeMillis() + ".jpg");
+                        savePath = outputFile.getAbsolutePath();
+                        // 用 Imgcodecs 写入图片
+                        boolean saved = Imgcodecs.imwrite(savePath, resultMat);
+                        if (saved) {
+                            Log.d(LogKit.TAG, "微信裁剪拉平结果已成功存入 || " + savePath);
+                            MediaScanKit.scanSingleFile(context, savePath, "image/jpeg");
+                        } else {
+                            Log.e(LogKit.TAG, "微信裁剪图片 Imgcodecs 写入失败");
+                            savePath = null;
+                        }
+                    } else {
+                        Log.e(LogKit.TAG, "无法获取微信裁剪图片保存目录");
+                    }
                 }
                 // E. 切换回主线程回调结果
                 final String finalSavePath = savePath;
                 handler.post(() -> {
                     if (onWeChatCropCallback != null) {
-                        Log.e(LogKit.TAG, "微信裁剪成功 || " + finalSavePath);
+                        Log.d(LogKit.TAG, "微信裁剪成功 - 保存路径 || " + finalSavePath);
                         onWeChatCropCallback.onWeChatCropSuccess(resultBitmap, finalSavePath);
                     }
                 });
