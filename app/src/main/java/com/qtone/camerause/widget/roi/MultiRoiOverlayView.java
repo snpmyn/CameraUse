@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget;
+package com.qtone.camerause.widget.roi;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
