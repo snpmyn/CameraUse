@@ -7,7 +7,7 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 
 /**
- * 图像加载器
+ * 图片加载器
  *
  * @author Created by jiangdg on 2022/3/16
  */
