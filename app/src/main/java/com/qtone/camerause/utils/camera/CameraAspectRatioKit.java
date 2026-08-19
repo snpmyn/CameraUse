@@ -9,7 +9,7 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.utils.mmkv.MmkvKit;
 import com.qtone.camerause.value.MmkvConstant;
-import com.qtone.camerause.widget.MultiRoiOverlayView;
+import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 /**
  * Created on 2026/8/4.
