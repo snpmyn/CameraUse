@@ -198,18 +198,19 @@ public class FrameCaptureProcessor {
      * @param onCaptureCallBack 拍照回调
      */
     private void processFrameAsync(@NotNull byte @NotNull [] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        // 校验 NV21 物理空间合法性
-        // width * height * 1.5 Byte
-        int minRequiredSize = width * height * 3 / 2;
+        // 校验图像数据物理空间合法性
+        // RGBA: width * height * 4 Byte
+        // NV21: width * height * 1.5 Byte
+        int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(LogKit.TAG, String.format(Locale.CHINA, "NV21 字节流异常 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
-            CaptureHelper.notifyError(handler, onCaptureCallBack, "YUV 数据帧截断");
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "图像帧字节数组异常 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断");
             return;
         }
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
-        // 优先切回主线程通知 NV21 原始数据捕获成功
+        // 优先切回主线程通知图像帧字节数组捕获成功
         // 供算法实时分析使用
         handler.post(() -> {
             if (onCaptureCallBack != null) {
