@@ -24,6 +24,7 @@ import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.function.scancode.ScanCodeProcessor;
 import com.qtone.camerause.function.wechat.WeChatCropEngine;
 import com.qtone.camerause.model.camera.CameraMainFragment;
+import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.SettingActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.utils.intent.IntentJump;
@@ -218,7 +219,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 图库按钮点击事件
      */
     public void onGalleryClicked() {
-
+        cameraMainFragment.safeRun(appCompatActivity -> IntentJump.getInstance().jumpWithAnimation(null, appCompatActivity, false, GalleryActivity.class, 0, 0));
     }
 
     /**
