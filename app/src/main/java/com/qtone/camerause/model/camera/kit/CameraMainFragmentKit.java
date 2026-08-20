@@ -1,6 +1,5 @@
 package com.qtone.camerause.model.camera.kit;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
@@ -27,12 +26,12 @@ import com.qtone.camerause.function.wechat.WeChatCropEngine;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.setting.SettingActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
+import com.qtone.camerause.utils.intent.IntentJump;
 import com.qtone.camerause.utils.list.ListUtils;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.utils.view.ViewUtils;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
 import com.qtone.camerause.widget.scan.ViewFinderView;
-import com.qtone.camerause.widget.transition.kit.TransitionKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -211,12 +210,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     /**
      * 设置按钮点击事件
      */
-    public void onSettingClicked(View view) {
-        cameraMainFragment.safeRun(appCompatActivity -> {
-            Intent fromThisToSettingActivityIntent = new Intent(appCompatActivity, SettingActivity.class);
-            appCompatActivity.startActivity(fromThisToSettingActivityIntent);
-            TransitionKit.getInstance().jumpWithTransition(appCompatActivity, view, fromThisToSettingActivityIntent, false);
-        });
+    public void onSettingClicked() {
+        cameraMainFragment.safeRun(appCompatActivity -> IntentJump.getInstance().jumpWithAnimation(null, appCompatActivity, false, SettingActivity.class, 0, 0));
     }
 
     /**
