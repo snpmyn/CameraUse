@@ -3,15 +3,35 @@
     <!--<style name="Theme.CameraUse" parent="Theme.MaterialComponents.DayNight.DarkActionBar">-->
     <style name="Theme.CameraUse" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <!-- 主色调 (colorPrimary) - 核心品牌色 -->
+        <item name="colorPrimary">@color/basic</item>
+        <!--<item name="colorPrimary">@color/purple_500</item>-->
+        <!-- 主色变体 - 同主色或深色 + 统一控件和过渡状态色 -->
+        <item name="colorPrimaryVariant">@color/basic</item>
+        <!--<item name="colorPrimaryVariant">@color/purple_700</item>-->
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
+        <!-- 辅助色 (colorSecondary) 无需强调辅助色时建议与主色一致 -->
+        <item name="colorSecondary">@color/basic</item>
+        <item name="colorSecondaryVariant">@color/basic</item>
+        <!--<item name="colorSecondary">@color/teal_200</item>-->
+        <!--<item name="colorSecondaryVariant">@color/teal_700</item>-->
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <!--页面切换动画-->
+        <item name="android:windowAnimationStyle">@style/AnimationActivity</item>
+    </style>
+
+    <style name="AnimationActivity" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/activity_slide_in_from_right_to_left
+        </item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_slide_out_from_right_to_left
+        </item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_slide_in_from_left_to_right
+        </item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_slide_out_from_left_to_right
+        </item>
     </style>
 </resources>
