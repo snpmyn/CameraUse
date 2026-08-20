@@ -59,7 +59,10 @@
         android:theme="@style/Theme.CameraUse"
         tools:replace="android:theme">
         <activity
-            android:name=".MainActivity"
+            android:name=".model.setting.SettingActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".model.main.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>
