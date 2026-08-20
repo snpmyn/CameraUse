@@ -59,6 +59,9 @@
         android:theme="@style/Theme.CameraUse"
         tools:replace="android:theme">
         <activity
+            android:name=".model.gallery.GalleryActivity"
+            android:screenOrientation="landscape" />
+        <activity
             android:name=".model.setting.SettingActivity"
             android:screenOrientation="landscape" />
         <activity
