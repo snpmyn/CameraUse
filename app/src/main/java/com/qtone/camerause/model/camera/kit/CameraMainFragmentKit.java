@@ -1,5 +1,6 @@
-package com.qtone.camerause.fragment.kit;
+package com.qtone.camerause.model.camera.kit;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
@@ -15,19 +16,25 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.fragment.CameraMainFragment;
+import com.qtone.camerause.R;
 import com.qtone.camerause.function.capture.CaptureMode;
 import com.qtone.camerause.function.capture.CaptureProcessor;
 import com.qtone.camerause.function.capture.CaptureStrategy;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
-import com.qtone.camerause.function.roi.ImageRoiProcessor;
 import com.qtone.camerause.function.scancode.ScanCodeProcessor;
 import com.qtone.camerause.function.wechat.WeChatCropEngine;
+import com.qtone.camerause.model.camera.CameraMainFragment;
+import com.qtone.camerause.model.setting.SettingActivity;
+import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.utils.list.ListUtils;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.utils.view.ViewUtils;
-import com.qtone.camerause.widget.ViewFinderView;
+import com.qtone.camerause.widget.roi.ImageRoiProcessor;
+import com.qtone.camerause.widget.scan.ViewFinderView;
+import com.qtone.camerause.widget.transition.kit.TransitionKit;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,15 +86,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     }
 
     /**
-     * 获取文档裁剪处理器
-     *
-     * @return 文档裁剪处理器
-     */
-    public DocumentCropProcessor getExamCropProcessor() {
-        return documentCropProcessor;
-    }
-
-    /**
      * 处理帧
      *
      * @param data       图像帧字节数组
@@ -113,7 +111,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         // 设置拍照策略
         captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
-        cameraMainFragment.safeRun(activity -> captureProcessor.startSingleCapture(activity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
+        cameraMainFragment.safeRun(appCompatActivity -> captureProcessor.startSingleCapture(appCompatActivity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
     }
 
     /**
@@ -123,7 +121,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onBurstCaptureClicked(long intervalMs) {
         // 开始连拍
-        cameraMainFragment.safeRun(activity -> captureProcessor.startBurstCapture(activity, cameraMainFragment.getCurrentCamera(), intervalMs, CameraMainFragmentKit.this));
+        cameraMainFragment.safeRun(appCompatActivity -> captureProcessor.startBurstCapture(appCompatActivity, cameraMainFragment.getCurrentCamera(), intervalMs, CameraMainFragmentKit.this));
     }
 
     /**
@@ -141,12 +139,20 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * @param scanIntervalMs 扫描间隔毫秒
      */
     public void onScanCodeClicked(ViewFinderView viewFinderView, long scanIntervalMs) {
+        if (isAllowScanCode.get()) {
+            ToastUtils.show(R.string.doNotTriggerScanningRepeatedly);
+            return;
+        }
+        // 显示视图
         ViewUtils.showView(viewFinderView);
+        // 设置扫描框的宽度和高度
         viewFinderView.setFrameWidthAndHeight(cameraMainFragment.getTextureView().getWidth(), cameraMainFragment.getTextureView().getHeight(), 0.8f);
         // 设置扫描间隔毫秒
         scanCodeProcessor.setScanIntervalMs(scanIntervalMs);
         // 允许扫码状态锁
         isAllowScanCode.set(true);
+        // 显示扫描
+        viewFinderView.showScanner();
     }
 
     /**
@@ -154,10 +160,13 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      *
      * @param viewFinderView 取景框视图
      */
-    public void onStopScanCodeClicked(ViewFinderView viewFinderView) {
-        ViewUtils.hideView(viewFinderView, View.GONE);
+    public void onStopScanCodeClicked(@NotNull ViewFinderView viewFinderView) {
         // 允许扫码状态锁
         isAllowScanCode.set(false);
+        // 停止扫描
+        viewFinderView.stopScanner();
+        // 隐藏视图
+        ViewUtils.hideView(viewFinderView, View.GONE);
     }
 
     /**
@@ -183,8 +192,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
         final int initialSelectedIndex = selectedIndex;
         int finalSelectedIndex = selectedIndex;
-        cameraMainFragment.safeRun(activity -> {
-            AlertDialog alertDialog = new MaterialAlertDialogBuilder(activity)
+        cameraMainFragment.safeRun(appCompatActivity -> {
+            AlertDialog alertDialog = new MaterialAlertDialogBuilder(appCompatActivity)
                     .setSingleChoiceItems(items, finalSelectedIndex, (dialog, which) -> {
                         if (which != initialSelectedIndex) {
                             PreviewSize selectedPreviewSize = previewSizes.get(which);
@@ -197,6 +206,24 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
                 alertDialog.getListView().setVerticalScrollBarEnabled(false);
             }
         });
+    }
+
+    /**
+     * 设置按钮点击事件
+     */
+    public void onSettingClicked(View view) {
+        cameraMainFragment.safeRun(appCompatActivity -> {
+            Intent fromThisToSettingActivityIntent = new Intent(appCompatActivity, SettingActivity.class);
+            appCompatActivity.startActivity(fromThisToSettingActivityIntent);
+            TransitionKit.getInstance().jumpWithTransition(appCompatActivity, view, fromThisToSettingActivityIntent, false);
+        });
+    }
+
+    /**
+     * 图库按钮点击事件
+     */
+    public void onGalleryClicked() {
+
     }
 
     /**
@@ -233,10 +260,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
-        cameraMainFragment.safeRun(activity -> {
+        cameraMainFragment.safeRun(appCompatActivity -> {
             try {
                 // 文档裁剪处理器 - 通过图像帧字节数组处理
-                documentCropProcessor.processByData(activity, data, width, height, CameraMainFragmentKit.this);
+                documentCropProcessor.processByData(appCompatActivity, data, width, height, CameraMainFragmentKit.this);
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "通过图像帧字节数组处理 - 失败 || " + e.getMessage());
             }
@@ -254,75 +281,92 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
         ToastUtils.show("拍照成功");
-        cameraMainFragment.safeRun(activity -> {
-            try {
-                // 1. 文档裁剪处理器 - 通过路径处理
-                documentCropProcessor.processByPath(activity, savePath, CameraMainFragmentKit.this);
-            } catch (Exception e) {
-                Log.e(LogKit.TAG, "通过路径处理 - 失败 || " + e.getMessage());
+        cameraMainFragment.safeRun(appCompatActivity -> {
+            // 1. 是否允许文档裁剪
+            if (SharedPreferencesKit.isDocumentCropEnabled(appCompatActivity)) {
+                try {
+                    // 文档裁剪处理器 - 通过路径处理
+                    documentCropProcessor.processByPath(appCompatActivity, savePath, CameraMainFragmentKit.this);
+                } catch (Exception e) {
+                    Log.e(LogKit.TAG, "通过路径处理 - 失败 || " + e.getMessage());
+                }
             }
-            // 2. 通用文字识别 (高精度含位置信息版)
-            BaiDuOcrHelper.recognizeAccurate(activity, savePath, new OnResultListener<GeneralResult>() {
-                @Override
-                public void onResult(GeneralResult generalResult) {
-                    Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
-                }
+            // 2. 是否允许百度 OCR
+            if (SharedPreferencesKit.isBaiduOcrEnabled(appCompatActivity)) {
+                // 通用文字识别 (高精度含位置信息版)
+                BaiDuOcrHelper.recognizeAccurate(appCompatActivity, savePath, new OnResultListener<GeneralResult>() {
+                    @Override
+                    public void onResult(GeneralResult generalResult) {
+                        Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 结果\n" + generalResult);
+                    }
 
-                @Override
-                public void onError(OCRError ocrError) {
-                    Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
-                }
-            }, false);
-            // 2. 通用文字识别 (含生僻字版)
-            BaiDuOcrHelper.recognizeGeneralEnhanced(activity, savePath, new OnResultListener<GeneralResult>() {
-                @Override
-                public void onResult(GeneralResult generalResult) {
-                    Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 结果\n" + generalResult);
-                }
+                    @Override
+                    public void onError(OCRError ocrError) {
+                        Log.e(LogKit.TAG, "通用文字识别 (高精度含位置信息版) 错误\n" + ocrError.getMessage());
+                    }
+                }, false);
+                // 通用文字识别 (含生僻字版)
+                BaiDuOcrHelper.recognizeGeneralEnhanced(appCompatActivity, savePath, new OnResultListener<GeneralResult>() {
+                    @Override
+                    public void onResult(GeneralResult generalResult) {
+                        Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 结果\n" + generalResult);
+                    }
 
-                @Override
-                public void onError(OCRError ocrError) {
-                    Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
-                }
-            }, false);
-            // 2. 试卷分析与识别
-            BaiDuOcrHelper.recognizeExampleDoc(activity, savePath, new OnResultListener<OcrResponseResult>() {
-                @Override
-                public void onResult(OcrResponseResult ocrResponseResult) {
-                    Log.e(LogKit.TAG, "试卷分析与识别结果\n" + ocrResponseResult);
-                }
+                    @Override
+                    public void onError(OCRError ocrError) {
+                        Log.e(LogKit.TAG, "通用文字识别 (含生僻字版) 错误\n" + ocrError.getMessage());
+                    }
+                }, false);
+                // 试卷分析与识别
+                BaiDuOcrHelper.recognizeExampleDoc(appCompatActivity, savePath, new OnResultListener<OcrResponseResult>() {
+                    @Override
+                    public void onResult(OcrResponseResult ocrResponseResult) {
+                        Log.e(LogKit.TAG, "试卷分析与识别结果\n" + ocrResponseResult);
+                    }
 
-                @Override
-                public void onError(OCRError ocrError) {
-                    Log.e(LogKit.TAG, "试卷分析与识别错误\n" + ocrError.getMessage());
-                }
-            }, false);
-            // 2. 手写文字识别
-            BaiDuOcrHelper.recoginzeWrittenText(activity, savePath, new OnResultListener<OcrResponseResult>() {
-                @Override
-                public void onResult(OcrResponseResult ocrResponseResult) {
-                    Log.e(LogKit.TAG, "手写文字识别结果\n" + ocrResponseResult);
-                }
+                    @Override
+                    public void onError(OCRError ocrError) {
+                        Log.e(LogKit.TAG, "试卷分析与识别错误\n" + ocrError.getMessage());
+                    }
+                }, false);
+                // 手写文字识别
+                BaiDuOcrHelper.recoginzeWrittenText(appCompatActivity, savePath, new OnResultListener<OcrResponseResult>() {
+                    @Override
+                    public void onResult(OcrResponseResult ocrResponseResult) {
+                        Log.e(LogKit.TAG, "手写文字识别结果\n" + ocrResponseResult);
+                    }
 
-                @Override
-                public void onError(OCRError ocrError) {
-                    Log.e(LogKit.TAG, "手写文字识别错误\n" + ocrError.getMessage());
-                }
-            }, false);
-            // 3. 微信裁剪引擎 - 处理
-            WeChatCropEngine.getInstance(activity).process(activity, savePath, true, new WeChatCropEngine.OnWeChatCropCallback() {
-                @Override
-                public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
+                    @Override
+                    public void onError(OCRError ocrError) {
+                        Log.e(LogKit.TAG, "手写文字识别错误\n" + ocrError.getMessage());
+                    }
+                }, false);
+            }
+            // 3. 是否允许微信裁剪
+            if (SharedPreferencesKit.isWechatCropEnabled(appCompatActivity)) {
+                // 微信裁剪引擎 - 处理
+                WeChatCropEngine.getInstance(appCompatActivity).process(appCompatActivity, savePath, true, new WeChatCropEngine.OnWeChatCropCallback() {
+                    @Override
+                    public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
 
-                }
+                    }
 
-                @Override
-                public void onWeChatCropError(String errorMessage) {
+                    @Override
+                    public void onWeChatCropError(String errorMessage) {
 
-                }
-            });
-            // 4. 图片 ROI 处理器 - 绘制 ROI 到图片文件
-            ImageRoiProcessor.drawRoiToImageFile(activity, savePath, cameraMainFragment.getMultiRoiOverlayView(), false);
+                    }
+                });
+            }
+            // 4. 是否允许 ROI 裁剪
+            if (SharedPreferencesKit.isRoiCropEnabled(appCompatActivity)) {
+                // 图片 ROI 处理器 - 从图片文件裁剪 ROI
+                ImageRoiProcessor.cropRoiFromImageFile(appCompatActivity, savePath, cameraMainFragment.getMultiRoiOverlayView());
+            }
+            // 5. 是否允许 ROI 覆盖
+            if (SharedPreferencesKit.isRoiOverlayEnabled(appCompatActivity)) {
+                // 图片 ROI 处理器 - 绘制 ROI 到图片文件
+                ImageRoiProcessor.drawRoiToImageFile(appCompatActivity, savePath, cameraMainFragment.getMultiRoiOverlayView(), false);
+            }
         });
     }
 
