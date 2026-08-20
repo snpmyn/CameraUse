@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="basic">#4E80F5</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 
     <color name="color_d7dae1">#D7DAE1</color>
-    <color name="color_2f90b9">#2F90B9</color>
-    <color name="color_aa6a4c">#AA6A4C</color>
+    <color name="color_FFEE6002">#EE6002</color>
+    <color name="color_00000000">#00000000</color>
 
     <color name="viewfinder_mask">#60000000</color>
-    <color name="viewfinder_laser">#FF1FB3E2</color>
+    <color name="viewfinder_laser">#1FB3E2</color>
     <color name="viewfinder_frame">#7F1FB3E2</color>
-    <color name="viewfinder_corner">#FF1FB3E2</color>
-    <color name="viewfinder_point">#FF1FB3E2</color>
+    <color name="viewfinder_corner">#1FB3E2</color>
+    <color name="viewfinder_point">#1FB3E2</color>
     <color name="viewfinder_point_stroke">@color/white</color>
-    <color name="viewfinder_label_text">#FFC0C0C0</color>
+    <color name="viewfinder_label_text">#C0C0C0</color>
 </resources>
