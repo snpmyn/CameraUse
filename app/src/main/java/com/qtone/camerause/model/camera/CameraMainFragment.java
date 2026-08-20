@@ -1,6 +1,5 @@
-package com.qtone.camerause.fragment;
+package com.qtone.camerause.model.camera;
 
-import android.graphics.Bitmap;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -11,11 +10,10 @@ import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
-import com.qtone.camerause.fragment.kit.CameraMainFragmentKit;
-import com.qtone.camerause.function.crop.DocumentCropProcessor;
+import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.value.CameraResolution;
-import com.qtone.camerause.widget.ViewFinderView;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
+import com.qtone.camerause.widget.scan.ViewFinderView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -95,6 +93,8 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         rootView.findViewById(R.id.cameraMainFragmentMbScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbStopScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbSwitchResolution).setOnClickListener(this);
+        rootView.findViewById(R.id.cameraMainFragmentMbSetting).setOnClickListener(this);
+        rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
     }
 
     /**
@@ -113,19 +113,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      */
     @Override
     protected void startLogic() {
-        String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";
-        //String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786086059174_0001.jpg";
-        safeRun(activity -> cameraMainFragmentKit.getExamCropProcessor().processByPath(activity, filePath, new DocumentCropProcessor.OnDocumentCropCallback() {
-            @Override
-            public void onDocumentCropSuccess(String croppedPath, Bitmap resultBitmap) {
 
-            }
-
-            @Override
-            public void onDocumentCropError(String errorMsg) {
-
-            }
-        }));
     }
 
     /**
@@ -173,6 +161,12 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         } else if (id == R.id.cameraMainFragmentMbSwitchResolution) {
             // 切换分辨率按钮点击事件
             cameraMainFragmentKit.onSwitchResolutionClicked();
+        } else if (id == R.id.cameraMainFragmentMbSetting) {
+            // 设置按钮点击事件
+            cameraMainFragmentKit.onSettingClicked(v);
+        } else if (id == R.id.cameraMainFragmentMbGallery) {
+            // 图库按钮点击事件
+            cameraMainFragmentKit.onGalleryClicked();
         }
     }
 
