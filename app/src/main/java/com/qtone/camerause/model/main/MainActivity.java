@@ -1,4 +1,4 @@
-package com.qtone.camerause;
+package com.qtone.camerause.model.main;
 
 import android.Manifest;
 import android.content.Intent;
@@ -17,7 +17,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.fragment.CameraMainFragment;
+import com.qtone.camerause.R;
+import com.qtone.camerause.model.camera.CameraMainFragment;
 
 import java.util.ArrayList;
 import java.util.List;
