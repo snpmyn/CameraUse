@@ -6,4 +6,8 @@
     <string name="scanCode">コード読み取り</string>
     <string name="stopScanCode">読み取り停止</string>
     <string name="switchResolution">解像度切り替え</string>
+    <string name="applicationSetting">アプリ設定</string>
+    <string name="setting">設定</string>
+    <string name="gallery">ギャラリー</string>
+    <string name="doNotTriggerScanningRepeatedly">二重読み取りを開始しないでください</string>
 </resources>
