@@ -74,15 +74,18 @@ dependencies {
 
     /*luban*/
     /*implementation 'top.zibin:luban:2.0.1'*/
+    /*mmkv*/
+    implementation 'com.tencent:mmkv:1.2.12'
     /*fragment*/
     implementation 'androidx.fragment:fragment:1.5.7'
     /*timber*/
     implementation 'com.jakewharton.timber:timber:5.0.1'
+    /*preference*/
+    implementation 'androidx.preference:preference:1.2.1'
 
-    /*mmkv*/
-    implementation 'com.tencent:mmkv:1.2.12'
     /*immersionbar*/
     implementation 'com.gyf.immersionbar:immersionbar:3.0.0'
+    
     /*webpdecoder*/
     implementation "com.zlc.glide:webpdecoder:1.6.4.9.0"
     /*glide*/
