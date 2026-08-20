@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:icon="@drawable/ic_control_camera_cos_24dp"
+        app:title="图像处理">
+
+        <!--title - 列表项主标题-->
+        <!--summary - 列表项说明-->
+        <!--key - 用来存储和读取值-->
+        <!--defaultValue - 初始默认值-->
+
+        <!--ROI 覆盖-->
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_layers_cos_24dp"
+            app:key="roi_overlay"
+            app:summary="开启后将在画面上实时显示 ROI 区域"
+            app:title="ROI 覆盖" />
+        <!--ROI 裁剪-->
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_crop_cos_24dp"
+            app:key="roi_crop"
+            app:summary="仅针对感兴趣区域进行图像裁剪处理"
+            app:title="ROI 裁剪" />
+        <!--百度 OCR-->
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_document_scanner_cos_24dp"
+            app:key="baidu_ocr"
+            app:summary="开启后通过百度对文档 OCR 识别"
+            app:title="百度 OCR" />
+        <!--文档裁剪-->
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_crop_cos_24dp"
+            app:key="document_crop"
+            app:summary="自动检测并裁剪文档边缘"
+            app:title="文档裁剪" />
+        <!--微信裁剪-->
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_crop_cos_24dp"
+            app:key="wechat_crop"
+            app:summary="微信裁剪"
+            app:title="微信裁剪" />
+    </PreferenceCategory>
+</PreferenceScreen>
