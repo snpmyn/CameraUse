@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.R;
 import com.qtone.camerause.model.setting.fragment.SettingFragment;
-import com.qtone.camerause.widget.transition.kit.TransitionKit;
 
 /**
  * @decs: 设置页
@@ -17,7 +16,6 @@ import com.qtone.camerause.widget.transition.kit.TransitionKit;
 public class SettingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        TransitionKit.getInstance().endPageSetting(this, 500L);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
         getSupportFragmentManager().beginTransaction().replace(R.id.settingActivityFl, new SettingFragment()).commit();
