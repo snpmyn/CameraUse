@@ -26,12 +26,12 @@
                 android:layout_gravity="center" />
         </FrameLayout>
 
-        <com.qtone.camerause.widget.ViewFinderView
+        <com.qtone.camerause.widget.scan.ViewFinderView
             android:id="@+id/cameraMainFragmentVfv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            app:vvFrameCornerColor="@color/color_aa6a4c"
+            app:vvFrameCornerColor="@color/color_FFEE6002"
             app:vvFrameCornerRadius="@dimen/dp_10"
             app:vvFrameRatio="0.9"
             app:vvLaserStyle="line"
@@ -83,7 +83,7 @@
                     android:insetBottom="@dimen/dp_0"
                     android:text="@string/singleCapture"
                     android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_aa6a4c" />
+                    app:backgroundTint="@color/color_FFEE6002" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/cameraMainFragmentMbBurstCapture"
@@ -98,7 +98,7 @@
                     android:insetBottom="@dimen/dp_0"
                     android:text="@string/burstCapture"
                     android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_aa6a4c" />
+                    app:backgroundTint="@color/color_FFEE6002" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -113,7 +113,7 @@
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/stopBurstCapture"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_aa6a4c" />
+                app:backgroundTint="@color/color_FFEE6002" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbScanCode"
@@ -126,7 +126,7 @@
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/scanCode"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_aa6a4c" />
+                app:backgroundTint="@color/color_FFEE6002" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbStopScanCode"
@@ -140,7 +140,7 @@
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/stopScanCode"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_aa6a4c" />
+                app:backgroundTint="@color/color_FFEE6002" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbSwitchResolution"
@@ -153,7 +153,42 @@
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/switchResolution"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_aa6a4c" />
+                app:backgroundTint="@color/color_FFEE6002" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_10">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cameraMainFragmentMbSetting"
+                    android:layout_width="@dimen/dp_0"
+                    android:layout_height="@dimen/dp_36"
+                    android:layout_weight="1"
+                    android:filterTouchesWhenObscured="true"
+                    android:insetLeft="@dimen/dp_0"
+                    android:insetTop="@dimen/dp_0"
+                    android:insetRight="@dimen/dp_0"
+                    android:insetBottom="@dimen/dp_0"
+                    android:text="@string/setting"
+                    android:textSize="@dimen/sp_10"
+                    app:backgroundTint="@color/color_FFEE6002" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/cameraMainFragmentMbGallery"
+                    android:layout_width="@dimen/dp_0"
+                    android:layout_height="@dimen/dp_36"
+                    android:layout_marginStart="@dimen/dp_10"
+                    android:layout_weight="1"
+                    android:filterTouchesWhenObscured="true"
+                    android:insetLeft="@dimen/dp_0"
+                    android:insetTop="@dimen/dp_0"
+                    android:insetRight="@dimen/dp_0"
+                    android:insetBottom="@dimen/dp_0"
+                    android:text="@string/gallery"
+                    android:textSize="@dimen/sp_10"
+                    app:backgroundTint="@color/color_FFEE6002" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
