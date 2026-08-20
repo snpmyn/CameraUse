@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.base.CameraFragment;
@@ -46,7 +47,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         @Override
         public void onPreviewData(@org.jetbrains.annotations.Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
             // 预览区域动态适配
-            safeRun(activity -> activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, width, height)));
+            safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, width, height)));
             // 实时分发原始数据
             if (data != null) {
                 onPreviewFrame(data, width, height, format);
@@ -208,8 +209,10 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull ICameraStateCallBack.State code, @org.jetbrains.annotations.Nullable String msg) {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
+            // 自动对焦
+            /*setAutoFocus(true);*/
             // 预览区域动态适配
-            safeRun(activity -> activity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(activity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
+            safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
             self.removePreviewDataCallBack(previewDataCallBack);
             // 重新注册预览帧回调
@@ -232,14 +235,14 @@ public abstract class BaseCameraFragment extends CameraFragment {
     /**
      * 安全运行
      *
-     * @param consumer Consumer<Activity>
+     * @param consumer Consumer<AppCompatActivity>
      */
-    public void safeRun(@NonNull Consumer<Activity> consumer) {
+    public void safeRun(@NonNull Consumer<AppCompatActivity> consumer) {
         if (needReturn()) {
             Log.w(LogKit.TAG, "安全运行终止 - Fragment 已解绑或宿主 Activity 状态异常");
             return;
         }
-        consumer.accept(requireActivity());
+        consumer.accept((AppCompatActivity) requireActivity());
     }
 
     /**
