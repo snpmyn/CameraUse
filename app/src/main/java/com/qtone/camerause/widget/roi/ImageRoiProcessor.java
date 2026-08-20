@@ -16,6 +16,7 @@ import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.utils.log.LogKit;
 import com.qtone.camerause.utils.media.MediaScanKit;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class ImageRoiProcessor {
      * @return 从图片文件裁剪 ROI 后路径集
      */
     @SuppressWarnings("UnusedReturnValue")
-    public static List<String> cropRoiFromImageFile(Context context, String imagePath, MultiRoiOverlayView multiRoiOverlayView) {
+    public static @NotNull List<String> cropRoiFromImageFile(Context context, String imagePath, MultiRoiOverlayView multiRoiOverlayView) {
         CenterCropTransform centerCropTransform = calculateMappedRoiRects(imagePath, multiRoiOverlayView);
         if (centerCropTransform == null) {
             return Collections.emptyList();
