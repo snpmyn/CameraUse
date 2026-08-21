@@ -6,6 +6,8 @@
 
     <color name="color_d7dae1">#D7DAE1</color>
     <color name="color_FFEE6002">#EE6002</color>
+    <color name="color_99000000">#99000000</color>
+    <color name="color_DC000000">#CC000000</color>
     <color name="color_00000000">#00000000</color>
 
     <color name="viewfinder_mask">#60000000</color>
