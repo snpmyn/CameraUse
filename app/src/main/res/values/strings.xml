@@ -10,4 +10,7 @@
     <string name="setting">设置</string>
     <string name="gallery">图库</string>
     <string name="doNotTriggerScanningRepeatedly">勿重复开启扫码</string>
+    <string name="mediaImage">媒体图片</string>
+    <string name="mediaImageGroup">媒体图片组</string>
+    <string name="fullScreen">全屏</string>
 </resources>
