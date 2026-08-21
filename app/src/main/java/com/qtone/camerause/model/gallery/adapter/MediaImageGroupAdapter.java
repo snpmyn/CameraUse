@@ -45,7 +45,7 @@ public class MediaImageGroupAdapter extends RecyclerView.Adapter<MediaImageGroup
     /**
      * 文件夹条目集
      */
-    private final List<MediaScanner.FolderItem> folderItemList = new ArrayList<>();
+    private List<MediaScanner.FolderItem> folderItemList;
     /**
      * RecyclerView 条目短点监听
      */
@@ -70,8 +70,12 @@ public class MediaImageGroupAdapter extends RecyclerView.Adapter<MediaImageGroup
      * @param folderItemList 文件夹条目集
      */
     public void submitData(List<MediaScanner.FolderItem> folderItemList) {
-        this.folderItemList.clear();
-        if (folderItemList != null) {
+        if (this.folderItemList == null) {
+            this.folderItemList = new ArrayList<>();
+        } else {
+            this.folderItemList.clear();
+        }
+        if (ListUtils.listIsNotEmpty(folderItemList)) {
             this.folderItemList.addAll(folderItemList);
         }
         notifyDataSetChanged();
@@ -110,7 +114,7 @@ public class MediaImageGroupAdapter extends RecyclerView.Adapter<MediaImageGroup
 
     @Override
     public int getItemCount() {
-        return folderItemList.size();
+        return ListUtils.listIsNotEmpty(folderItemList) ? folderItemList.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
