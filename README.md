@@ -44,12 +44,9 @@
 
 ### PreviewImageView
 
-* 适用
-
+#### 适用
 拍摄完成 (拍照或停止录像) 后，在界面角落展示刚生成的照片或视频封面缩略图。
-
-* 特点
-
+#### 特点
 继承自 ImageView，支持圆角裁剪、内置加载假进度边框环 (drawBorderProgress) 和生成完毕时的呼吸缩放动画 (showBreathAnimation)。 
 
 ## 交互控制与 UI 提示控件
