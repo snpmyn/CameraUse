@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/mediaImageDetailItemFl"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_0"
+        android:layout_weight="1"
+        tools:ignore="InefficientWeight">
+
+        <ImageView
+            android:id="@+id/mediaImageDetailItemIv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/mediaImage" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/mediaImageDetailItemAcibFullScreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_margin="@dimen/dp_8"
+            android:background="@drawable/ripple_oval"
+            android:contentDescription="@string/fullScreen"
+            android:src="@drawable/ic_layers_cos_24dp"
+            app:tint="@color/color_FFEE6002" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/mediaImageDetailItemTvName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_6"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+        tools:text="名称" />
+</LinearLayout>
