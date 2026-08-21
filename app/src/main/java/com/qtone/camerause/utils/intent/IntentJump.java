@@ -12,6 +12,7 @@ import androidx.core.app.ActivityOptionsCompat;
  * @author zsp
  * @desc 意图跳转
  */
+@SuppressWarnings("unused")
 public class IntentJump {
     public static IntentJump getInstance() {
         return InstanceHolder.INSTANCE;
