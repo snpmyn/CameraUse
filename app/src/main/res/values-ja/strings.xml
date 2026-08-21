@@ -3,14 +3,20 @@
     <string name="singleCapture">単写</string>
     <string name="burstCapture">連写</string>
     <string name="stopBurstCapture">連写停止</string>
-    <string name="scanCode">コード読み取り</string>
-    <string name="stopScanCode">読み取り停止</string>
+    <string name="scanCode">QRスキャン</string>
+    <string name="stopScanCode">スキャン停止</string>
     <string name="switchResolution">解像度切替</string>
-    <string name="applicationSetting">アプリ设置</string>
+    <string name="applicationSetting">アプリ設定</string>
     <string name="setting">設定</string>
     <string name="gallery">ギャラリー</string>
     <string name="doNotTriggerScanningRepeatedly">連続スキャン不可</string>
-    <string name="mediaImageGroup">メディア画像グループ</string>
-    <string name="mediaImageDetail">メディア画像の詳細</string>
+    <string name="mediaImageGroup">アルバム</string>
+    <string name="mediaImageDetail">画像詳細</string>
     <string name="fullScreen">全画面</string>
+    <string name="close">閉じる</string>
+    <string name="shrink">縮小</string>
+    <string name="enlarge">拡大</string>
+    <string name="turnLeft">左回転</string>
+    <string name="turnRight">右回転</string>
+    <string name="loadImageFail">読み込み失敗</string>
 </resources>
