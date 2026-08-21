@@ -210,7 +210,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
             // 自动对焦
-            /*setAutoFocus(true);*/
+            setAutoFocus(true);
             // 预览区域动态适配
             safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
