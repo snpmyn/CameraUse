@@ -46,7 +46,7 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
     /**
      * 图片条目
      */
-    private final List<MediaScanner.ImageItem> imageItemList = new ArrayList<>();
+    private List<MediaScanner.ImageItem> imageItemList;
     /**
      * RecyclerView 条目内部短点监听
      */
@@ -71,7 +71,11 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
      * @param folderItem 文件夹条目
      */
     public void submitData(MediaScanner.@NotNull FolderItem folderItem) {
-        this.imageItemList.clear();
+        if (this.imageItemList == null) {
+            this.imageItemList = new ArrayList<>();
+        } else {
+            this.imageItemList.clear();
+        }
         List<MediaScanner.ImageItem> imageItemList = folderItem.imageItemList;
         if (ListUtils.listIsNotEmpty(imageItemList)) {
             this.imageItemList.addAll(imageItemList);
@@ -108,7 +112,7 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
 
     @Override
     public int getItemCount() {
-        return imageItemList.size();
+        return ListUtils.listIsNotEmpty(imageItemList) ? imageItemList.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
