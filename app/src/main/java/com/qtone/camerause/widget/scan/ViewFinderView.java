@@ -1,5 +1,6 @@
-package com.qtone.camerause.widget;
+package com.qtone.camerause.widget.scan;
 
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -27,6 +28,7 @@ import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
@@ -118,10 +120,6 @@ public class ViewFinderView extends View {
      * 扫描线开始位置
      */
     private float scannerStart;
-    /**
-     * 扫描线结束位置
-     */
-    private float scannerEnd;
     /**
      * 扫描框宽
      */
@@ -261,6 +259,14 @@ public class ViewFinderView extends View {
     private int minDimension;
     private OnItemClickListener onItemClickListener;
     private GestureDetector gestureDetector;
+    /**
+     * 扫描平移动画器
+     */
+    private ValueAnimator scannerAnimator;
+    /**
+     * 是否等待 frame 初始化完成后自动启动动画
+     */
+    private boolean isPendingStart = false;
 
     /**
      * constructor
@@ -297,7 +303,7 @@ public class ViewFinderView extends View {
      * 处理颜色模糊
      */
     private static int shadeColor(@ColorInt int color) {
-        return (color & 0x00FFFFFF) | 0x01000000;
+        return ((color & 0x00FFFFFF) | 0x01000000);
     }
 
     /**
@@ -463,6 +469,11 @@ public class ViewFinderView extends View {
                 break;
         }
         frame = new RectF(leftOffsets, topOffsets, leftOffsets + frameWidth, topOffsets + frameHeight);
+        // 如果之前外部调用 showScanner() 挂起
+        // 在 frame 尺寸计算完成后自动补偿启动动画
+        if (isPendingStart) {
+            showScanner();
+        }
     }
 
     @Override
@@ -481,10 +492,8 @@ public class ViewFinderView extends View {
         if (frame == null) {
             return;
         }
-        if (scannerStart == 0f) {
-            scannerStart = frame.top;
-        }
-        scannerEnd = (frame.bottom - laserLineHeight);
+        // 扫描线结束位置
+        float scannerEnd = (frame.bottom - laserLineHeight);
         // CLASSIC 样式
         // 经典样式 (带扫描框)
         if (viewfinderStyle == ViewfinderStyle.CLASSIC) {
@@ -496,14 +505,6 @@ public class ViewFinderView extends View {
             drawFrame(canvas, frame);
             // 绘制提示信息
             drawTextInfo(canvas, frame);
-            if (fullRefresh) {
-                // 完全刷新
-                postInvalidateDelayed(laserAnimationIntervalMs);
-            } else {
-                // 局部刷新
-                // 更高效
-                postInvalidateDelayed(laserAnimationIntervalMs, (int) frame.left, (int) frame.top, (int) frame.right, (int) frame.bottom);
-            }
         } else if (viewfinderStyle == ViewfinderStyle.POPULAR) {
             // POPULAR 样式
             // 类似于新版的微信全屏扫描 (无扫描框)
@@ -511,7 +512,6 @@ public class ViewFinderView extends View {
             drawLaserScanner(canvas, frame);
             // 绘制提示信息
             drawTextInfo(canvas, frame);
-            postInvalidateDelayed(laserAnimationIntervalMs);
         }
     }
 
@@ -654,13 +654,7 @@ public class ViewFinderView extends View {
                 drawImageScanner(canvas, frame);
                 break;
         }
-        // 更新扫描位置
-        if (scannerStart < scannerEnd) {
-            scannerStart += laserMovementSpeed;
-        } else {
-            scannerStart = frame.top;
-        }
-        // 清除shader
+        // 清除 shader
         paint.setShader(null);
     }
 
@@ -840,7 +834,7 @@ public class ViewFinderView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         gestureDetector.onTouchEvent(event);
-        return isShowPoints || super.onTouchEvent(event);
+        return (isShowPoints || super.onTouchEvent(event));
     }
 
     private boolean checkSingleTap(float x, float y) {
@@ -876,11 +870,52 @@ public class ViewFinderView extends View {
     }
 
     /**
-     * 显示扫描动画
+     * 显示扫描
      */
     public void showScanner() {
         isShowPoints = false;
-        invalidate();
+        isPendingStart = true;
+        stopScannerAnimator();
+        if (frame == null) {
+            invalidate();
+            return;
+        }
+        isPendingStart = false;
+        scannerAnimator = ValueAnimator.ofFloat(frame.top, frame.bottom - laserLineHeight);
+        scannerAnimator.setDuration(2000);
+        scannerAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        scannerAnimator.setRepeatMode(ValueAnimator.RESTART);
+        scannerAnimator.setInterpolator(new LinearInterpolator());
+        scannerAnimator.addUpdateListener(animation -> {
+            scannerStart = (float) animation.getAnimatedValue();
+            invalidate();
+        });
+        scannerAnimator.start();
+    }
+
+    /**
+     * 停止扫描
+     */
+    public void stopScanner() {
+        isPendingStart = false;
+        stopScannerAnimator();
+        removeCallbacks(null);
+    }
+
+    /**
+     * 停止扫描动画器
+     */
+    private void stopScannerAnimator() {
+        if (scannerAnimator != null) {
+            scannerAnimator.cancel();
+            scannerAnimator = null;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopScanner();
     }
 
     /**
@@ -1294,7 +1329,7 @@ public class ViewFinderView extends View {
     /**
      * 设置扫描框的与视图宽的占比
      * <p>
-     * 默认 0.625
+     * 默认 0.625f
      *
      * @param frameRatio 扫描框的与视图宽的占比
      */
@@ -1390,7 +1425,7 @@ public class ViewFinderView extends View {
     /**
      * 设置显示结果点动画的缩放速度
      * <p>
-     * 默认 0.02 / {@link  #laserAnimationIntervalMs}
+     * 默认 0.02f / {@link  #laserAnimationIntervalMs}
      *
      * @param zoomSpeed 显示结果点动画的缩放速度
      */
@@ -1419,7 +1454,7 @@ public class ViewFinderView extends View {
     /**
      * 设置扫描线位图的宽度比例
      * <p>
-     * 默认 0.625
+     * 默认 0.625f
      * 此方法会改变 {@link #laserBitmapWidth}
      *
      * @param laserBitmapRatio 扫描线位图的宽度比例
@@ -1471,7 +1506,7 @@ public class ViewFinderView extends View {
             if (frame != null) {
                 scannerStart = frame.top;
             }
-            // postInvalidate() 内部实现本身就是判断 “当前是不是主线程”
+            // postInvalidate() 内部实现本身就是判断当前是不是主线程
             // 是主线程 -> 内部会顺畅地触发重绘
             // 是子线程 -> 会通过 Handler 切到主线程刷新
             postInvalidate();
