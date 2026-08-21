@@ -11,8 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.integration.webp.decoder.WebpDrawable
-import com.bumptech.glide.integration.webp.decoder.WebpDrawableTransformation
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.GlideException
@@ -24,6 +22,7 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.qtone.camerause.R
+import java.util.*
 
 /**
  * Glide 加载器
@@ -48,7 +47,6 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     override fun load(imageView: ImageView, url: String?, placeHolder: Int) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
         requestManager!!.load(url).optionalTransform(centerCrop)
-            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
             .placeholder(placeHolder)
             .into(imageView)
     }
@@ -56,7 +54,6 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     override fun load(imageView: ImageView, url: String?) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
         requestManager!!.load(url).optionalTransform(centerCrop)
-            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
             .placeholder(R.drawable.color_d7dae1_solid)
             .into(imageView)
     }
@@ -64,7 +61,6 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     override fun load(imageView: ImageView, resId: Int) {
         val centerCrop: Transformation<Bitmap> = CenterCrop()
         requestManager!!.load(resId).optionalTransform(centerCrop)
-            .optionalTransform(WebpDrawable::class.java, WebpDrawableTransformation(centerCrop))
             .placeholder(R.drawable.color_d7dae1_solid)
             .into(imageView)
     }
@@ -75,12 +71,11 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
         placeHolder: Int,
         bitmapTransformation: BitmapTransformation?
     ) {
-        requestManager!!.load(url).optionalTransform(bitmapTransformation!!)
-            .optionalTransform(
-                WebpDrawable::class.java,
-                WebpDrawableTransformation(bitmapTransformation)
-            )
-            .placeholder(placeHolder).into(imageView)
+        var request = requestManager!!.load(url)
+        if (bitmapTransformation != null) {
+            request = request.optionalTransform(bitmapTransformation)
+        }
+        request.placeholder(placeHolder).into(imageView)
     }
 
     @SuppressLint("CheckResult")
@@ -199,5 +194,18 @@ class GlideLoader<T>(target: T) : ILoader<ImageView> {
     private fun dp2px(context: Context, dpValue: Float): Int {
         val scale: Float = context.resources.displayMetrics.density
         return (dpValue * scale + 0.5f).toInt()
+    }
+
+    companion object {
+        // 使用弱引用 HashMap 缓存，组件销毁时 Key 自动被垃圾回收，解决重复创建且绝不泄露。
+        private val loaderCache = WeakHashMap<Any, GlideLoader<*>>()
+
+        @JvmStatic
+        fun <T : Any> with(target: T): GlideLoader<T> {
+            @Suppress("UNCHECKED_CAST")
+            return loaderCache.getOrPut(target) {
+                GlideLoader(target)
+            } as GlideLoader<T>
+        }
     }
 }
