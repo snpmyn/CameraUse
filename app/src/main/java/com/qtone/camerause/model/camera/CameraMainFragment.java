@@ -113,7 +113,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      */
     @Override
     protected void startLogic() {
-
+        /*String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";*/
     }
 
     /**
@@ -163,7 +163,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             cameraMainFragmentKit.onSwitchResolutionClicked();
         } else if (id == R.id.cameraMainFragmentMbSetting) {
             // 设置按钮点击事件
-            cameraMainFragmentKit.onSettingClicked(v);
+            cameraMainFragmentKit.onSettingClicked();
         } else if (id == R.id.cameraMainFragmentMbGallery) {
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
