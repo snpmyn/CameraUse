@@ -10,7 +10,7 @@
     <string name="setting">設定</string>
     <string name="gallery">ギャラリー</string>
     <string name="doNotTriggerScanningRepeatedly">連続スキャン不可</string>
-    <string name="mediaImage">メディア画像</string>
     <string name="mediaImageGroup">メディア画像グループ</string>
+    <string name="mediaImageDetail">メディア画像の詳細</string>
     <string name="fullScreen">全画面</string>
 </resources>
