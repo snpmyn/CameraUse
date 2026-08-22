@@ -20,8 +20,8 @@ import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.utils.camera.CameraAspectRatioKit;
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.camera.CameraAspectRatioKit;
+import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
