@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.list;
+package com.qtone.camerause.util.list;
 
 import android.content.Context;
 import android.text.TextUtils;
