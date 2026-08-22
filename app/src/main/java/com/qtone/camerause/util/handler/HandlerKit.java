@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.handler;
+package com.qtone.camerause.util.handler;
 
 import android.os.Handler;
 import android.os.Looper;
