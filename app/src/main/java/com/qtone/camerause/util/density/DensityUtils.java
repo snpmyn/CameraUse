@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.density;
+package com.qtone.camerause.util.density;
 
 import android.content.Context;
 import android.content.res.Resources;
