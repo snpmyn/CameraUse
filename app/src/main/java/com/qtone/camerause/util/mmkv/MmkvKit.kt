@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.mmkv
+package com.qtone.camerause.util.mmkv
 
 import android.content.Context
 import android.os.Parcelable
