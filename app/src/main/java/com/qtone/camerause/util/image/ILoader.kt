@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.image
+package com.qtone.camerause.util.image
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable

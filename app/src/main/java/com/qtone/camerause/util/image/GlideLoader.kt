@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.image
+package com.qtone.camerause.util.image
 
 import android.annotation.SuppressLint
 import android.app.Activity
