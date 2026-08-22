@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.log;
+package com.qtone.camerause.util.log;
 
 /**
  * Created on 2026/8/7.
@@ -11,6 +11,8 @@ public class LogKit {
 
     /**
      * constructor
+     * <p>
+     * 私有构造函数 + 防止实例化
      */
     private LogKit() {
 
