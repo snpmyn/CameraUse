@@ -1,6 +1,10 @@
 package com.qtone.camerause.application;
 
+import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
@@ -8,8 +12,10 @@ import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
 import com.qtone.camerause.function.storage.MediaStorageConfig;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.mmkv.MmkvKit;
+import com.qtone.camerause.util.activity.ActivitySuperviseManager;
+import com.qtone.camerause.util.app.AppListener;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.mmkv.MmkvKit;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -23,8 +29,12 @@ public class App extends BaseApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        // 全局监听 Activity 生命周期
+        registerActivityListener();
         // 初始化 MMKV
         MmkvKit.INSTANCE.init(this);
+        // 应用监听
+        AppListener.getInstance().initConfiguration(this);
         // 初始化媒体存储配置
         MediaStorageConfig.getInstance().init(this, "CU");
         // 初始化 OpenCV
@@ -45,5 +55,49 @@ public class App extends BaseApplication {
                 Log.d(LogKit.TAG, "百度 OCR 初始化错误 || " + ocrError.getMessage());
             }
         }, this);
+    }
+
+    /**
+     * Activity 全局监听
+     */
+    private void registerActivityListener() {
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+                // 添监听到创事件 Activity 至集合
+                ActivitySuperviseManager.getInstance().pushActivity(activity);
+            }
+
+            @Override
+            public void onActivityStarted(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityResumed(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityPaused(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivityStopped(@NonNull Activity activity) {
+
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle bundle) {
+
+            }
+
+            @Override
+            public void onActivityDestroyed(@NonNull Activity activity) {
+                // 移监听到销事件 Activity 出集合
+                ActivitySuperviseManager.getInstance().removeActivity(activity);
+            }
+        });
     }
 }
