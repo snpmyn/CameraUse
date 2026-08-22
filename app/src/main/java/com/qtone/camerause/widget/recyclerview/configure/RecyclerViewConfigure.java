@@ -5,7 +5,7 @@ import android.content.Context;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qtone.camerause.utils.density.DensityUtils;
+import com.qtone.camerause.util.density.DensityUtils;
 import com.qtone.camerause.widget.recyclerview.decoration.GridLayoutSpaceItemDecoration;
 import com.qtone.camerause.widget.recyclerview.decoration.LinearLayoutHorizontalSpaceItemDecoration;
 import com.qtone.camerause.widget.recyclerview.decoration.LinearLayoutVerticalSpaceItemDecoration;
