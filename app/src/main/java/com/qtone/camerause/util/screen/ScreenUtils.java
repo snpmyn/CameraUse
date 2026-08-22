@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.screen;
+package com.qtone.camerause.util.screen;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
