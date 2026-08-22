@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.camera;
+package com.qtone.camerause.util.camera;
 
 import android.app.Activity;
 import android.util.Log;
@@ -6,8 +6,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.mmkv.MmkvKit;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.mmkv.MmkvKit;
 import com.qtone.camerause.value.MmkvConstant;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
