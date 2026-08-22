@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.intent;
+package com.qtone.camerause.util.intent;
 
 import android.app.Activity;
 import android.content.Context;

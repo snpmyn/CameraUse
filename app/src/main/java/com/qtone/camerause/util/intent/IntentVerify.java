@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.intent;
+package com.qtone.camerause.util.intent;
 
 import android.content.Intent;
 import android.os.Parcelable;
