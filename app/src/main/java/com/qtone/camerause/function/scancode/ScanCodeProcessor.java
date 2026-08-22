@@ -8,7 +8,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
