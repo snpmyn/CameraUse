@@ -1,9 +1,7 @@
 package com.qtone.camerause.util.activity;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Application;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 
@@ -11,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.util.list.ListUtils;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -19,8 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import timber.log.Timber;
-
-import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * Created on 2017/9/19.
@@ -77,14 +72,12 @@ public class ActivitySuperviseManager {
      * info.topActivity.getPackageName() 包名
      * info.topActivity.getClass() 类实例
      *
-     * @param context 上下文
      * @return 当前 Activity 名
      */
-    public String getCurrentRunningActivityName(@NotNull Context context) {
-        ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(ACTIVITY_SERVICE);
-        ActivityManager.RunningTaskInfo runningTaskInfo = ((null != activityManager) ? activityManager.getRunningTasks(1).get(0) : null);
-        String currentRunningActivityName = ((null != runningTaskInfo) && (null != runningTaskInfo.topActivity)) ? runningTaskInfo.topActivity.getShortClassName() : null;
-        Timber.d("当前活动名 - %s", currentRunningActivityName);
+    public String getCurrentRunningActivityName() {
+        Activity topActivityInstance = getTopActivityInstance();
+        String currentRunningActivityName = (null != topActivityInstance) ? topActivityInstance.getClass().getSimpleName() : null;
+        Timber.d("当前活动名 - %s", String.valueOf(currentRunningActivityName));
         return currentRunningActivityName;
     }
 
