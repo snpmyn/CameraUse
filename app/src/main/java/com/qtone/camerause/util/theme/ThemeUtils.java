@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.theme;
+package com.qtone.camerause.util.theme;
 
 import android.content.Context;
 import android.content.res.TypedArray;
