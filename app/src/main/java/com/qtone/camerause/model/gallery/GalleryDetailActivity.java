@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.function.media.MediaScanner;
 import com.qtone.camerause.model.gallery.kit.GalleryDetailActivityKit;
-import com.qtone.camerause.utils.intent.IntentVerify;
+import com.qtone.camerause.util.intent.IntentVerify;
 import com.qtone.camerause.value.IntentConstant;
 
 /**
