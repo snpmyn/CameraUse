@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.media;
+package com.qtone.camerause.util.media;
 
 import android.content.Context;
 import android.media.MediaScannerConnection;
@@ -6,7 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 /**
  * Created on 2026/8/18.
