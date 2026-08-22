@@ -1,4 +1,4 @@
-package com.qtone.camerause.utils.view;
+package com.qtone.camerause.util.view;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -10,8 +10,8 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.qtone.camerause.utils.handler.HandlerKit;
-import com.qtone.camerause.utils.theme.ThemeUtils;
+import com.qtone.camerause.util.handler.HandlerKit;
+import com.qtone.camerause.util.theme.ThemeUtils;
 
 import org.jetbrains.annotations.NotNull;
 
