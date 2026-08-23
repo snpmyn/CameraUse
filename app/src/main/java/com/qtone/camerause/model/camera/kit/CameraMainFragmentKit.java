@@ -234,6 +234,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         documentCropProcessor.release();
         // 扫码处理器
         scanCodeProcessor.release();
+        // 微信裁剪引擎
+        WeChatCropEngine.getInstance(cameraMainFragment.getContext()).release();
         // MultiRoiOverlayView
         cameraMainFragment.getMultiRoiOverlayView().clearAllRoi();
     }
