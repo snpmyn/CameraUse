@@ -1,11 +1,9 @@
 package com.qtone.camerause.model.gallery;
 
-import android.os.Bundle;
+import androidx.viewbinding.ViewBinding;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.qtone.camerause.R;
+import com.qtone.camerause.base.BasePoolActivity;
+import com.qtone.camerause.databinding.ActivityGalleryBinding;
 import com.qtone.camerause.model.gallery.kit.GalleryActivityKit;
 
 /**
@@ -14,15 +12,60 @@ import com.qtone.camerause.model.gallery.kit.GalleryActivityKit;
  * @date: 2026/8/20 19:11
  * @version: v 1.0
  */
-public class GalleryActivity extends AppCompatActivity {
+public class GalleryActivity extends BasePoolActivity {
+    /**
+     * ActivityGalleryBinding
+     */
+    private ActivityGalleryBinding activityGalleryBinding;
+
+    /**
+     * ViewBinding
+     * <p>
+     * Java 动态绑定
+     * Java 运行时多态
+     * Java 动态分派机制
+     * <p>
+     * 如果子类重写 viewBinding()
+     * 那么 onCreate() 中调用时会优先执行子类的方法
+     *
+     * @return ViewBinding
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gallery);
-        // RecyclerView
-        RecyclerView recyclerView = findViewById(R.id.galleryActivityRv);
-        // 图库页配套原件
+    protected ViewBinding viewBinding() {
+        activityGalleryBinding = ActivityGalleryBinding.inflate(getLayoutInflater());
+        return activityGalleryBinding;
+    }
+
+    /**
+     * 初始控件
+     */
+    @Override
+    protected void stepUi() {
+
+    }
+
+    /**
+     * 初始配置
+     */
+    @Override
+    protected void initConfiguration() {
+
+    }
+
+    /**
+     * 设置监听
+     */
+    @Override
+    protected void setListener() {
+
+    }
+
+    /**
+     * 开始逻辑
+     */
+    @Override
+    protected void startLogic() {
         GalleryActivityKit galleryActivityKit = new GalleryActivityKit();
-        galleryActivityKit.execute(this, recyclerView, 3, 12, 48);
+        galleryActivityKit.execute(this, activityGalleryBinding.galleryActivityRv, 3, 12, 48);
     }
 }
