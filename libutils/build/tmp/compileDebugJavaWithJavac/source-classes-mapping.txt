@@ -1,0 +1,2 @@
+com/jiangdg/utils/BuildConfig.java
+ com.jiangdg.utils.BuildConfig
