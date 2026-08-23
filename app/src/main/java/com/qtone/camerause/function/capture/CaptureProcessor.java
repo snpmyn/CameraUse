@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 /**
  * @decs: 拍照处理器
