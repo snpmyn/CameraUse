@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.qtone.camerause.function.storage.MediaStorageConfig;
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
