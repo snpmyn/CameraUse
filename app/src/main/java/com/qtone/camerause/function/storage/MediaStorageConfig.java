@@ -5,7 +5,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import java.io.File;
 
