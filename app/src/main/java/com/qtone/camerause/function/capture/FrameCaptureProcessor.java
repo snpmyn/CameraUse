@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
@@ -170,7 +171,7 @@ public class FrameCaptureProcessor {
             // 连拍
             // 依据 [上一次成功捕获预览帧的时间戳 + 最小拍照时间间隔] 控制频率
             if (isBurstActive.get()) {
-                long currentTime = System.currentTimeMillis();
+                long currentTime = SystemClock.elapsedRealtime();
                 if ((currentTime - lastCaptureTimestamp) >= burstIntervalMs) {
                     lastCaptureTimestamp = currentTime;
                     shouldCapture = true;
@@ -178,7 +179,7 @@ public class FrameCaptureProcessor {
             }
         }
         if (shouldCapture) {
-            Log.d(LogKit.TAG, "捕获帧成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+            Log.d(LogKit.TAG, "帧捕获成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
             String savePath = CaptureHelper.generateSavePath(handler, onCaptureCallBack);
             if (savePath == null) {
                 return;
