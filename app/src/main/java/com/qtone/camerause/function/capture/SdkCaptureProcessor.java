@@ -7,8 +7,8 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.ICaptureCallBack;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.media.MediaScanKit;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.media.MediaScanKit;
 
 import org.jetbrains.annotations.Nullable;
 
