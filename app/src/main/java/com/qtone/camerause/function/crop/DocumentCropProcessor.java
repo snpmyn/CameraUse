@@ -9,8 +9,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.qtone.camerause.function.storage.MediaStorageConfig;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.media.MediaScanKit;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.media.MediaScanKit;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,8 @@ public class DocumentCropProcessor {
                 notifyError(onDocumentCropCallback, "加载原图失败");
                 return;
             }
-            processMatAsync(context, srcMat, "已拍照片", onDocumentCropCallback);
+            String fileName = new File(path).getName();
+            processMatAsync(context, srcMat, "已拍照片", fileName, onDocumentCropCallback);
         });
     }
 
@@ -84,7 +85,7 @@ public class DocumentCropProcessor {
             Mat bgrMat = new Mat();
             Imgproc.cvtColor(yuvMat, bgrMat, Imgproc.COLOR_YUV2BGR_NV21);
             yuvMat.release();
-            processMatAsync(context, bgrMat, "原始数据", onDocumentCropCallback);
+            processMatAsync(context, bgrMat, "原始数据", null, onDocumentCropCallback);
         });
     }
 
@@ -94,9 +95,10 @@ public class DocumentCropProcessor {
      * @param context                上下文
      * @param inputMat               输入 Mat 矩阵
      * @param logTagSource           日志来源标识
+     * @param originalFileName       原始文件名
      * @param onDocumentCropCallback 文档裁剪回调
      */
-    private void processMatAsync(@NonNull Context context, Mat inputMat, String logTagSource, OnDocumentCropCallback onDocumentCropCallback) {
+    private void processMatAsync(@NonNull Context context, Mat inputMat, String logTagSource, String originalFileName, OnDocumentCropCallback onDocumentCropCallback) {
         Mat croppedMat = cropPaperBody(inputMat);
         inputMat.release();
         if ((croppedMat == null) || croppedMat.empty()) {
@@ -115,7 +117,17 @@ public class DocumentCropProcessor {
             notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
             return;
         }
-        String outputPath = new File(mediaDir, "CROP_" + System.currentTimeMillis() + ".jpg").getAbsolutePath();
+        String targetNameBody;
+        if ((originalFileName != null) && !originalFileName.isEmpty()) {
+            // 剥离扩展名
+            int dotIndex = originalFileName.lastIndexOf('.');
+            String nameWithoutExt = (dotIndex > 0) ? originalFileName.substring(0, dotIndex) : originalFileName;
+            // 去除 IMG_ 或 IMG（不区分大小写）
+            targetNameBody = nameWithoutExt.replaceAll("(?i)IMG_?", "");
+        } else {
+            targetNameBody = String.valueOf(System.currentTimeMillis());
+        }
+        String outputPath = new File(mediaDir, "DOC_CROP_" + targetNameBody + ".jpg").getAbsolutePath();
         boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
         Bitmap resultBitmap = matToBitmap(croppedMat);
         croppedMat.release();
