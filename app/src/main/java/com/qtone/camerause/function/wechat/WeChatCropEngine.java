@@ -7,8 +7,8 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.qtone.camerause.function.storage.MediaStorageConfig;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.media.MediaScanKit;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.media.MediaScanKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
