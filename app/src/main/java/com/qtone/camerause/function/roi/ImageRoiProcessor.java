@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.roi;
+package com.qtone.camerause.function.roi;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,8 +13,10 @@ import android.util.Log;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.qtone.camerause.function.storage.MediaStorageConfig;
+import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
+import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/18.
@@ -33,6 +37,13 @@ import java.util.List;
  * @desc 图片 ROI 处理器
  */
 public class ImageRoiProcessor {
+    /**
+     * 时间戳及序号正则表达式
+     * <p>
+     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
+     */
+    private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
+
     /**
      * 从图片文件裁剪 ROI
      *
@@ -57,27 +68,10 @@ public class ImageRoiProcessor {
             }
         }
         List<String> croppedPaths = new ArrayList<>();
-        // 解析原图文件名
-        // 用于生成对应规则的 ROI 裁剪文件名
+        // 从源文件名中提取时间戳及序号
+        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
         String srcFileName = new File(imagePath).getName();
-        String fileSuffix;
-        String extension = ".jpg";
-        int dotIndex = srcFileName.lastIndexOf(".");
-        if (dotIndex != -1) {
-            extension = srcFileName.substring(dotIndex);
-            String nameWithoutExt = srcFileName.substring(0, dotIndex);
-            if (nameWithoutExt.startsWith("IMG_")) {
-                fileSuffix = nameWithoutExt.substring(4);
-            } else {
-                fileSuffix = nameWithoutExt;
-            }
-        } else {
-            if (srcFileName.startsWith("IMG_")) {
-                fileSuffix = srcFileName.substring(4);
-            } else {
-                fileSuffix = srcFileName;
-            }
-        }
+        String timeAndIndexKey = extractTimestampAndIndex(srcFileName);
         try {
             // 遍历各个 ROI 区域并执行裁剪
             for (int i = 0; i < mappedRects.size(); i++) {
@@ -96,7 +90,8 @@ public class ImageRoiProcessor {
                 // 创建裁剪子图 Bitmap
                 Bitmap croppedBitmap = Bitmap.createBitmap(srcBitmap, cropLeft, cropTop, cropWidth, cropHeight);
                 // 生成输出文件路径
-                String fileName = "ROI_CROP_" + fileSuffix + "_" + (i + 1) + extension;
+                // ROI_CROP_源文件时间戳及序号_ROI 索引.jpg
+                String fileName = "ROI_CROP_" + timeAndIndexKey + "_" + (i + 1) + ".jpg";
                 String outputPath;
                 if (mediaDir != null) {
                     outputPath = new File(mediaDir, fileName).getAbsolutePath();
@@ -176,7 +171,6 @@ public class ImageRoiProcessor {
             String label = ("#" + (i + 1));
             float textX = (targetRect.left + strokeWidth + 8f);
             // 结合线宽与 FontMetrics Ascent 绝对值计算基线 Y 坐标
-            // 确保文字绘制在矩形框内上方
             float textBaseLineY = (targetRect.top + (strokeWidth / 2f) + Math.abs(fontMetrics.ascent));
             canvas.drawText(label, textX, textBaseLineY, textPaint);
         }
@@ -192,25 +186,14 @@ public class ImageRoiProcessor {
                     Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败");
                 }
             }
-            // 解析原图文件名
-            // 用于生成对应规则的 ROI 叠加文件名
+            // 从源文件名中提取时间戳及序号
+            // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
             String srcFileName = new File(imagePath).getName();
-            String overlayFileName;
-            if (srcFileName.startsWith("IMG_")) {
-                overlayFileName = "ROI_OVERLAY_" + srcFileName.substring(4);
-            } else {
-                int dotIndex = srcFileName.lastIndexOf(".");
-                if (dotIndex != -1) {
-                    overlayFileName = "ROI_OVERLAY_" + srcFileName.substring(0, dotIndex) + srcFileName.substring(dotIndex);
-                } else {
-                    overlayFileName = "ROI_OVERLAY_" + srcFileName + ".jpg";
-                }
-            }
+            String timeAndIndexKey = extractTimestampAndIndex(srcFileName);
+            String overlayFileName = "ROI_OVERLAY_" + timeAndIndexKey + ".jpg";
             if (mediaDir != null) {
                 outputPath = new File(mediaDir, overlayFileName).getAbsolutePath();
             } else {
-                // 兜底退化方案
-                // 统一目录为空则退化为原始目录追加后缀模式
                 outputPath = new File(new File(imagePath).getParent(), overlayFileName).getAbsolutePath();
             }
         }
@@ -225,7 +208,6 @@ public class ImageRoiProcessor {
             return imagePath;
         } finally {
             // 显式回收 Bitmap 内存资源
-            // 防止内存泄漏或 OOM
             if (!srcBitmap.isRecycled()) {
                 srcBitmap.recycle();
             }
@@ -234,6 +216,26 @@ public class ImageRoiProcessor {
             }
         }
         return outputPath;
+    }
+
+    /**
+     * 从文件名提取时间戳及序号
+     *
+     * @param fileName 文件名
+     *                 如 IMG_1754294400000_0001.jpg
+     * @return 时间戳及序号 [如 1754294400000_0001] [未识别到则使用当前时间戳]
+     */
+    private static @NotNull String extractTimestampAndIndex(String fileName) {
+        if (fileName != null) {
+            Matcher matcher = TIMESTAMP_WITH_INDEX_PATTERN.matcher(fileName);
+            if (matcher.find()) {
+                String result = matcher.group();
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
+        return String.valueOf(CurrentTimeMillisClock.getInstance().now());
     }
 
     /**

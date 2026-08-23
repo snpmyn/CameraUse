@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.qtone.camerause.function.storage.MediaStorageConfig;
+import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 
@@ -18,6 +19,8 @@ import org.opencv.imgcodecs.Imgcodecs;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/4.
@@ -26,6 +29,12 @@ import java.util.concurrent.Executors;
  * @desc 微信裁剪引擎
  */
 public class WeChatCropEngine {
+    /**
+     * 时间戳及序号正则表达式
+     * <p>
+     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
+     */
+    private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
     /**
      * 单例
      */
@@ -100,7 +109,12 @@ public class WeChatCropEngine {
             notifyError(onWeChatCropCallback, "找不到目标文件 - 请检查路径 || " + imagePath);
             return;
         }
+        if (executorService.isShutdown()) {
+            notifyError(onWeChatCropCallback, "微信裁剪引擎已释放");
+            return;
+        }
         // 预先获取 ApplicationContext 安全保存
+        // 规避 Context 泄漏
         final Context appContext = (context != null) ? context.getApplicationContext() : null;
         // 放到单线程池中排队做耗时的图像处理，保证频繁拍照时依次按序处理。
         executorService.execute(() -> {
@@ -133,13 +147,26 @@ public class WeChatCropEngine {
                         }
                     }
                     if (mediaDir != null) {
-                        File outputFile = new File(mediaDir, "WECHAT_CROP" + System.currentTimeMillis() + ".jpg");
+                        // 从源文件名中提取时间戳及序号
+                        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
+                        String originalFileName = file.getName();
+                        String timestampStr = null;
+                        Matcher matcher = TIMESTAMP_PATTERN.matcher(originalFileName);
+                        if (matcher.find()) {
+                            timestampStr = matcher.group();
+                        }
+                        if ((timestampStr == null) || timestampStr.isEmpty()) {
+                            timestampStr = String.valueOf(CurrentTimeMillisClock.getInstance().now());
+                        }
+                        // 文件命名规则
+                        // WECHAT_CROP_源文件名中时间戳.jpg
+                        File outputFile = new File(mediaDir, "WECHAT_CROP_" + timestampStr + ".jpg");
                         savePath = outputFile.getAbsolutePath();
                         // 用 Imgcodecs 写入图片
                         boolean saved = Imgcodecs.imwrite(savePath, resultMat);
                         if (saved) {
                             Log.d(LogKit.TAG, "微信裁剪拉平结果已成功存入 || " + savePath);
-                            MediaScanKit.scanSingleFile(context, savePath, "image/jpeg");
+                            MediaScanKit.scanSingleFile(appContext, savePath, "image/jpeg");
                         } else {
                             Log.e(LogKit.TAG, "微信裁剪图片 Imgcodecs 写入失败");
                             savePath = null;
@@ -183,6 +210,15 @@ public class WeChatCropEngine {
                 onWeChatCropCallback.onWeChatCropError(errorMessage);
             }
         });
+    }
+
+    /**
+     * 释放资源
+     */
+    public void release() {
+        if (!executorService.isShutdown()) {
+            executorService.shutdown();
+        }
     }
 
     /**

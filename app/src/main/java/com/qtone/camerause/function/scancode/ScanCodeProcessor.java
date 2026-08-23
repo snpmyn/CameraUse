@@ -8,6 +8,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
+import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 
 import java.nio.ByteBuffer;
@@ -34,6 +35,10 @@ public class ScanCodeProcessor {
      * 使用 AtomicBoolean 保证多线程并发环境下的绝对原子性
      */
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
+    /**
+     * 缓存 Bitmap 对象锁
+     */
+    private final Object bitmapLock = new Object();
     /**
      * 缓存 Bitmap 对象
      * <p>
@@ -89,7 +94,9 @@ public class ScanCodeProcessor {
             return;
         }
         // 扫码防抖
-        if ((System.currentTimeMillis() - lastSuccessTime) < scanIntervalMs) {
+        // 使用 CurrentTimeMillisClock 规避相机高频帧下的系统 JNI 性能开销
+        long currentTime = CurrentTimeMillisClock.getInstance().now();
+        if ((currentTime - lastSuccessTime) < scanIntervalMs) {
             return;
         }
         // 丢帧机制
@@ -112,14 +119,18 @@ public class ScanCodeProcessor {
             } else if (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) {
                 // RGBA 数据
                 // 复用 Bitmap 避免操作与格式解析错误 (降低 GC 卡顿风险)
-                if ((reusableBitmap == null) || (reusableBitmap.getWidth() != width) || (reusableBitmap.getHeight() != height)) {
-                    if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
-                        reusableBitmap.recycle();
+                synchronized (bitmapLock) {
+                    if ((reusableBitmap == null) || (reusableBitmap.getWidth() != width) || (reusableBitmap.getHeight() != height)) {
+                        if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
+                            reusableBitmap.recycle();
+                        }
+                        reusableBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                     }
-                    reusableBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                    if (!reusableBitmap.isRecycled()) {
+                        reusableBitmap.copyPixelsFromBuffer(ByteBuffer.wrap(data));
+                        inputImage = InputImage.fromBitmap(reusableBitmap, rotationDegrees);
+                    }
                 }
-                reusableBitmap.copyPixelsFromBuffer(ByteBuffer.wrap(data));
-                inputImage = InputImage.fromBitmap(reusableBitmap, rotationDegrees);
             }
             if (inputImage == null) {
                 isProcessing.set(false);
@@ -131,7 +142,7 @@ public class ScanCodeProcessor {
                             Barcode barcode = barcodes.get(0);
                             String rawValue = barcode.getRawValue();
                             if ((rawValue != null) && (onScanCodeCallBack != null)) {
-                                lastSuccessTime = System.currentTimeMillis();
+                                lastSuccessTime = CurrentTimeMillisClock.getInstance().now();
                                 Log.d(LogKit.TAG, "扫码成功 || " + rawValue);
                                 onScanCodeCallBack.onScanCodeSuccess(rawValue, barcode);
                             }
@@ -158,9 +169,11 @@ public class ScanCodeProcessor {
         if (barcodeScanner != null) {
             barcodeScanner.close();
         }
-        if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
-            reusableBitmap.recycle();
-            reusableBitmap = null;
+        synchronized (bitmapLock) {
+            if ((reusableBitmap != null) && !reusableBitmap.isRecycled()) {
+                reusableBitmap.recycle();
+                reusableBitmap = null;
+            }
         }
     }
 

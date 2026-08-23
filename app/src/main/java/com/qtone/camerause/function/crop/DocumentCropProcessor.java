@@ -9,6 +9,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.qtone.camerause.function.storage.MediaStorageConfig;
+import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/3.
@@ -37,6 +40,13 @@ import java.util.concurrent.Executors;
  * @desc 文档裁剪处理器
  */
 public class DocumentCropProcessor {
+    /**
+     * 时间戳及序号正则表达式
+     * <p>
+     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
+     */
+    private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
+
     /**
      * 线程消息调度器
      */
@@ -47,6 +57,26 @@ public class DocumentCropProcessor {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
+     * 从文件名提取时间戳及序号
+     *
+     * @param fileName 文件名
+     *                 如 IMG_1754294400000_0001.jpg
+     * @return 时间戳及序号 [如 1754294400000_0001] [未识别到则使用当前时间戳]
+     */
+    private static @NotNull String extractTimestampAndIndex(String fileName) {
+        if (fileName != null) {
+            Matcher matcher = TIMESTAMP_WITH_INDEX_PATTERN.matcher(fileName);
+            if (matcher.find()) {
+                String result = matcher.group();
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
+        return String.valueOf(CurrentTimeMillisClock.getInstance().now());
+    }
+
+    /**
      * 通过路径处理
      *
      * @param context                上下文
@@ -54,6 +84,10 @@ public class DocumentCropProcessor {
      * @param onDocumentCropCallback 文档裁剪回调
      */
     public void processByPath(@NonNull Context context, String path, OnDocumentCropCallback onDocumentCropCallback) {
+        if (executorService.isShutdown()) {
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
+            return;
+        }
         executorService.execute(() -> {
             Mat srcMat = Imgcodecs.imread(path);
             if (srcMat.empty()) {
@@ -75,6 +109,10 @@ public class DocumentCropProcessor {
      * @param onDocumentCropCallback 文档裁剪回调
      */
     public void processByData(@NonNull Context context, byte[] data, int width, int height, OnDocumentCropCallback onDocumentCropCallback) {
+        if (executorService.isShutdown()) {
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
+            return;
+        }
         executorService.execute(() -> {
             if ((data == null) || (data.length < (width * height * 3 / 2))) {
                 notifyError(onDocumentCropCallback, "图像帧字节数组异常");
@@ -117,17 +155,10 @@ public class DocumentCropProcessor {
             notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
             return;
         }
-        String targetNameBody;
-        if ((originalFileName != null) && !originalFileName.isEmpty()) {
-            // 剥离扩展名
-            int dotIndex = originalFileName.lastIndexOf('.');
-            String nameWithoutExt = (dotIndex > 0) ? originalFileName.substring(0, dotIndex) : originalFileName;
-            // 去除 IMG_ 或 IMG（不区分大小写）
-            targetNameBody = nameWithoutExt.replaceAll("(?i)IMG_?", "");
-        } else {
-            targetNameBody = String.valueOf(System.currentTimeMillis());
-        }
-        String outputPath = new File(mediaDir, "DOC_CROP_" + targetNameBody + ".jpg").getAbsolutePath();
+        // 从源文件名中提取时间戳及序号
+        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
+        String timeAndIndexKey = extractTimestampAndIndex(originalFileName);
+        String outputPath = new File(mediaDir, "DOC_CROP_" + timeAndIndexKey + ".jpg").getAbsolutePath();
         boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
         Bitmap resultBitmap = matToBitmap(croppedMat);
         croppedMat.release();
@@ -169,6 +200,7 @@ public class DocumentCropProcessor {
             // 使整个试卷形成无缝连通区
             Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15, 15));
             Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_CLOSE, kernel);
+            kernel.release();
             // 4. 提取最大白色轮廓
             Imgproc.findContours(thresh, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
             double maxArea = 0;
@@ -191,14 +223,13 @@ public class DocumentCropProcessor {
             MatOfPoint2f approx = new MatOfPoint2f();
             Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true);
             Point[] points = approx.toArray();
+            c2f.release();
+            approx.release();
             Point[] paperCorners;
             if (points.length == 4) {
                 paperCorners = sortFourCornersClockwise(points);
             } else {
                 paperCorners = findExtremeCorners(maxContour.toArray());
-            }
-            for (MatOfPoint matOfPoint : contours) {
-                matOfPoint.release();
             }
             // 6. 计算变换目标宽高
             double widthTop = Math.hypot(paperCorners[1].x - paperCorners[0].x, paperCorners[1].y - paperCorners[0].y);
@@ -243,6 +274,14 @@ public class DocumentCropProcessor {
             Log.e(LogKit.TAG, "试卷主体裁剪处理异常", e);
             return null;
         } finally {
+            // 统一释放轮廓集合Native资源
+            // 彻底规避内存泄漏
+            for (MatOfPoint matOfPoint : contours) {
+                if (matOfPoint != null) {
+                    matOfPoint.release();
+                }
+            }
+            contours.clear();
             gray.release();
             blur.release();
             thresh.release();

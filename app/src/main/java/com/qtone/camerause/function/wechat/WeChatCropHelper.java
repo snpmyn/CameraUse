@@ -3,8 +3,8 @@ package com.qtone.camerause.function.wechat;
 import android.content.Context;
 import android.util.Log;
 
-import com.qtone.camerause.utils.asset.AssetFileKit;
-import com.qtone.camerause.utils.log.LogKit;
+import com.qtone.camerause.util.asset.AssetFileKit;
+import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,40 +71,49 @@ public class WeChatCropHelper {
         }
         // 1. 优先提取右上角 ROI
         // 覆盖宽度的右上 45% + 高度的顶部 40%
-        int roiX = (int) (srcMat.cols() * 0.55);
+        int cols = srcMat.cols();
+        int rows = srcMat.rows();
+        int roiX = (int) (cols * 0.55);
         int roiY = 0;
-        int roiWidth = srcMat.cols() - roiX;
-        int roiHeight = (int) (srcMat.rows() * 0.40);
+        int roiWidth = Math.max(1, cols - roiX);
+        int roiHeight = Math.max(1, (int) (rows * 0.40));
         Rect roiRect = new Rect(roiX, roiY, roiWidth, roiHeight);
-        Mat roiMat = new Mat(srcMat, roiRect);
+        Mat roiMat = null;
         List<Mat> pointsList = new ArrayList<>();
-        weChatQRCode.detectAndDecode(roiMat, pointsList);
         Point[] paperCorners = null;
-        if (pointsList.size() > 0) {
-            // ROI 区域识别成功，将坐标映射回全图坐标系。
-            Mat cornerMat = pointsList.get(0);
-            paperCorners = new Point[4];
-            for (int i = 0; i < 4; i++) {
-                double[] p = cornerMat.get(i, 0);
-                paperCorners[i] = new Point(p[0] + roiX, p[1] + roiY);
-            }
-        } else {
-            // 2. 若 ROI 未匹配
-            // 释放列表并回退至全图检测
-            releasePointsList(pointsList);
-            weChatQRCode.detectAndDecode(srcMat, pointsList);
-            if (pointsList.size() > 0) {
+        try {
+            roiMat = new Mat(srcMat, roiRect);
+            weChatQRCode.detectAndDecode(roiMat, pointsList);
+            if (!pointsList.isEmpty()) {
+                // ROI 区域识别成功，将坐标映射回全图坐标系。
                 Mat cornerMat = pointsList.get(0);
                 paperCorners = new Point[4];
                 for (int i = 0; i < 4; i++) {
                     double[] p = cornerMat.get(i, 0);
-                    paperCorners[i] = new Point(p[0], p[1]);
+                    paperCorners[i] = new Point(p[0] + roiX, p[1] + roiY);
+                }
+            } else {
+                // 2. 若 ROI 未匹配
+                // 释放列表并回退至全图检测
+                releasePointsList(pointsList);
+                weChatQRCode.detectAndDecode(srcMat, pointsList);
+                if (!pointsList.isEmpty()) {
+                    Mat cornerMat = pointsList.get(0);
+                    paperCorners = new Point[4];
+                    for (int i = 0; i < 4; i++) {
+                        double[] p = cornerMat.get(i, 0);
+                        paperCorners[i] = new Point(p[0], p[1]);
+                    }
                 }
             }
+        } finally {
+            // 确保中间矩阵与角点列表百分之百被释放
+            // 绝不泄露 Native 内存
+            releasePointsList(pointsList);
+            if (roiMat != null) {
+                roiMat.release();
+            }
         }
-        // 释放 JNI 层创建的 Mat 对象及中间 ROI 矩阵
-        releasePointsList(pointsList);
-        roiMat.release();
         if (paperCorners != null) {
             return warpPerspective(srcMat, paperCorners);
         }
@@ -135,30 +144,41 @@ public class WeChatCropHelper {
         double widthTop = Math.hypot(paperCorners[1].x - paperCorners[0].x, paperCorners[1].y - paperCorners[0].y);
         double widthBottom = Math.hypot(paperCorners[2].x - paperCorners[3].x, paperCorners[2].y - paperCorners[3].y);
         int targetWidth = (int) Math.max(widthTop, widthBottom);
-
         double heightLeft = Math.hypot(paperCorners[3].x - paperCorners[0].x, paperCorners[3].y - paperCorners[0].y);
         double heightRight = Math.hypot(paperCorners[2].x - paperCorners[1].x, paperCorners[2].y - paperCorners[1].y);
         int targetHeight = (int) Math.max(heightLeft, heightRight);
-
         if ((targetWidth <= 0) || (targetHeight <= 0)) {
             return null;
         }
-
-        MatOfPoint2f srcPts = new MatOfPoint2f(paperCorners);
-        MatOfPoint2f dstPts = new MatOfPoint2f(
-                new Point(0, 0),
-                new Point(targetWidth - 1, 0),
-                new Point(targetWidth - 1, targetHeight - 1),
-                new Point(0, targetHeight - 1)
-        );
-
-        Mat transformMatrix = Imgproc.getPerspectiveTransform(srcPts, dstPts);
+        MatOfPoint2f srcPts = null;
+        MatOfPoint2f dstPts = null;
+        Mat transformMatrix = null;
         Mat destMat = new Mat();
-        Imgproc.warpPerspective(srcMat, destMat, transformMatrix, new Size(targetWidth, targetHeight));
-
-        srcPts.release();
-        dstPts.release();
-        transformMatrix.release();
-        return destMat;
+        try {
+            srcPts = new MatOfPoint2f(paperCorners);
+            dstPts = new MatOfPoint2f(
+                    new Point(0, 0),
+                    new Point(targetWidth - 1, 0),
+                    new Point(targetWidth - 1, targetHeight - 1),
+                    new Point(0, targetHeight - 1)
+            );
+            transformMatrix = Imgproc.getPerspectiveTransform(srcPts, dstPts);
+            Imgproc.warpPerspective(srcMat, destMat, transformMatrix, new Size(targetWidth, targetHeight));
+            return destMat;
+        } catch (Exception e) {
+            destMat.release();
+            return null;
+        } finally {
+            // 在 finally 中防偏泄露释放所有临时 C++ 矩阵
+            if (srcPts != null) {
+                srcPts.release();
+            }
+            if (dstPts != null) {
+                dstPts.release();
+            }
+            if (transformMatrix != null) {
+                transformMatrix.release();
+            }
+        }
     }
 }

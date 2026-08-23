@@ -75,7 +75,7 @@ public class CaptureHelper {
         }
         // 文件名
         // IMG_时间戳_序号.jpg
-        // 使用 CurrentTimeMillisClock 减少高频拍照时获取当前毫秒时间的 JNI 系统开销
+        // 使用 CurrentTimeMillisClock 规避相机高频帧下的系统 JNI 性能开销
         String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", CurrentTimeMillisClock.getInstance().now(), burstSequence.incrementAndGet());
         return new File(mediaDir, fileName).getAbsolutePath();
     }
