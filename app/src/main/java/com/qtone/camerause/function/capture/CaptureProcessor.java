@@ -45,7 +45,7 @@ public class CaptureProcessor {
      * @param captureStrategy 拍照策略
      */
     public void setCaptureStrategy(CaptureStrategy captureStrategy) {
-        if (captureStrategy != null) {
+        if ((captureStrategy != null) && (this.captureStrategy != captureStrategy)) {
             this.captureStrategy = captureStrategy;
             Log.d(LogKit.TAG, "设置拍照策略 || " + this.captureStrategy.name());
         }
