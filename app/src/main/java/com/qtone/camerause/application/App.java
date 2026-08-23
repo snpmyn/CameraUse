@@ -15,6 +15,7 @@ import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.util.activity.ActivitySuperviseManager;
 import com.qtone.camerause.util.app.AppListener;
 import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.mmkv.MmkvKit;
 
 import org.opencv.android.OpenCVLoader;
@@ -31,6 +32,8 @@ public class App extends BaseApplication {
         super.onCreate();
         // 全局监听 Activity 生命周期
         registerActivityListener();
+        // 日志工具类
+        LogUtils.Builder.initConfiguration(true, true, true, true);
         // 初始化 MMKV
         MmkvKit.INSTANCE.init(this);
         // 应用监听
