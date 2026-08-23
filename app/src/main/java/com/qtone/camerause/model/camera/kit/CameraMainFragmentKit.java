@@ -27,10 +27,10 @@ import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.SettingActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
-import com.qtone.camerause.utils.intent.IntentJump;
-import com.qtone.camerause.utils.list.ListUtils;
-import com.qtone.camerause.utils.log.LogKit;
-import com.qtone.camerause.utils.view.ViewUtils;
+import com.qtone.camerause.util.intent.IntentJump;
+import com.qtone.camerause.util.list.ListUtils;
+import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
 import com.qtone.camerause.widget.scan.ViewFinderView;
 
@@ -259,7 +259,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         cameraMainFragment.safeRun(appCompatActivity -> {
             try {
                 // 文档裁剪处理器 - 通过图像帧字节数组处理
-                documentCropProcessor.processByData(appCompatActivity, data, width, height, CameraMainFragmentKit.this);
+                /*documentCropProcessor.processByData(appCompatActivity, data, width, height, CameraMainFragmentKit.this);*/
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "通过图像帧字节数组处理 - 失败 || " + e.getMessage());
             }
