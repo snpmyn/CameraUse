@@ -5,19 +5,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.viewbinding.ViewBinding;
 
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.R;
+import com.qtone.camerause.base.BasePoolActivity;
+import com.qtone.camerause.databinding.ActivityMainBinding;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.List;
  * @date: 2026/7/28 16:14
  * @version: v 1.0
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BasePoolActivity {
     /**
      * 请求相机权限码
      */
@@ -46,17 +46,62 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+    /**
+     * ActivityMainBinding
+     */
+    private ActivityMainBinding activityMainBinding;
 
+    /**
+     * ViewBinding
+     * <p>
+     * Java 动态绑定
+     * Java 运行时多态
+     * Java 动态分派机制
+     * <p>
+     * 如果子类重写 viewBinding()
+     * 那么 onCreate() 中调用时会优先执行子类的方法
+     *
+     * @return ViewBinding
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    protected ViewBinding viewBinding() {
+        activityMainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        return activityMainBinding;
+    }
+
+    /**
+     * 初始控件
+     */
+    @Override
+    protected void stepUi() {
+
+    }
+
+    /**
+     * 初始配置
+     */
+    @Override
+    protected void initConfiguration() {
+
+    }
+
+    /**
+     * 设置监听
+     */
+    @Override
+    protected void setListener() {
+
+    }
+
+    /**
+     * 开始逻辑
+     */
+    @Override
+    protected void startLogic() {
         // 加载相机主碎片
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.mainActivityFcv, new CameraMainFragment())
-                    .commit();
-        }
+        getSupportFragmentManager().beginTransaction()
+                .replace(activityMainBinding.mainActivityFcv.getId(), new CameraMainFragment())
+                .commit();
         // 检查并请求权限
         checkAndRequestPermission();
     }
