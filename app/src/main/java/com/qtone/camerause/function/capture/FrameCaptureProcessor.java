@@ -1,6 +1,7 @@
 package com.qtone.camerause.function.capture;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -179,7 +181,6 @@ public class FrameCaptureProcessor {
             }
         }
         if (shouldCapture) {
-            Log.d(LogKit.TAG, "帧捕获成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
             String savePath = CaptureHelper.generateSavePath(handler, onCaptureCallBack);
             if (savePath == null) {
                 return;
@@ -204,10 +205,11 @@ public class FrameCaptureProcessor {
         // NV21: width * height * 1.5 Byte
         int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(LogKit.TAG, String.format(Locale.CHINA, "图像帧字节数组异常 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断");
             return;
         }
+        Log.d(LogKit.TAG, "数据帧捕获成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
@@ -240,10 +242,19 @@ public class FrameCaptureProcessor {
      */
     private void processToJpeg(Context context, byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, String savePath, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
         try {
-            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
             File targetFile = new File(savePath);
             try (FileOutputStream fileOutputStream = new FileOutputStream(targetFile)) {
-                yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, fileOutputStream);
+                if (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) {
+                    // 兼容 RGBA 数据格式
+                    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                    bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(data));
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                    bitmap.recycle();
+                } else {
+                    // 默认 NV21 数据格式
+                    YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+                    yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, fileOutputStream);
+                }
                 fileOutputStream.flush();
             }
             if (context != null) {
@@ -251,13 +262,13 @@ public class FrameCaptureProcessor {
             }
             handler.post(() -> {
                 if (onCaptureCallBack != null) {
-                    Log.d(LogKit.TAG, "物理 1:1 无损图片生成成功\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                    Log.d(LogKit.TAG, "图片生成成功\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
                     onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
                 }
             });
         } catch (Exception e) {
-            Log.e(LogKit.TAG, "处理 YUV 数据写盘异常", e);
-            CaptureHelper.notifyError(handler, onCaptureCallBack, "处理 YUV 数据写盘异常");
+            Log.e(LogKit.TAG, "数据帧写盘异常", e);
+            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常");
         }
     }
 
