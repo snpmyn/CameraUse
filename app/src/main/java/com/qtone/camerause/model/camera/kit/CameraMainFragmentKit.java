@@ -21,6 +21,7 @@ import com.qtone.camerause.function.capture.CaptureProcessor;
 import com.qtone.camerause.function.capture.CaptureStrategy;
 import com.qtone.camerause.function.crop.DocumentCropProcessor;
 import com.qtone.camerause.function.ocr.BaiDuOcrHelper;
+import com.qtone.camerause.function.roi.ImageRoiProcessor;
 import com.qtone.camerause.function.scancode.ScanCodeProcessor;
 import com.qtone.camerause.function.wechat.WeChatCropEngine;
 import com.qtone.camerause.model.camera.CameraMainFragment;
@@ -31,7 +32,6 @@ import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
-import com.qtone.camerause.widget.roi.ImageRoiProcessor;
 import com.qtone.camerause.widget.scan.ViewFinderView;
 
 import org.jetbrains.annotations.NotNull;
