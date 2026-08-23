@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.qtone.camerause.R;
 import com.qtone.camerause.function.media.MediaScanner;
-import com.qtone.camerause.utils.density.DensityUtils;
-import com.qtone.camerause.utils.image.GlideLoader;
-import com.qtone.camerause.utils.list.ListUtils;
-import com.qtone.camerause.utils.screen.ScreenUtils;
+import com.qtone.camerause.util.density.DensityUtils;
+import com.qtone.camerause.util.image.GlideLoader;
+import com.qtone.camerause.util.list.ListUtils;
+import com.qtone.camerause.util.screen.ScreenUtils;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
 
 import org.jetbrains.annotations.NotNull;
