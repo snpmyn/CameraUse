@@ -346,12 +346,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
                 WeChatCropEngine.getInstance(appCompatActivity).process(appCompatActivity, savePath, true, new WeChatCropEngine.OnWeChatCropCallback() {
                     @Override
                     public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
-
+                        ToastUtils.show("微信裁剪成功");
                     }
 
                     @Override
                     public void onWeChatCropError(String errorMessage) {
-
+                        ToastUtils.show("微信裁剪错误");
                     }
                 });
             }
@@ -386,7 +386,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onDocumentCropSuccess(String croppedPath, Bitmap resultBitmap) {
-        ToastUtils.show("试卷矫正裁剪成功");
+        ToastUtils.show("文档裁剪成功");
     }
 
     /**
@@ -396,7 +396,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onDocumentCropError(String errorMsg) {
-        ToastUtils.show("试卷矫正失败");
+        ToastUtils.show("文档裁剪错误");
     }
 
     /**
