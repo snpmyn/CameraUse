@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.media;
+package com.qtone.camerause.util.media;
 
 import android.os.Handler;
 import android.os.Looper;
