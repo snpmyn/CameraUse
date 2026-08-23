@@ -67,8 +67,7 @@ public class SdkCaptureProcessor {
         public void run() {
             if (isBurstActive.get()) {
                 executeSdkCapture(iCamera, onCaptureCallBack);
-                // 防重入
-                // 先移除队列中可能存在的旧任务，再发起下一次调度。
+                // 清除队列残留并发起下次循环调度
                 handler.removeCallbacks(this);
                 handler.postDelayed(this, burstIntervalMs);
             }
@@ -177,7 +176,7 @@ public class SdkCaptureProcessor {
         iCamera.captureImage(new ICaptureCallBack() {
             @Override
             public void onBegin() {
-                Log.d(LogKit.TAG, "开始 SDK 拍照");
+                Log.d(LogKit.TAG, "SDK 拍照开始");
             }
 
             @Override
@@ -187,7 +186,7 @@ public class SdkCaptureProcessor {
 
             @Override
             public void onComplete(@Nullable String path) {
-                if (appContext != null) {
+                if ((appContext != null) && (path != null)) {
                     MediaScanKit.scanSingleFile(appContext, path);
                 }
                 handler.post(() -> {
