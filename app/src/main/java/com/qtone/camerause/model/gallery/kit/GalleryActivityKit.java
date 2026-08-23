@@ -10,7 +10,7 @@ import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageGroupAdapter;
-import com.qtone.camerause.utils.intent.IntentJump;
+import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.value.IntentConstant;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
@@ -47,10 +47,10 @@ public class GalleryActivityKit {
                 IntentJump.getInstance().jumpWithAnimation(intent, galleryActivity, false, GalleryDetailActivity.class, 0, 0);
             }
         });
+        // 展示
+        RecyclerViewDisplayController.display(recyclerView, mediaImageGroupAdapter);
         // 媒体扫描器
         MediaScanner mediaScanner = new MediaScanner();
         mediaScanner.scanImageRecursively(MediaStorageConfig.getInstance().getDirectoryFile(), mediaImageGroupAdapter::submitData);
-        // 展示
-        RecyclerViewDisplayController.display(recyclerView, mediaImageGroupAdapter);
     }
 }
