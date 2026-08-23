@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.qtone.camerause.function.storage.MediaStorageConfig;
+import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 
 import org.jetbrains.annotations.NotNull;
@@ -73,8 +74,9 @@ public class CaptureHelper {
             }
         }
         // 文件名
-        // IMG_毫秒时间戳_序号.jpg
-        String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", System.currentTimeMillis(), burstSequence.incrementAndGet());
+        // IMG_时间戳_序号.jpg
+        // 使用 CurrentTimeMillisClock 减少高频拍照时获取当前毫秒时间的 JNI 系统开销
+        String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", CurrentTimeMillisClock.getInstance().now(), burstSequence.incrementAndGet());
         return new File(mediaDir, fileName).getAbsolutePath();
     }
 
