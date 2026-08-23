@@ -49,12 +49,16 @@ public class SdkCaptureProcessor {
     private volatile long burstIntervalMs = 500L;
     /**
      * 相机实例
+     * <p>
+     * 使用 volatile 保证多线程读写可见性
      */
-    private MultiCameraClient.ICamera iCamera;
+    private volatile MultiCameraClient.ICamera iCamera;
     /**
      * 拍照回调
+     * <p>
+     * 使用 volatile 保证多线程读写可见性
      */
-    private CaptureProcessor.OnCaptureCallback onCaptureCallBack;
+    private volatile CaptureProcessor.OnCaptureCallback onCaptureCallBack;
     /**
      * SDK 连拍定时器任务
      */
@@ -63,6 +67,9 @@ public class SdkCaptureProcessor {
         public void run() {
             if (isBurstActive.get()) {
                 executeSdkCapture(iCamera, onCaptureCallBack);
+                // 防重入
+                // 先移除队列中可能存在的旧任务，再发起下一次调度。
+                handler.removeCallbacks(this);
                 handler.postDelayed(this, burstIntervalMs);
             }
         }
