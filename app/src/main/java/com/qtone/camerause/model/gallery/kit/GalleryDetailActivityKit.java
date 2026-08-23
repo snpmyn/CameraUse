@@ -5,9 +5,9 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qtone.camerause.function.media.MediaScanner;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageDetailAdapter;
+import com.qtone.camerause.util.media.MediaScanner;
 import com.qtone.camerause.util.systembar.SystemBarKit;
 import com.qtone.camerause.widget.image.ImageViewerOverlay;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;

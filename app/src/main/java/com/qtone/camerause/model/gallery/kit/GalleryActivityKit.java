@@ -5,12 +5,12 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qtone.camerause.function.media.MediaScanner;
 import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageGroupAdapter;
 import com.qtone.camerause.util.intent.IntentJump;
+import com.qtone.camerause.util.media.MediaScanner;
 import com.qtone.camerause.value.IntentConstant;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;

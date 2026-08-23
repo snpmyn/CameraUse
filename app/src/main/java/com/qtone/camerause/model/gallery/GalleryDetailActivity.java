@@ -4,9 +4,9 @@ import androidx.viewbinding.ViewBinding;
 
 import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityGalleryDetailBinding;
-import com.qtone.camerause.function.media.MediaScanner;
 import com.qtone.camerause.model.gallery.kit.GalleryDetailActivityKit;
 import com.qtone.camerause.util.intent.IntentVerify;
+import com.qtone.camerause.util.media.MediaScanner;
 import com.qtone.camerause.value.IntentConstant;
 
 /**
