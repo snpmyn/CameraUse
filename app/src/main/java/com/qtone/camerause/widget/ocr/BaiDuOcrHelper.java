@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.ocr;
+package com.qtone.camerause.widget.ocr;
 
 import android.content.Context;
 
