@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.roi;
+package com.qtone.camerause.widget.roi;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -12,11 +12,10 @@ import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
 
-import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
-import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
+import com.qtone.camerause.widget.storage.MediaStorageConfig;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,8 +38,6 @@ import java.util.regex.Pattern;
 public class ImageRoiProcessor {
     /**
      * 时间戳及序号正则表达式
-     * <p>
-     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
      */
     private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
 
@@ -64,7 +61,7 @@ public class ImageRoiProcessor {
         if ((mediaDir != null) && !mediaDir.exists()) {
             boolean isCreated = mediaDir.mkdirs();
             if (!isCreated && !mediaDir.exists()) {
-                Log.w(LogKit.TAG, "创建图片 ROI 裁剪保存目录失败");
+                Log.w(LogKit.TAG, "创建图片 ROI 裁剪保存目录失败 - 图片 ROI 裁剪");
             }
         }
         List<String> croppedPaths = new ArrayList<>();
@@ -104,7 +101,7 @@ public class ImageRoiProcessor {
                     fileOutputStream.flush();
                     croppedPaths.add(outputPath);
                 } catch (IOException e) {
-                    Log.e(LogKit.TAG, "从图片文件裁剪 ROI 失败 || " + outputPath, e);
+                    Log.e(LogKit.TAG, "从图片文件裁剪 ROI 失败 - 图片 ROI 裁剪 || " + outputPath, e);
                 } finally {
                     // 回收单张裁剪 Bitmap
                     if (!croppedBitmap.isRecycled()) {
@@ -183,7 +180,7 @@ public class ImageRoiProcessor {
             if ((mediaDir != null) && !mediaDir.exists()) {
                 boolean isCreated = mediaDir.mkdirs();
                 if (!isCreated && !mediaDir.exists()) {
-                    Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败");
+                    Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败 - 图片 ROI 覆盖");
                 }
             }
             // 从源文件名中提取时间戳及序号
@@ -204,7 +201,7 @@ public class ImageRoiProcessor {
             fileOutputStream.flush();
             MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
         } catch (IOException e) {
-            Log.e(LogKit.TAG, "绘制 ROI 到图片文件失败 || " + outputPath, e);
+            Log.e(LogKit.TAG, "绘制 ROI 到图片文件失败 - 图片 ROI 覆盖 || " + outputPath, e);
             return imagePath;
         } finally {
             // 显式回收 Bitmap 内存资源
@@ -353,7 +350,7 @@ public class ImageRoiProcessor {
                     break;
             }
         } catch (IOException e) {
-            Log.e(LogKit.TAG, "获取图片 Exif 旋转角度失败", e);
+            Log.e(LogKit.TAG, "获取图片 Exif 旋转角度失败 - 图片 ROI", e);
         }
         return degree;
     }
