@@ -205,11 +205,11 @@ public class FrameCaptureProcessor {
         // NV21: width * height * 1.5 Byte
         int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
-            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断");
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断 - 帧拍照");
             return;
         }
-        Log.d(LogKit.TAG, "数据帧捕获成功 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+        Log.d(LogKit.TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
@@ -262,13 +262,13 @@ public class FrameCaptureProcessor {
             }
             handler.post(() -> {
                 if (onCaptureCallBack != null) {
-                    Log.d(LogKit.TAG, "图片生成成功\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                    Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
                     onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
                 }
             });
         } catch (Exception e) {
-            Log.e(LogKit.TAG, "数据帧写盘异常", e);
-            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常");
+            Log.e(LogKit.TAG, "数据帧写盘异常 - 帧拍照", e);
+            CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常 - 帧拍照");
         }
     }
 
