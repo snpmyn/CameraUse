@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.scancode;
+package com.qtone.camerause.widget.scan;
 
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -143,14 +143,14 @@ public class ScanCodeProcessor {
                             String rawValue = barcode.getRawValue();
                             if ((rawValue != null) && (onScanCodeCallBack != null)) {
                                 lastSuccessTime = CurrentTimeMillisClock.getInstance().now();
-                                Log.d(LogKit.TAG, "扫码成功 || " + rawValue);
+                                Log.d(LogKit.TAG, "扫码成功 - ML Kit 扫码 || " + rawValue);
                                 onScanCodeCallBack.onScanCodeSuccess(rawValue, barcode);
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
                         if (onScanCodeCallBack != null) {
-                            Log.e(LogKit.TAG, "扫码失败 || ", e);
+                            Log.e(LogKit.TAG, "扫码失败 - ML Kit 扫码 || ", e);
                             onScanCodeCallBack.onScanCodeFailure(e);
                         }
                     })
