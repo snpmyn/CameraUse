@@ -35,6 +35,10 @@ public class MainActivity extends BasePoolActivity {
      */
     private static final int REQUEST_CAMERA_PERMISSION_CODE = 100;
     /**
+     * ActivityMainBinding
+     */
+    private ActivityMainBinding activityMainBinding;
+    /**
      * 管理应用所有文件权限活动结果启动器
      */
     private final ActivityResultLauncher<Intent> manageAppAllFilesAccessPermissionActivityResultLauncher =
@@ -43,13 +47,12 @@ public class MainActivity extends BasePoolActivity {
                     if (!Environment.isExternalStorageManager()) {
                         // 用户未授权
                         ToastUtils.show("需要所有文件管理权限才能存储文件");
+                    } else {
+                        // 加载相机主碎片
+                        loadCameraMainFragment();
                     }
                 }
             });
-    /**
-     * ActivityMainBinding
-     */
-    private ActivityMainBinding activityMainBinding;
 
     /**
      * ViewBinding
@@ -98,12 +101,22 @@ public class MainActivity extends BasePoolActivity {
      */
     @Override
     protected void startLogic() {
-        // 加载相机主碎片
-        getSupportFragmentManager().beginTransaction()
-                .replace(activityMainBinding.mainActivityFcv.getId(), new CameraMainFragment())
-                .commit();
         // 检查并请求权限
         checkAndRequestPermission();
+    }
+
+    /**
+     * 加载相机主碎片
+     */
+    private void loadCameraMainFragment() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        if (getSupportFragmentManager().findFragmentById(activityMainBinding.mainActivityFcv.getId()) == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(activityMainBinding.mainActivityFcv.getId(), new CameraMainFragment())
+                    .commit();
+        }
     }
 
     /**
@@ -137,8 +150,11 @@ public class MainActivity extends BasePoolActivity {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                 intent.setData(Uri.parse("package:" + getPackageName()));
                 manageAppAllFilesAccessPermissionActivityResultLauncher.launch(intent);
+                return;
             }
         }
+        // 加载相机主碎片
+        loadCameraMainFragment();
     }
 
     @Override
