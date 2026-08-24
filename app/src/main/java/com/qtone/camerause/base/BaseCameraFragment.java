@@ -20,9 +20,10 @@ import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
-import com.qtone.camerause.util.camera.CameraAspectRatioKit;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.camera.CameraAspectRatioKit;
+import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
@@ -214,9 +215,9 @@ public abstract class BaseCameraFragment extends CameraFragment {
             // 预览区域动态适配
             safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
-            self.removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
             // 重新注册预览帧回调
-            self.addPreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(self).addPreviewDataCallBack(previewDataCallBack);
         } else if (code == ICameraStateCallBack.State.CLOSED) {
             Log.d(LogKit.TAG, "相机关闭成功");
             if (cameraAspectRatioKit != null) {
@@ -224,11 +225,11 @@ public abstract class BaseCameraFragment extends CameraFragment {
                 cameraAspectRatioKit.reset();
             }
             // 清除已有预览帧回调
-            self.removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
         } else if (code == ICameraStateCallBack.State.ERROR) {
             Log.e(LogKit.TAG, "相机启动错误 || " + msg);
             // 清除已有预览帧回调
-            self.removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
         }
     }
 
@@ -259,7 +260,8 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onDestroyView() {
         MultiCameraClient.ICamera iCamera = getCurrentCamera();
         if (iCamera != null) {
-            iCamera.removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(iCamera).removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance(iCamera).closeCamera();
         }
         if (cameraAspectRatioKit != null) {
             cameraAspectRatioKit.release();
