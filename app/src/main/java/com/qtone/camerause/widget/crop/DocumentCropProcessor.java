@@ -83,7 +83,7 @@ public class DocumentCropProcessor {
      */
     public void processByPath(@NonNull Context context, String path, OnDocumentCropCallback onDocumentCropCallback) {
         if (executorService.isShutdown()) {
-            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放 - 文档裁剪");
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
             return;
         }
         executorService.execute(() -> {
@@ -108,7 +108,7 @@ public class DocumentCropProcessor {
      */
     public void processByData(@NonNull Context context, byte[] data, int width, int height, OnDocumentCropCallback onDocumentCropCallback) {
         if (executorService.isShutdown()) {
-            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放 - 文档裁剪");
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
             return;
         }
         executorService.execute(() -> {
