@@ -5,7 +5,6 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageGroupAdapter;
@@ -15,6 +14,7 @@ import com.qtone.camerause.value.IntentConstant;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
+import com.qtone.camerause.widget.storage.MediaStorageConfig;
 
 /**
  * Created on 2026/8/20.
@@ -27,7 +27,7 @@ public class GalleryActivityKit {
      * 执行
      *
      * @param galleryActivity 图库页
-     * @param recyclerView    RecyclerView
+     * @param recyclerView    控件
      * @param spanCount       跨距数
      * @param space           间距
      * @param totalMargin     总外边距

@@ -30,7 +30,7 @@ public class GalleryDetailActivityKit {
      * 执行
      *
      * @param galleryDetailActivity 图库详情页
-     * @param recyclerView          RecyclerView
+     * @param recyclerView          控件
      * @param folderItem            文件夹条目
      * @param spanCount             跨距数
      * @param space                 间距
