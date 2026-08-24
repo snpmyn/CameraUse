@@ -3,13 +3,14 @@ package com.qtone.camerause.util.media;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.qtone.camerause.util.file.FileKit;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -189,27 +190,8 @@ public class MediaScanner {
             this.file = file;
             if (file != null) {
                 this.fileAbsolutePath = file.getAbsolutePath();
-                this.fileSize = formatFileSize(file.length());
+                this.fileSize = FileKit.formatFileSize(file.length());
                 this.fileName = file.getName();
-            }
-        }
-
-        /**
-         * 格式化文件大小
-         *
-         * @param sizeInBytes 字节大小
-         * @return 格式化后文件大小
-         */
-        private @NotNull String formatFileSize(long sizeInBytes) {
-            if (sizeInBytes <= 0) {
-                return "0 KB";
-            }
-            double sizeInKb = sizeInBytes / 1024.0;
-            if (sizeInKb < 1024.0) {
-                return String.format(Locale.getDefault(), "%.2f KB", sizeInKb);
-            } else {
-                double sizeInMb = sizeInKb / 1024.0;
-                return String.format(Locale.getDefault(), "%.2f MB", sizeInMb);
             }
         }
 
