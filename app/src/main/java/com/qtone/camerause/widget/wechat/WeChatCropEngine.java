@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.wechat;
+package com.qtone.camerause.widget.wechat;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,10 +6,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
+import com.qtone.camerause.widget.storage.MediaStorageConfig;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
@@ -17,6 +17,8 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -31,8 +33,6 @@ import java.util.regex.Pattern;
 public class WeChatCropEngine {
     /**
      * 时间戳及序号正则表达式
-     * <p>
-     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
      */
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
     /**
@@ -86,27 +86,26 @@ public class WeChatCropEngine {
     }
 
     /**
-     * 处理
+     * 内部处理
      * <p>
-     * 传入原图路径
-     * 自动进行微信 AI 识别与透视校正裁剪
+     * 支持单图 / 多图
+     * 处理 AI 定位、裁剪并进行 2 倍 SR 深度重建放大
      *
      * @param context              上下文
      * @param imagePath            图片路径
-     *                             原图绝对路径
-     *                             如 /sdcard/Pictures/test.jpg
      * @param autoSaveResult       是否自动保存结果
-     *                             是否将裁剪后的结果自动保存为文件
+     * @param enableSR             是否允许 SR
+     *                             是否在裁剪后强制再做一次独立 2倍 SR 超分辨率重建
      * @param onWeChatCropCallback 微信裁剪回调
      */
-    public void process(Context context, String imagePath, boolean autoSaveResult, OnWeChatCropCallback onWeChatCropCallback) {
+    public void process(Context context, String imagePath, boolean autoSaveResult, boolean enableSR, OnWeChatCropCallback onWeChatCropCallback) {
         if ((imagePath == null) || imagePath.trim().isEmpty()) {
-            notifyError(onWeChatCropCallback, "图片路径不能为空");
+            notifyError(onWeChatCropCallback, "图片路径不能为空 - 微信裁剪");
             return;
         }
         File file = new File(imagePath);
         if (!file.exists() || !file.isFile()) {
-            notifyError(onWeChatCropCallback, "找不到目标文件 - 请检查路径 || " + imagePath);
+            notifyError(onWeChatCropCallback, "找不到目标文件 + 请检查路径 - 微信裁剪 || " + imagePath);
             return;
         }
         if (executorService.isShutdown()) {
@@ -119,36 +118,57 @@ public class WeChatCropEngine {
         // 放到单线程池中排队做耗时的图像处理，保证频繁拍照时依次按序处理。
         executorService.execute(() -> {
             Mat srcMat = null;
-            Mat resultMat = null;
+            List<Mat> cropMatList = null;
+            List<Mat> finalMatList = new ArrayList<>();
+            List<Bitmap> resultBitmapList = new ArrayList<>();
+            List<String> savePathList = new ArrayList<>();
             try {
-                // A. 使用 OpenCV 安全读取绝对路径图片
                 srcMat = Imgcodecs.imread(imagePath);
                 if (srcMat.empty()) {
-                    notifyError(onWeChatCropCallback, "OpenCV 读取图片失败 (请检查是否有存储读取权限或路径中是否包含中文)");
+                    notifyError(onWeChatCropCallback, "OpenCV 读取图片失败 - 微信裁剪");
                     return;
                 }
-                // B. 调用 WeChatCropHelper 进行 AI 定位与透视校正裁剪
-                resultMat = weChatCropHelper.detectAndCrop(srcMat);
-                if (resultMat == null || resultMat.empty()) {
+                // 1. AI 二维码 / 条形码多目标定位与透视矫正
+                cropMatList = weChatCropHelper.detectAndCrop(srcMat);
+                if (cropMatList.isEmpty()) {
                     notifyError(onWeChatCropCallback, "微信 AI 未在图中定位到可矫正的目标");
                     return;
                 }
-                // C. 将处理好的 Mat 转换为 Android 的 Bitmap 供 UI 展示
-                Bitmap resultBitmap = Bitmap.createBitmap(resultMat.cols(), resultMat.rows(), Bitmap.Config.ARGB_8888);
-                Utils.matToBitmap(resultMat, resultBitmap);
-                String savePath = null;
-                // D. 如开启自动保存，将结果写入统一托管目录。
+                // 2. 针对每一个定位到的目标分别做处理
+                for (Mat cropMat : cropMatList) {
+                    if (cropMat == null || cropMat.empty()) {
+                        continue;
+                    }
+                    Mat processedMat = cropMat;
+                    if (enableSR) {
+                        Mat srMat = weChatCropHelper.superResolve(cropMat);
+                        if ((srMat != null) && !srMat.empty()) {
+                            processedMat = srMat;
+                        } else {
+                            Log.w(LogKit.TAG, "SR 重建失败 + 降级使用裁剪原图 - 微信裁剪");
+                        }
+                    }
+                    finalMatList.add(processedMat);
+                    // 3. 转 Bitmap 供 UI 展示
+                    Bitmap bitmap = Bitmap.createBitmap(processedMat.cols(), processedMat.rows(), Bitmap.Config.ARGB_8888);
+                    Utils.matToBitmap(processedMat, bitmap);
+                    resultBitmapList.add(bitmap);
+                }
+                if (resultBitmapList.isEmpty()) {
+                    notifyError(onWeChatCropCallback, "图像转换 Bitmap 失败 - 微信裁剪");
+                    return;
+                }
+                // 4. 自动保存结果
+                // 多图依次拼接 _1 _2 等后缀
                 if (autoSaveResult && (appContext != null)) {
                     File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.WE_CHAT_CROP);
                     if ((mediaDir != null) && !mediaDir.exists()) {
-                        boolean isCreated = mediaDir.mkdirs();
-                        if (!isCreated && !mediaDir.exists()) {
-                            Log.w(LogKit.TAG, "创建微信裁剪图片保存目录失败");
+                        boolean created = mediaDir.mkdirs();
+                        if (!created && !mediaDir.exists()) {
+                            Log.e(LogKit.TAG, "微信裁剪图片保存目录创建失败 || " + mediaDir.getAbsolutePath());
                         }
                     }
-                    if (mediaDir != null) {
-                        // 从源文件名中提取时间戳及序号
-                        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
+                    if (mediaDir != null && mediaDir.exists()) {
                         String originalFileName = file.getName();
                         String timestampStr = null;
                         Matcher matcher = TIMESTAMP_PATTERN.matcher(originalFileName);
@@ -158,40 +178,37 @@ public class WeChatCropEngine {
                         if ((timestampStr == null) || timestampStr.isEmpty()) {
                             timestampStr = String.valueOf(CurrentTimeMillisClock.getInstance().now());
                         }
-                        // 文件命名规则
-                        // WECHAT_CROP_源文件名中时间戳.jpg
-                        File outputFile = new File(mediaDir, "WECHAT_CROP_" + timestampStr + ".jpg");
-                        savePath = outputFile.getAbsolutePath();
-                        // 用 Imgcodecs 写入图片
-                        boolean saved = Imgcodecs.imwrite(savePath, resultMat);
-                        if (saved) {
-                            Log.d(LogKit.TAG, "微信裁剪拉平结果已成功存入 || " + savePath);
-                            MediaScanKit.scanSingleFile(appContext, savePath, "image/jpeg");
-                        } else {
-                            Log.e(LogKit.TAG, "微信裁剪图片 Imgcodecs 写入失败");
-                            savePath = null;
+                        for (int i = 0; i < finalMatList.size(); i++) {
+                            // 1, 2, 3...
+                            int index = i + 1;
+                            File outputFile = new File(mediaDir, "WECHAT_CROP_" + timestampStr + "_" + index + ".jpg");
+                            String savePath = outputFile.getAbsolutePath();
+                            boolean saved = Imgcodecs.imwrite(savePath, finalMatList.get(i));
+                            if (saved) {
+                                MediaScanKit.scanSingleFile(appContext, savePath, "image/jpeg");
+                                savePathList.add(savePath);
+                            }
                         }
-                    } else {
-                        Log.e(LogKit.TAG, "无法获取微信裁剪图片保存目录");
                     }
                 }
-                // E. 切换回主线程回调结果
-                final String finalSavePath = savePath;
                 handler.post(() -> {
                     if (onWeChatCropCallback != null) {
-                        Log.d(LogKit.TAG, "微信裁剪成功 - 保存路径 || " + finalSavePath);
-                        onWeChatCropCallback.onWeChatCropSuccess(resultBitmap, finalSavePath);
+                        onWeChatCropCallback.onWeChatCropSuccess(resultBitmapList, savePathList);
                     }
                 });
             } catch (Exception e) {
-                notifyError(onWeChatCropCallback, "图像处理异常 || " + e.getMessage());
+                notifyError(onWeChatCropCallback, "图像处理异常 - 微信裁剪 || " + e.getMessage());
             } finally {
-                // F. 必须手动释放 C++ 底层 Mat 内存，防止内存泄漏爆发崩溃。
-                if (srcMat != null) {
-                    srcMat.release();
+                if (srcMat != null) srcMat.release();
+                if (cropMatList != null) {
+                    for (Mat mat : cropMatList) {
+                        if (mat != null) mat.release();
+                    }
                 }
-                if (resultMat != null) {
-                    resultMat.release();
+                for (Mat mat : finalMatList) {
+                    if ((mat != null) && ((cropMatList == null) || !cropMatList.contains(mat))) {
+                        mat.release();
+                    }
                 }
             }
         });
@@ -228,10 +245,10 @@ public class WeChatCropEngine {
         /**
          * 微信裁剪成功
          *
-         * @param resultBitmap 结果像素数据
-         * @param savedPath    保存路径
+         * @param resultBitmaps 结果像素数据集
+         * @param savedPaths    保存路径集
          */
-        void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath);
+        void onWeChatCropSuccess(List<Bitmap> resultBitmaps, List<String> savedPaths);
 
         /**
          * 微信裁剪错误
