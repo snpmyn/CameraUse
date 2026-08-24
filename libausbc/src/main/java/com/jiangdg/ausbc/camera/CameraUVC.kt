@@ -563,6 +563,122 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         mUvcCamera?.resetHue()
     }
 
+    /**
+     * Update preview size
+     *
+     * 热切预览分辨率
+     *
+     * 传输格式
+     * 1. FRAME_FORMAT_MJPEG - 压缩流格式
+     * - 图像在摄像头硬件内部经 Motion JPEG 压缩后再传入系统，占用 USB 带宽极小。
+     * - 支持在大分辨率 (1080P / 4K) 下保持高帧率 (30 ~ 60 FPS)
+     * - 作为首选默认切换格式
+     * 2. FRAME_FORMAT_YUYV - 未压缩原始数据流格式
+     * - 未经任何压缩的裸数据 (2 Bytes / Pixel)，对系统与 USB 总线带宽要求极高。
+     * - 受限于 USB 2.0 带宽瓶颈，大分辨率下硬件帧率会被迫降至 5 ~ 15 FPS，甚至引发底层传输丢帧。
+     * - 摄像头硬件在目标分辨率下不支持 MJPEG 格式时降级适配
+     * <p>
+     * 相机关闭原因说明
+     * - 若 MJPEG 与 YUYV 两次 setPreviewSize 均抛异常，说明摄像头固件 (UVC Firmware) 根本不支持该目标分辨率或底层 USB 管道 (Pipe) 配流失败。
+     * - 此时由于在尝试切换前已调 stopPreview() 停流，若不及时拦截抛出失败，系统将无法继续渲染后续帧，表现为预览画面黑屏 / 挂起 (即相机预览被迫关闭)。
+     *
+     * @param width 目标宽度
+     * @param height 目标高度
+     * @param surface 预览画面载体 (Surface / SurfaceTexture / SurfaceView / TextureView)
+     * @param onResult 结果异步回调 (isSuccess 是否成功 || formatMode 实际生效模式 MJPEG / YUYV / null)
+     */
+    fun updatePreviewSize(
+        width: Int,
+        height: Int,
+        surface: Any?,
+        onResult: ((Boolean, String?) -> Unit)? = null
+    ) {
+        mCameraHandler?.post {
+            val camera = mUvcCamera
+            if (camera == null || !isPreviewed) {
+                Logger.e(TAG, "updatePreviewSize failed: camera is null or not previewing.")
+                mMainHandler.post { onResult?.invoke(false, null) }
+                return@post
+            }
+            val request = mCameraRequest ?: run {
+                Logger.e(TAG, "updatePreviewSize failed: mCameraRequest is null.")
+                mMainHandler.post { onResult?.invoke(false, null) }
+                return@post
+            }
+            try {
+                camera.setFrameCallback(null, 0)
+                camera.stopPreview()
+                releaseEncodeProcessor()
+                mNV21DataQueue.clear()
+                request.previewWidth = width
+                request.previewHeight = height
+                var isSuccess = false
+                var formatMode: String? = null
+                val safeMaxFps = if (width >= 3840) 30 else MAX_FPS
+                try {
+                    camera.setPreviewSize(
+                        width,
+                        height,
+                        MIN_FS,
+                        safeMaxFps,
+                        UVCCamera.FRAME_FORMAT_MJPEG,
+                        UVCCamera.DEFAULT_BANDWIDTH
+                    )
+                    isSuccess = true
+                    formatMode = "MJPEG"
+                } catch (e: Exception) {
+                    Logger.w(
+                        TAG,
+                        "Set MJPEG preview size ($width x $height) failed, fallback to YUYV...",
+                        e
+                    )
+                    try {
+                        camera.setPreviewSize(
+                            width,
+                            height,
+                            MIN_FS,
+                            30,
+                            UVCCamera.FRAME_FORMAT_YUYV,
+                            UVCCamera.DEFAULT_BANDWIDTH
+                        )
+                        isSuccess = true
+                        formatMode = "YUYV"
+                    } catch (ex: Exception) {
+                        Logger.e(TAG, "Set YUYV preview size ($width x $height) failed!", ex)
+                    }
+                }
+                if (!isSuccess) {
+                    // MJPEG 与 YUYV 均失败
+                    // 由于前面已经 stopPreview()，此处已无法继续输出画面，需直接通知 UI 切换失败。
+                    mMainHandler.post { onResult?.invoke(false, null) }
+                    return@post
+                }
+                initEncodeProcessor(width, height)
+                if (!isNeedGLESRender || request.isRawPreviewData || request.isCaptureRawImage) {
+                    camera.setFrameCallback(frameCallBack, UVCCamera.PIXEL_FORMAT_YUV420SP)
+                }
+                when (surface) {
+                    is Surface -> camera.setPreviewDisplay(surface)
+                    is SurfaceTexture -> camera.setPreviewTexture(surface)
+                    is SurfaceView -> camera.setPreviewDisplay(surface.holder)
+                    is TextureView -> camera.setPreviewTexture(surface.surfaceTexture)
+                    else -> Logger.w(TAG, "Surface is null or unsupported type.")
+                }
+                camera.startPreview()
+                camera.updateCameraParams()
+                isPreviewed = true
+                Logger.i(TAG, "updatePreviewSize success: ${width}x${height}, format: $formatMode")
+                mMainHandler.post { onResult?.invoke(true, formatMode) }
+            } catch (e: Exception) {
+                Logger.e(TAG, "updatePreviewSize exception: ${e.localizedMessage}", e)
+                // 异常捕获
+                // 重新标记预览停止，防止状态错乱。
+                isPreviewed = false
+                mMainHandler.post { onResult?.invoke(false, null) }
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "CameraUVC"
         private const val MIN_FS = 10
