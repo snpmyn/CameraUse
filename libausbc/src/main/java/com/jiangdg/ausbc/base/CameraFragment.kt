@@ -305,6 +305,28 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     /**
+     * Update preview size
+     *
+     * @param width camera preview width
+     * @param height camera preview height
+     * @param onResult result callback [isSuccess: Boolean || formatMode: String? = null]
+     */
+    fun updatePreviewSize(
+        width: Int,
+        height: Int,
+        onResult: ((Boolean, String?) -> Unit)? = null
+    ) {
+        val camera = getCurrentCamera()
+        if (camera is CameraUVC) {
+            // 透传当前预览 View / Surface 与双参回调
+            camera.updatePreviewSize(width, height, getCameraView(), onResult)
+        } else {
+            // 当前设备不是 UVC 相机 -> 直接返回失败及 null 模式
+            onResult?.invoke(false, null)
+        }
+    }
+
+    /**
      * Get all preview sizes
      *
      * @param aspectRatio preview size aspect ratio,
