@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.capture;
+package com.qtone.camerause.widget.capture;
 
 /**
  * Created on 2026/8/5.
