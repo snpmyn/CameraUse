@@ -38,7 +38,7 @@
             android:layout_margin="@dimen/dp_8"
             android:background="@drawable/ripple_oval"
             android:contentDescription="@string/info"
-            android:src="@drawable/ic_format_image_front_cos_24dp"
+            android:src="@drawable/ic_info_cos_24dp"
             app:tint="@color/color_FFEE6002" />
     </FrameLayout>
 
