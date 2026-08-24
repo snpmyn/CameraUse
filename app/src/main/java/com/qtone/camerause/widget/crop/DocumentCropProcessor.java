@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.crop;
+package com.qtone.camerause.widget.crop;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,10 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
+import com.qtone.camerause.widget.storage.MediaStorageConfig;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +42,6 @@ import java.util.regex.Pattern;
 public class DocumentCropProcessor {
     /**
      * 时间戳及序号正则表达式
-     * <p>
-     * 支持提取 1754294400000、1754294400000_0001、IMG_1754294400000_0001 等格式中的核心时间戳及序号
      */
     private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
 
@@ -85,13 +83,13 @@ public class DocumentCropProcessor {
      */
     public void processByPath(@NonNull Context context, String path, OnDocumentCropCallback onDocumentCropCallback) {
         if (executorService.isShutdown()) {
-            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放 - 文档裁剪");
             return;
         }
         executorService.execute(() -> {
             Mat srcMat = Imgcodecs.imread(path);
             if (srcMat.empty()) {
-                notifyError(onDocumentCropCallback, "加载原图失败");
+                notifyError(onDocumentCropCallback, "加载原图失败 - 文档裁剪");
                 return;
             }
             String fileName = new File(path).getName();
@@ -110,12 +108,12 @@ public class DocumentCropProcessor {
      */
     public void processByData(@NonNull Context context, byte[] data, int width, int height, OnDocumentCropCallback onDocumentCropCallback) {
         if (executorService.isShutdown()) {
-            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放");
+            notifyError(onDocumentCropCallback, "文档裁剪处理器已释放 - 文档裁剪");
             return;
         }
         executorService.execute(() -> {
             if ((data == null) || (data.length < (width * height * 3 / 2))) {
-                notifyError(onDocumentCropCallback, "图像帧字节数组异常");
+                notifyError(onDocumentCropCallback, "数据帧异常 - 文档裁剪");
                 return;
             }
             Mat yuvMat = new Mat(height + height / 2, width, CvType.CV_8UC1);
@@ -140,19 +138,19 @@ public class DocumentCropProcessor {
         Mat croppedMat = cropPaperBody(inputMat);
         inputMat.release();
         if ((croppedMat == null) || croppedMat.empty()) {
-            notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体");
+            notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体 - 文档裁剪");
             return;
         }
         File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.DOCUMENT_CROP);
         if ((mediaDir != null) && !mediaDir.exists()) {
             boolean isCreated = mediaDir.mkdirs();
             if (!isCreated && !mediaDir.exists()) {
-                Log.w(LogKit.TAG, "创建裁剪图片保存目录失败");
+                Log.w(LogKit.TAG, "创建裁剪图片保存目录失败 - 文档裁剪");
             }
         }
         if (mediaDir == null) {
             croppedMat.release();
-            notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录");
+            notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录 - 文档裁剪");
             return;
         }
         // 从源文件名中提取时间戳及序号
@@ -165,13 +163,13 @@ public class DocumentCropProcessor {
         if (saved && (resultBitmap != null)) {
             MediaScanKit.scanSingleFile(context, outputPath, "image/jpeg");
             handler.post(() -> {
-                Log.d(LogKit.TAG, "试卷四角透视矫正成功 - " + logTagSource + " - 保存路径 || " + outputPath);
+                Log.d(LogKit.TAG, "试卷四角透视矫正成功 - 文档裁剪 - " + logTagSource + " - 保存路径 || " + outputPath);
                 if (onDocumentCropCallback != null) {
                     onDocumentCropCallback.onDocumentCropSuccess(outputPath, resultBitmap);
                 }
             });
         } else {
-            notifyError(onDocumentCropCallback, "保存裁剪图片失败");
+            notifyError(onDocumentCropCallback, "保存裁剪图片失败 - 文档裁剪");
         }
     }
 
@@ -214,7 +212,7 @@ public class DocumentCropProcessor {
                 }
             }
             if (maxContour == null) {
-                Log.w(LogKit.TAG, "未能在场景中找到足够大的白色纸张");
+                Log.w(LogKit.TAG, "未能在场景中找到足够大的白色纸张 - 文档裁剪");
                 return null;
             }
             // 5. 试卷四角拟合
@@ -271,7 +269,7 @@ public class DocumentCropProcessor {
             }
             return destMat;
         } catch (Exception e) {
-            Log.e(LogKit.TAG, "试卷主体裁剪处理异常", e);
+            Log.e(LogKit.TAG, "试卷主体裁剪处理异常 - 文档裁剪", e);
             return null;
         } finally {
             // 统一释放轮廓集合Native资源
@@ -359,7 +357,7 @@ public class DocumentCropProcessor {
             rgbMat.release();
             return bitmap;
         } catch (Exception e) {
-            Log.e(LogKit.TAG, "Mat 转 Bitmap 失败", e);
+            Log.e(LogKit.TAG, "Mat 转 Bitmap 失败 - 文档裁剪", e);
             return null;
         }
     }
@@ -372,7 +370,7 @@ public class DocumentCropProcessor {
      */
     private void notifyError(OnDocumentCropCallback onDocumentCropCallback, String errorMsg) {
         handler.post(() -> {
-            Log.e(LogKit.TAG, "试卷透视矫正失败 || " + errorMsg);
+            Log.e(LogKit.TAG, "试卷透视矫正失败 - 文档裁剪 || " + errorMsg);
             if (onDocumentCropCallback != null) {
                 onDocumentCropCallback.onDocumentCropError(errorMsg);
             }
