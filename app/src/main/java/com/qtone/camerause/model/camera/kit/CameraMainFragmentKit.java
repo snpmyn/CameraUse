@@ -377,9 +377,9 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
             // 3. 是否允许微信裁剪
             if (SharedPreferencesKit.isWechatCropEnabled(appCompatActivity)) {
                 // 微信裁剪引擎 - 处理
-                WeChatCropEngine.getInstance(appCompatActivity).process(appCompatActivity, savePath, true, new WeChatCropEngine.OnWeChatCropCallback() {
+                WeChatCropEngine.getInstance(appCompatActivity).process(appCompatActivity, savePath, true, false, new WeChatCropEngine.OnWeChatCropCallback() {
                     @Override
-                    public void onWeChatCropSuccess(Bitmap resultBitmap, String savedPath) {
+                    public void onWeChatCropSuccess(List<Bitmap> resultBitmaps, List<String> savedPaths) {
                         ToastUtils.show("微信裁剪成功");
                     }
 
