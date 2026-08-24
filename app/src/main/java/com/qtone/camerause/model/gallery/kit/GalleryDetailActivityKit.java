@@ -47,8 +47,8 @@ public class GalleryDetailActivityKit {
             @Override
             public <T> void onItemInnerClick(View view, int position, T t) {
                 SystemBarKit.hideSystemBars(galleryDetailActivity);
-                MediaScanner.ImageItem imageItem = (MediaScanner.ImageItem) t;
-                imageViewerOverlay.show((ViewGroup) galleryDetailActivity.getWindow().getDecorView(), imageItem.file.getAbsolutePath());
+                MediaScanner.FileItem fileItem = (MediaScanner.FileItem) t;
+                imageViewerOverlay.show((ViewGroup) galleryDetailActivity.getWindow().getDecorView(), fileItem.fileAbsolutePath);
             }
         });
         // 展示

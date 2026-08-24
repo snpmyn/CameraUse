@@ -44,9 +44,9 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
      */
     private final int totalMargin;
     /**
-     * 图片条目
+     * 文件条目集
      */
-    private List<MediaScanner.ImageItem> imageItemList;
+    private List<MediaScanner.FileItem> fileItemList;
     /**
      * RecyclerView 条目内部短点监听
      */
@@ -71,14 +71,14 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
      * @param folderItem 文件夹条目
      */
     public void submitData(MediaScanner.@NotNull FolderItem folderItem) {
-        if (this.imageItemList == null) {
-            this.imageItemList = new ArrayList<>();
+        if (this.fileItemList == null) {
+            this.fileItemList = new ArrayList<>();
         } else {
-            this.imageItemList.clear();
+            this.fileItemList.clear();
         }
-        List<MediaScanner.ImageItem> imageItemList = folderItem.imageItemList;
-        if (ListUtils.listIsNotEmpty(imageItemList)) {
-            this.imageItemList.addAll(imageItemList);
+        List<MediaScanner.FileItem> fileItemList = folderItem.fileItemList;
+        if (ListUtils.listIsNotEmpty(fileItemList)) {
+            this.fileItemList.addAll(fileItemList);
         }
         notifyDataSetChanged();
     }
@@ -105,14 +105,14 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(imageItemList.get(position));
+        holder.bind(fileItemList.get(position));
         // 全屏
-        holder.mediaImageDetailItemAcibFullScreen.setOnClickListener(v -> onRecyclerViewOnItemInnerClickListener.onItemInnerClick(v, position, imageItemList.get(position)));
+        holder.mediaImageDetailItemAcibFullScreen.setOnClickListener(v -> onRecyclerViewOnItemInnerClickListener.onItemInnerClick(v, position, fileItemList.get(position)));
     }
 
     @Override
     public int getItemCount() {
-        return ListUtils.listIsNotEmpty(imageItemList) ? imageItemList.size() : 0;
+        return ListUtils.listIsNotEmpty(fileItemList) ? fileItemList.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -127,12 +127,12 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
             mediaImageDetailItemTvName = itemView.findViewById(R.id.mediaImageDetailItemTvName);
         }
 
-        public void bind(MediaScanner.@NotNull ImageItem imageItem) {
-            if (imageItem.file != null) {
+        public void bind(MediaScanner.@NotNull FileItem fileItem) {
+            if (fileItem.file != null) {
                 // 图片
-                GlideLoader.with(itemView.getContext()).loadRounded(mediaImageDetailItemIv, imageItem.file.getAbsolutePath(), 8.0f);
+                GlideLoader.with(itemView.getContext()).loadRounded(mediaImageDetailItemIv, fileItem.fileAbsolutePath, 8.0f);
                 // 名称
-                mediaImageDetailItemTvName.setText(imageItem.file.getName());
+                mediaImageDetailItemTvName.setText(fileItem.fileName);
             }
         }
     }

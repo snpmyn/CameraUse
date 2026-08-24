@@ -131,16 +131,16 @@ public class MediaImageGroupAdapter extends RecyclerView.Adapter<MediaImageGroup
 
         public void bind(MediaScanner.@NotNull FolderItem folderItem) {
             // 图片
-            if (ListUtils.listIsNotEmpty(folderItem.imageItemList)) {
-                MediaScanner.ImageItem firstImageItem = folderItem.imageItemList.get(0);
-                if ((firstImageItem != null) && (firstImageItem.file != null)) {
-                    GlideLoader.with(itemView.getContext()).loadRounded(mediaImageGroupItemIv, firstImageItem.file.getAbsolutePath(), 8.0f);
+            if (ListUtils.listIsNotEmpty(folderItem.fileItemList)) {
+                MediaScanner.FileItem firstFileItem = folderItem.fileItemList.get(0);
+                if ((firstFileItem != null) && (firstFileItem.file != null)) {
+                    GlideLoader.with(itemView.getContext()).loadRounded(mediaImageGroupItemIv, firstFileItem.file.getAbsolutePath(), 8.0f);
                 }
             }
             // 目录
             mediaImageGroupItemTvFolder.setText(folderItem.folderName);
             // 数量
-            int count = ListUtils.listIsNotEmpty(folderItem.imageItemList) ? folderItem.imageItemList.size() : 0;
+            int count = ListUtils.listIsNotEmpty(folderItem.fileItemList) ? folderItem.fileItemList.size() : 0;
             String countText = (count + " 项");
             mediaImageGroupItemTvCount.setText(countText);
         }
