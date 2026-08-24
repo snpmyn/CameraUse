@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -55,18 +56,18 @@ public class MediaScanner {
         if (files == null) {
             return;
         }
-        List<ImageItem> imageItems = new ArrayList<>();
+        List<FileItem> fileItems = new ArrayList<>();
         List<File> subDirectories = new ArrayList<>();
         for (File file : files) {
             if (file.isDirectory()) {
                 subDirectories.add(file);
             } else if (file.isFile() && isImageFile(file.getPath())) {
-                imageItems.add(new ImageItem(file));
+                fileItems.add(new FileItem(file));
             }
         }
-        // 当前目录存在图片 -> 提取当前目录名称及图片集合 (只有存在图片才添加)
-        if (!imageItems.isEmpty()) {
-            mediaItemList.add(new FolderItem(directory.getName(), directory.getAbsolutePath(), imageItems));
+        // 当前目录存在文件 -> 提取当前目录名称及文件集合 (只有存在文件才添加)
+        if (!fileItems.isEmpty()) {
+            mediaItemList.add(new FolderItem(directory.getName(), directory.getAbsolutePath(), fileItems));
         }
         // 递归扫描子目录
         for (File subDirectory : subDirectories) {
@@ -110,9 +111,9 @@ public class MediaScanner {
          */
         public static final int TYPE_FOLDER = 0;
         /**
-         * 图片类型
+         * 文件类型
          */
-        public static final int TYPE_IMAGE = 1;
+        public static final int TYPE_FILE = 1;
 
         /**
          * 获取条目类型
@@ -127,29 +128,29 @@ public class MediaScanner {
      */
     public static class FolderItem extends MediaItem implements Serializable {
         /**
-         * 文件夹名
+         * 文件夹名称
          */
         public String folderName;
         /**
-         * 路径
+         * 文件夹路径
          */
-        public String path;
+        public String folderPath;
         /**
-         * 图片条目集
+         * 文件条目集
          */
-        public List<ImageItem> imageItemList;
+        public List<FileItem> fileItemList;
 
         /**
          * constructor
          *
-         * @param folderName    文件夹名
-         * @param path          路径
-         * @param imageItemList 图片条目集
+         * @param folderName   文件夹名称
+         * @param folderPath   文件夹路径
+         * @param fileItemList 文件条目集
          */
-        public FolderItem(String folderName, String path, List<ImageItem> imageItemList) {
+        public FolderItem(String folderName, String folderPath, List<FileItem> fileItemList) {
             this.folderName = folderName;
-            this.path = path;
-            this.imageItemList = imageItemList;
+            this.folderPath = folderPath;
+            this.fileItemList = fileItemList;
         }
 
         @Override
@@ -159,26 +160,62 @@ public class MediaScanner {
     }
 
     /**
-     * 图片条目
+     * 文件条目
      */
-    public static class ImageItem extends MediaItem implements Serializable {
+    public static class FileItem extends MediaItem implements Serializable {
         /**
          * 文件
          */
         public File file;
+        /**
+         * 文件绝对路径
+         */
+        public String fileAbsolutePath;
+        /**
+         * 文件大小
+         */
+        public String fileSize;
+        /**
+         * 文件名称
+         */
+        public String fileName;
 
         /**
          * constructor
          *
          * @param file 文件
          */
-        public ImageItem(File file) {
+        public FileItem(File file) {
             this.file = file;
+            if (file != null) {
+                this.fileAbsolutePath = file.getAbsolutePath();
+                this.fileSize = formatFileSize(file.length());
+                this.fileName = file.getName();
+            }
+        }
+
+        /**
+         * 格式化文件大小
+         *
+         * @param sizeInBytes 字节大小
+         * @return 格式化后文件大小
+         */
+        private @NotNull String formatFileSize(long sizeInBytes) {
+            if (sizeInBytes <= 0) {
+                return "0 KB";
+            }
+            double sizeInKb = sizeInBytes / 1024.0;
+            if (sizeInKb < 1024.0) {
+                return String.format(Locale.getDefault(), "%.2f KB", sizeInKb);
+            } else {
+                double sizeInMb = sizeInKb / 1024.0;
+                return String.format(Locale.getDefault(), "%.2f MB", sizeInMb);
+            }
         }
 
         @Override
         public int getItemType() {
-            return TYPE_IMAGE;
+            return TYPE_FILE;
         }
     }
 }
