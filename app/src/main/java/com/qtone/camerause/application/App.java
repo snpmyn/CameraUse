@@ -11,12 +11,12 @@ import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
-import com.qtone.camerause.function.storage.MediaStorageConfig;
 import com.qtone.camerause.util.activity.ActivitySuperviseManager;
 import com.qtone.camerause.util.app.AppListener;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.mmkv.MmkvKit;
+import com.qtone.camerause.widget.storage.MediaStorageConfig;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -30,10 +30,10 @@ public class App extends BaseApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        // 全局监听 Activity 生命周期
-        registerActivityListener();
         // 日志工具类
         LogUtils.Builder.initConfiguration(true, true, true, true);
+        // 全局监听 Activity 生命周期
+        registerActivityListener();
         // 初始化 MMKV
         MmkvKit.INSTANCE.init(this);
         // 应用监听
