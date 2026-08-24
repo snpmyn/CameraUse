@@ -6,9 +6,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.qtone.camerause.R;
+import com.qtone.camerause.util.preference.PreferenceKit;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,15 +27,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // 获取 PreferenceFragmentCompat 底层 RecyclerView
-        RecyclerView recyclerView = getListView();
-        if (recyclerView != null) {
-            // 隐藏垂直滑动条
-            recyclerView.setVerticalScrollBarEnabled(false);
-            // 隐藏水平滑动条
-            recyclerView.setHorizontalScrollBarEnabled(false);
-            // 禁用拉到底部的波纹 / 阴影效果
-            /*recyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);*/
-        }
+        // 优化 RecyclerView
+        PreferenceKit.optimizeRecyclerView(this);
     }
 }
