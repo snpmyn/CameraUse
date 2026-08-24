@@ -5,6 +5,8 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.R;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageDetailAdapter;
 import com.qtone.camerause.util.media.MediaScanner;
@@ -46,9 +48,16 @@ public class GalleryDetailActivityKit {
         mediaImageDetailAdapter.setOnRecyclerViewOnItemInnerClickListener(new OnRecyclerViewOnItemInnerClickListener() {
             @Override
             public <T> void onItemInnerClick(View view, int position, T t) {
-                SystemBarKit.hideSystemBars(galleryDetailActivity);
                 MediaScanner.FileItem fileItem = (MediaScanner.FileItem) t;
-                imageViewerOverlay.show((ViewGroup) galleryDetailActivity.getWindow().getDecorView(), fileItem.fileAbsolutePath);
+                int viewId = view.getId();
+                if (viewId == R.id.mediaImageDetailItemAcibFullScreen) {
+                    // 全屏
+                    SystemBarKit.hideSystemBars(galleryDetailActivity);
+                    imageViewerOverlay.show((ViewGroup) galleryDetailActivity.getWindow().getDecorView(), fileItem.fileAbsolutePath);
+                } else if (viewId == R.id.mediaImageDetailItemAcibInfo) {
+                    // 信息
+                    ToastUtils.show("信息");
+                }
             }
         });
         // 展示

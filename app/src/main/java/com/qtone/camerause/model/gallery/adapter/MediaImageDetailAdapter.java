@@ -108,6 +108,8 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
         holder.bind(fileItemList.get(position));
         // 全屏
         holder.mediaImageDetailItemAcibFullScreen.setOnClickListener(v -> onRecyclerViewOnItemInnerClickListener.onItemInnerClick(v, position, fileItemList.get(position)));
+        // 信息
+        holder.mediaImageDetailItemAcibInfo.setOnClickListener(v -> onRecyclerViewOnItemInnerClickListener.onItemInnerClick(v, position, fileItemList.get(position)));
     }
 
     @Override
@@ -118,12 +120,14 @@ public class MediaImageDetailAdapter extends RecyclerView.Adapter<MediaImageDeta
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final ImageView mediaImageDetailItemIv;
         private final AppCompatImageButton mediaImageDetailItemAcibFullScreen;
+        private final AppCompatImageButton mediaImageDetailItemAcibInfo;
         private final TextView mediaImageDetailItemTvName;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             mediaImageDetailItemIv = itemView.findViewById(R.id.mediaImageDetailItemIv);
             mediaImageDetailItemAcibFullScreen = itemView.findViewById(R.id.mediaImageDetailItemAcibFullScreen);
+            mediaImageDetailItemAcibInfo = itemView.findViewById(R.id.mediaImageDetailItemAcibInfo);
             mediaImageDetailItemTvName = itemView.findViewById(R.id.mediaImageDetailItemTvName);
         }
 
