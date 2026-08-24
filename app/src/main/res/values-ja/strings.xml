@@ -13,7 +13,6 @@
     <string name="mediaImageDetail">画像詳細</string>
     <string name="fullScreen">全画面</string>
     <string name="fullScreenExit">全画面表示を解除</string>
-    <string name="close">閉じる</string>
     <string name="shrink">縮小</string>
     <string name="enlarge">拡大</string>
     <string name="turnLeft">左回転</string>
