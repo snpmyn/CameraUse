@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.storage;
+package com.qtone.camerause.widget.storage;
 
 import android.content.Context;
 import android.os.Environment;
