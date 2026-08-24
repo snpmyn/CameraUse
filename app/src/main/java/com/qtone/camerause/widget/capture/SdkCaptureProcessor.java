@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.capture;
+package com.qtone.camerause.widget.capture;
 
 import android.content.Context;
 import android.os.Handler;
@@ -9,6 +9,7 @@ import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.ICaptureCallBack;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
+import com.qtone.camerause.widget.camera.CameraController;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -173,7 +174,7 @@ public class SdkCaptureProcessor {
             return;
         }
         final Context appContext = applicationContext;
-        iCamera.captureImage(new ICaptureCallBack() {
+        CameraController.getInstance(iCamera).captureImage(new ICaptureCallBack() {
             @Override
             public void onBegin() {
                 Log.d(LogKit.TAG, "SDK 拍照开始");

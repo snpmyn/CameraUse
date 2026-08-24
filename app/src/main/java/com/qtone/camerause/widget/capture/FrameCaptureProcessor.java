@@ -1,4 +1,4 @@
-package com.qtone.camerause.function.capture;
+package com.qtone.camerause.widget.capture;
 
 import android.content.Context;
 import android.graphics.Bitmap;
