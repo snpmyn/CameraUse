@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * Marks a method as an event subscriber, as used by {@link com.qtone.camerause.util.rxbus.finder.AnnotatedFinder} and {@link com.qtone.camerause.util.rxbus.Bus}.
  * <p>
  * The method's first (and only) parameter and tag defines the event type.
- * If this annotation is applied to methods with zero parameters or more than one parameter, the object containing the method will not be able to register for event delivery from the {@link util.rxbus.Bus}.
+ * If this annotation is applied to methods with zero parameters or more than one parameter, the object containing the method will not be able to register for event delivery from the {@link com.qtone.camerause.util.rxbus.Bus}.
  * Bus fails fast by throwing runtime exceptions in these cases.
  * @author: 郑少鹏
  * @date: 2019/8/28 10:57
