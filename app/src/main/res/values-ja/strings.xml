@@ -6,7 +6,6 @@
     <string name="scanCode">QRスキャン</string>
     <string name="stopScanCode">スキャン停止</string>
     <string name="switchResolution">解像度切替</string>
-    <string name="applicationSetting">アプリ設定</string>
     <string name="setting">設定</string>
     <string name="gallery">ギャラリー</string>
     <string name="doNotTriggerScanningRepeatedly">連続スキャン不可</string>
