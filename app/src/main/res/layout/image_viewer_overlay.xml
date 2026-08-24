@@ -44,9 +44,9 @@
             android:layout_width="@dimen/dp_16"
             android:layout_height="@dimen/dp_16"
             android:background="@drawable/ripple_oval"
-            android:contentDescription="@string/close"
+            android:contentDescription="@string/fullScreenExit"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_cancel_two_white_24dp"
+            android:src="@drawable/ic_fullscreen_exit_cos_24dp"
             app:tint="@color/color_FFEE6002" />
     </RelativeLayout>
 
