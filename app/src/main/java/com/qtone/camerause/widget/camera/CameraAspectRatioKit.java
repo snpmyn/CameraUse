@@ -1,4 +1,4 @@
-package com.qtone.camerause.util.camera;
+package com.qtone.camerause.widget.camera;
 
 import android.app.Activity;
 import android.util.Log;
