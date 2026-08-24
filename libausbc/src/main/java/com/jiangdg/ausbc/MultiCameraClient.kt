@@ -41,7 +41,6 @@ import kotlin.math.abs
  * Multi-road camera client
  *
  * @author Created by jiangdg on 2022/7/18
- *      Modified for v3.3.0 by jiangdg on 2023/1/15
  */
 class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
     private var mUsbMonitor: USBMonitor? = null
@@ -54,7 +53,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             /**
              * Called by receive usb device inserted broadcast
              *
-             * @param device usb device info,see [UsbDevice]
+             * @param device usb device info, see [UsbDevice]
              */
             override fun onAttach(device: UsbDevice?) {
                 if (Utils.debugCamera) {
@@ -138,7 +137,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                     callback?.onDisConnectDec(device, ctrlBlock)
                 }
             }
-
 
             /**
              * Called by dis unauthorized permission or request permission exception
@@ -257,7 +255,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
     }
 
     private fun isMonitorRegistered() = mUsbMonitor?.isRegistered == true
-
 
     /**
      * Camera strategy super class
@@ -657,7 +654,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         fun isMicSupported(device: UsbDevice?) = CameraUtils.isCameraContainsMic(device)
 
-
         /**
          * Get all preview sizes
          *
@@ -669,8 +665,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Open camera
          *
-         * @param cameraView render surface view，support Surface or SurfaceTexture
-         *                      or SurfaceView or TextureView or GLSurfaceView
+         * @param cameraView render surface view，support Surface or SurfaceTexture or SurfaceView or TextureView or GLSurfaceView
          * @param cameraRequest camera request
          */
         fun <T> openCamera(cameraView: T? = null, cameraRequest: CameraRequest? = null) {
@@ -715,7 +710,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * Capture image
          *
          * @param callBack capture a image status, see [ICaptureCallBack]
-         * @param path image save path, default is DICM/Camera
+         * @param path image save path, default is DICM / Camera
          */
         fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
             Pair(path, callBack).apply {
