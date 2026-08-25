@@ -8,8 +8,8 @@
         android:title="@string/deviceInfo"
         app:iconTint="@color/white"
         app:showAsAction="always" />
-    <!--<item
-        android:id="@+id/xxx"
-        android:contentDescription="@string/xxx"
-        android:title="@string/xxx" />-->
+    <item
+        android:id="@+id/mainActivityMenuSwitchCamera"
+        android:contentDescription="@string/switchCamera"
+        android:title="@string/switchCamera" />
 </menu>
