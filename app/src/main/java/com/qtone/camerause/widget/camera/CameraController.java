@@ -21,10 +21,6 @@ public class CameraController {
      * 实例
      */
     private static volatile CameraController instance;
-    /**
-     * 相机实例
-     */
-    private MultiCameraClient.ICamera iCamera;
 
     /**
      * constructor
@@ -52,49 +48,14 @@ public class CameraController {
     }
 
     /**
-     * 获取单例
-     *
-     * @param iCamera 相机实例
-     * @return 单例
-     */
-    public static CameraController getInstance(MultiCameraClient.ICamera iCamera) {
-        if (instance == null) {
-            synchronized (CameraController.class) {
-                if (instance == null) {
-                    instance = new CameraController();
-                }
-            }
-        }
-        instance.setCamera(iCamera);
-        return instance;
-    }
-
-    /**
-     * 获取相机实例
-     *
-     * @return 相机实例
-     */
-    public MultiCameraClient.ICamera getCamera() {
-        return iCamera;
-    }
-
-    /**
-     * 设置相机实例
-     *
-     * @param iCamera 相机实例
-     */
-    public void setCamera(MultiCameraClient.ICamera iCamera) {
-        this.iCamera = iCamera;
-    }
-
-    /**
      * 打开相机
      *
+     * @param iCamera       相机实例
      * @param cameraView    渲染载体
      * @param cameraRequest 相机请求参数
      * @param <T>           渲染载体类型
      */
-    public <T> void openCamera(T cameraView, CameraRequest cameraRequest) {
+    public <T> void openCamera(MultiCameraClient.ICamera iCamera, T cameraView, CameraRequest cameraRequest) {
         if (iCamera != null) {
             iCamera.openCamera(cameraView, cameraRequest);
         }
@@ -102,8 +63,10 @@ public class CameraController {
 
     /**
      * 关闭摄像头预览
+     *
+     * @param iCamera 相机实例
      */
-    public void closeCamera() {
+    public void closeCamera(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.closeCamera();
         }
@@ -112,9 +75,10 @@ public class CameraController {
     /**
      * 设置相机状态回调
      *
+     * @param iCamera              相机实例
      * @param iCameraStateCallBack 相机状态回调
      */
-    public void setCameraStateCallBack(ICameraStateCallBack iCameraStateCallBack) {
+    public void setCameraStateCallBack(MultiCameraClient.ICamera iCamera, ICameraStateCallBack iCameraStateCallBack) {
         if (iCamera != null) {
             iCamera.setCameraStateCallBack(iCameraStateCallBack);
         }
@@ -126,9 +90,10 @@ public class CameraController {
      * H.264
      * AAC 裸流数据
      *
+     * @param iCamera             相机实例
      * @param iEncodeDataCallBack 编码数据回调
      */
-    public void setEncodeDataCallBack(IEncodeDataCallBack iEncodeDataCallBack) {
+    public void setEncodeDataCallBack(MultiCameraClient.ICamera iCamera, IEncodeDataCallBack iEncodeDataCallBack) {
         if (iCamera != null) {
             iCamera.setEncodeDataCallBack(iEncodeDataCallBack);
         }
@@ -137,9 +102,10 @@ public class CameraController {
     /**
      * 添加预览数据回调
      *
+     * @param iCamera              相机实例
      * @param iPreviewDataCallBack 预览数据回调
      */
-    public void addPreviewDataCallBack(IPreviewDataCallBack iPreviewDataCallBack) {
+    public void addPreviewDataCallBack(MultiCameraClient.ICamera iCamera, IPreviewDataCallBack iPreviewDataCallBack) {
         if (iCamera != null) {
             iCamera.addPreviewDataCallBack(iPreviewDataCallBack);
         }
@@ -148,9 +114,10 @@ public class CameraController {
     /**
      * 移除预览数据回调
      *
+     * @param iCamera              相机实例
      * @param iPreviewDataCallBack 预览数据回调
      */
-    public void removePreviewDataCallBack(IPreviewDataCallBack iPreviewDataCallBack) {
+    public void removePreviewDataCallBack(MultiCameraClient.ICamera iCamera, IPreviewDataCallBack iPreviewDataCallBack) {
         if (iCamera != null) {
             iCamera.removePreviewDataCallBack(iPreviewDataCallBack);
         }
@@ -159,10 +126,11 @@ public class CameraController {
     /**
      * 拍照
      *
+     * @param iCamera          相机实例
      * @param iCaptureCallBack 拍照回调
      * @param savePath         保存路径
      */
-    public void captureImage(ICaptureCallBack iCaptureCallBack, String savePath) {
+    public void captureImage(MultiCameraClient.ICamera iCamera, ICaptureCallBack iCaptureCallBack, String savePath) {
         if (iCamera != null) {
             iCamera.captureImage(iCaptureCallBack, savePath);
         }
@@ -171,11 +139,12 @@ public class CameraController {
     /**
      * 开始录制视频
      *
+     * @param iCamera          相机实例
      * @param iCaptureCallBack 录制回调
      * @param savePath         保存路径
      * @param durationInSecond 视频文件自动切分时长秒
      */
-    public void captureVideoStart(ICaptureCallBack iCaptureCallBack, String savePath, long durationInSecond) {
+    public void captureVideoStart(MultiCameraClient.ICamera iCamera, ICaptureCallBack iCaptureCallBack, String savePath, long durationInSecond) {
         if (iCamera != null) {
             iCamera.captureVideoStart(iCaptureCallBack, savePath, durationInSecond);
         }
@@ -183,8 +152,10 @@ public class CameraController {
 
     /**
      * 停止录制视频
+     *
+     * @param iCamera 相机实例
      */
-    public void captureVideoStop() {
+    public void captureVideoStop(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.captureVideoStop();
         }
@@ -195,8 +166,10 @@ public class CameraController {
      * <p>
      * H.264
      * AAC 裸流数据
+     *
+     * @param iCamera 相机实例
      */
-    public void captureStreamStart() {
+    public void captureStreamStart(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.captureStreamStart();
         }
@@ -204,8 +177,10 @@ public class CameraController {
 
     /**
      * 停止捕获音视频编码流
+     *
+     * @param iCamera 相机实例
      */
-    public void captureStreamStop() {
+    public void captureStreamStop(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.captureStreamStop();
         }
@@ -214,10 +189,11 @@ public class CameraController {
     /**
      * 开始录制 MP3 音频
      *
+     * @param iCamera          相机实例
      * @param iCaptureCallBack 录制回调
      * @param savePath         保存路径
      */
-    public void captureAudioStart(ICaptureCallBack iCaptureCallBack, String savePath) {
+    public void captureAudioStart(MultiCameraClient.ICamera iCamera, ICaptureCallBack iCaptureCallBack, String savePath) {
         if (iCamera != null) {
             iCamera.captureAudioStart(iCaptureCallBack, savePath);
         }
@@ -225,8 +201,10 @@ public class CameraController {
 
     /**
      * 停止录制 MP3 音频
+     *
+     * @param iCamera 相机实例
      */
-    public void captureAudioStop() {
+    public void captureAudioStop(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.captureAudioStop();
         }
@@ -235,9 +213,10 @@ public class CameraController {
     /**
      * 开启麦克风实时回放
      *
+     * @param iCamera       相机实例
      * @param iPlayCallBack 播放回调
      */
-    public void startPlayMic(IPlayCallBack iPlayCallBack) {
+    public void startPlayMic(MultiCameraClient.ICamera iCamera, IPlayCallBack iPlayCallBack) {
         if (iCamera != null) {
             iCamera.startPlayMic(iPlayCallBack);
         }
@@ -245,8 +224,10 @@ public class CameraController {
 
     /**
      * 停止麦克风实时回放
+     *
+     * @param iCamera 相机实例
      */
-    public void stopPlayMic() {
+    public void stopPlayMic(MultiCameraClient.ICamera iCamera) {
         if (iCamera != null) {
             iCamera.stopPlayMic();
         }
@@ -255,18 +236,20 @@ public class CameraController {
     /**
      * 相机是否开启中
      *
+     * @param iCamera 相机实例
      * @return 相机是否开启中
      */
-    public boolean isCameraOpened() {
+    public boolean isCameraOpened(MultiCameraClient.ICamera iCamera) {
         return ((iCamera != null) && iCamera.isCameraOpened());
     }
 
     /**
      * 获取 USB 设备
      *
+     * @param iCamera 相机实例
      * @return USB 设备
      */
-    public UsbDevice getUsbDevice() {
+    public UsbDevice getUsbDevice(MultiCameraClient.ICamera iCamera) {
         return (iCamera != null) ? iCamera.getUsbDevice() : null;
     }
 }
