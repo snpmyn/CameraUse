@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mainActivityMenuDeviceInfo"
+        android:contentDescription="@string/deviceInfo"
+        android:icon="@drawable/ic_vacuum_cos_24dp"
+        android:title="@string/deviceInfo"
+        app:iconTint="@color/white"
+        app:showAsAction="always" />
+    <!--<item
+        android:id="@+id/xxx"
+        android:contentDescription="@string/xxx"
+        android:title="@string/xxx" />-->
+</menu>
