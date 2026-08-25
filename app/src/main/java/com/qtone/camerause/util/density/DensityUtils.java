@@ -68,6 +68,18 @@ public class DensityUtils {
     }
 
     /**
+     * sp 资源转 sp
+     *
+     * @param context 上下文
+     * @param spResId sp 资源 ID
+     * @return sp
+     */
+    public static float spResToSp(@NotNull Context context, int spResId) {
+        float px = context.getResources().getDimension(spResId);
+        return px / context.getResources().getDisplayMetrics().scaledDensity;
+    }
+
+    /**
      * 获取逻辑 DPI
      * <p>
      * 系统归一化 DPI
