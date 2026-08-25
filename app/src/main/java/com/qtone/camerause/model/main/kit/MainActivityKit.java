@@ -21,6 +21,7 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.main.MainActivity;
 import com.qtone.camerause.widget.camera.CameraController;
+import com.qtone.camerause.widget.camera.CameraSwitchManager;
 import com.qtone.camerause.widget.dialog.kit.CommonDialogKit;
 
 import org.jetbrains.annotations.NotNull;
@@ -149,6 +150,10 @@ public class MainActivityKit {
         if (itemId == R.id.mainActivityMenuDeviceInfo) {
             // 设备信息
             deviceInfo();
+        } else if (itemId == R.id.mainActivityMenuSwitchCamera) {
+            // 切换相机
+            CameraSwitchManager.showCameraSelectDialog(mainActivity, getCameraMainFragment().getCurrentCamera(),
+                    getCameraMainFragment().getMultiCameraClient(), CameraController.getInstance().getUsbDevice(getCameraMainFragment().getCurrentCamera()));
         }
     }
 
