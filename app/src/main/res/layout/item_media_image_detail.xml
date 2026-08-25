@@ -49,6 +49,6 @@
         android:layout_marginTop="@dimen/dp_6"
         android:gravity="center"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="@dimen/sp_10"
+        android:textSize="@dimen/sp_12"
         tools:text="名称" />
 </LinearLayout>

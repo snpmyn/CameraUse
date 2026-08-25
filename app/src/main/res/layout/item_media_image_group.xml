@@ -20,7 +20,7 @@
         android:layout_marginVertical="@dimen/dp_6"
         android:gravity="center"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="@dimen/sp_10"
+        android:textSize="@dimen/sp_12"
         tools:text="目录" />
 
     <TextView
@@ -29,6 +29,6 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="@dimen/sp_10"
+        android:textSize="@dimen/sp_12"
         tools:text="数量" />
 </LinearLayout>
