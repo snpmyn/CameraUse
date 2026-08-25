@@ -66,6 +66,7 @@ public class CameraSwitchManager {
         String currentUsbDeviceUniqueId = getUsbDeviceUniqueId(currentUsbDevice);
         // 构建弹框选项列表 + 定位默认选中索引
         String[] items = new String[usbDeviceList.size()];
+        // 默认选中下标
         int defaultSelectedIndex = 0;
         for (int i = 0; i < usbDeviceList.size(); i++) {
             UsbDevice usbDevice = usbDeviceList.get(i);
@@ -81,7 +82,6 @@ public class CameraSwitchManager {
                 defaultSelectedIndex = i;
             }
         }
-        // 构建适配器并自定义条目字体大小
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
                 appCompatActivity,
                 com.google.android.material.R.layout.select_dialog_singlechoice_material,
@@ -98,11 +98,16 @@ public class CameraSwitchManager {
                 return view;
             }
         };
+        final int finalDefaultSelectedIndex = defaultSelectedIndex;
         // 显示单选弹框 + 点击切换相机
         AlertDialog alertDialog = new MaterialAlertDialogBuilder(appCompatActivity, R.style.CustomMaterialAlertDialogTheme)
                 .setTitle("选择摄像头")
                 .setSingleChoiceItems(arrayAdapter, defaultSelectedIndex, (dialog, which) -> {
                     dialog.dismiss();
+                    if (which == finalDefaultSelectedIndex) {
+                        // 点击默认选中不处理
+                        return;
+                    }
                     UsbDevice selectedUsbDevice = usbDeviceList.get(which);
                     CameraController.getInstance().switchCamera(iCamera, multiCameraClient, selectedUsbDevice);
                 })
