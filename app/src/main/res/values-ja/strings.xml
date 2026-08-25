@@ -24,4 +24,5 @@
     <string name="deviceInfo">デバイス情報</string>
     <string name="notice">お知らせ</string>
     <string name="iKonw">了解しました</string>
+    <string name="switchCamera">カメラ切替</string>
 </resources>
