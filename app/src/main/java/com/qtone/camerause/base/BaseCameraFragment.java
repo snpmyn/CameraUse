@@ -211,13 +211,13 @@ public abstract class BaseCameraFragment extends CameraFragment {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
             // 自动对焦
-            setAutoFocus(true);
+            CameraController.getInstance().setAutoFocus(getCurrentCamera(), true);
             // 预览区域动态适配
             safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
-            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance().removePreviewDataCallBack(self, previewDataCallBack);
             // 重新注册预览帧回调
-            CameraController.getInstance(self).addPreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance().addPreviewDataCallBack(self, previewDataCallBack);
         } else if (code == ICameraStateCallBack.State.CLOSED) {
             Log.d(LogKit.TAG, "相机关闭成功");
             if (cameraAspectRatioKit != null) {
@@ -225,11 +225,11 @@ public abstract class BaseCameraFragment extends CameraFragment {
                 cameraAspectRatioKit.reset();
             }
             // 清除已有预览帧回调
-            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance().removePreviewDataCallBack(self, previewDataCallBack);
         } else if (code == ICameraStateCallBack.State.ERROR) {
             Log.e(LogKit.TAG, "相机启动错误 || " + msg);
             // 清除已有预览帧回调
-            CameraController.getInstance(self).removePreviewDataCallBack(previewDataCallBack);
+            CameraController.getInstance().removePreviewDataCallBack(self, previewDataCallBack);
         }
     }
 
@@ -260,8 +260,8 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onDestroyView() {
         MultiCameraClient.ICamera iCamera = getCurrentCamera();
         if (iCamera != null) {
-            CameraController.getInstance(iCamera).removePreviewDataCallBack(previewDataCallBack);
-            CameraController.getInstance(iCamera).closeCamera();
+            CameraController.getInstance().removePreviewDataCallBack(iCamera, previewDataCallBack);
+            CameraController.getInstance().closeCamera(iCamera);
         }
         if (cameraAspectRatioKit != null) {
             cameraAspectRatioKit.release();
