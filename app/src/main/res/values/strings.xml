@@ -19,4 +19,9 @@
     <string name="turnRight">右转</string>
     <string name="loadImageFail">图片加载失败</string>
     <string name="info">信息</string>
+    <string name="cancel">取消</string>
+    <string name="ensure">确定</string>
+    <string name="deviceInfo">设备信息</string>
+    <string name="notice">温馨提示</string>
+    <string name="iKonw">我知道了</string>
 </resources>
