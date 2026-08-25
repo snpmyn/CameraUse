@@ -20,8 +20,19 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <!--MaterialAlertDialog 主题-->
+        <item name="materialAlertDialogTheme">@style/CustomMaterialAlertDialogTheme</item>
         <!--页面切换动画-->
         <item name="android:windowAnimationStyle">@style/AnimationActivity</item>
+    </style>
+
+    <!--CustomMaterialAlertDialogTheme-->
+    <style name="CustomMaterialAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="android:textViewStyle">@style/CustomAlertDialogTextViewStyle</item>
+    </style>
+    <!--CustomAlertDialogTextViewStyle-->
+    <style name="CustomAlertDialogTextViewStyle" parent="Widget.MaterialComponents.TextView">
+        <item name="android:textSize">@dimen/sp_18</item>
     </style>
 
     <style name="AnimationActivity" parent="@android:style/Animation.Activity">
