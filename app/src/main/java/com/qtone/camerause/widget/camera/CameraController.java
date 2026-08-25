@@ -1,6 +1,7 @@
 package com.qtone.camerause.widget.camera;
 
 import android.hardware.usb.UsbDevice;
+import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.ICameraStateCallBack;
@@ -14,6 +15,7 @@ import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.render.effect.AbstractEffect;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.util.log.LogKit;
 
 import java.util.List;
 
@@ -263,9 +265,35 @@ public class CameraController {
         return (iCamera != null) ? iCamera.getUsbDevice() : null;
     }
 
-    /* =================================================================================== */
-    /*                               新增 CameraFragment API                                */
-    /* =================================================================================== */
+    /**
+     * 获取设备列表
+     *
+     * @param multiCameraClient 多相机客户端
+     * @return 设备列表
+     */
+    public List<UsbDevice> getDeviceList(MultiCameraClient multiCameraClient) {
+        return (multiCameraClient != null) ? multiCameraClient.getDeviceList(null) : null;
+    }
+
+    /**
+     * 切换相机
+     *
+     * @param iCamera           相机实例
+     * @param multiCameraClient 多相机客户端
+     * @param usbDevice         USB 设备
+     */
+    public void switchCamera(MultiCameraClient.ICamera iCamera, MultiCameraClient multiCameraClient, UsbDevice usbDevice) {
+        if ((iCamera == null) || (multiCameraClient == null) || (usbDevice == null)) {
+            return;
+        }
+        closeCamera(iCamera);
+        try {
+            Thread.sleep(500);
+        } catch (Exception e) {
+            Log.e(LogKit.TAG, "切换相机", e);
+        }
+        multiCameraClient.requestPermission(usbDevice);
+    }
 
     /**
      * 获取默认特效滤镜
@@ -406,10 +434,6 @@ public class CameraController {
             iCamera.setRenderSize(surfaceWidth, surfaceHeight);
         }
     }
-
-    /* =================================================================================== */
-    /*                            UVC 硬件参数调控 API (需 CameraUVC)                        */
-    /* =================================================================================== */
 
     /**
      * 发送相机指令
