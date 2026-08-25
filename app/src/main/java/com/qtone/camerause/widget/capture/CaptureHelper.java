@@ -46,7 +46,7 @@ public class CaptureHelper {
      * @return 相机是否未准备就绪
      */
     public static boolean isCameraNotReady(MultiCameraClient.ICamera iCamera, Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        if ((iCamera == null) || !CameraController.getInstance(iCamera).isCameraOpened()) {
+        if (!CameraController.getInstance().isCameraOpened(iCamera)) {
             notifyError(handler, onCaptureCallBack, "相机未准备就绪");
             return true;
         }
