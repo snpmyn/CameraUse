@@ -174,7 +174,7 @@ public class SdkCaptureProcessor {
             return;
         }
         final Context appContext = applicationContext;
-        CameraController.getInstance(iCamera).captureImage(new ICaptureCallBack() {
+        CameraController.getInstance().captureImage(iCamera, new ICaptureCallBack() {
             @Override
             public void onBegin() {
                 Log.d(LogKit.TAG, "SDK 拍照开始");
