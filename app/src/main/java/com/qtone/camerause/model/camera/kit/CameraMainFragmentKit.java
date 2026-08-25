@@ -24,6 +24,7 @@ import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
+import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
@@ -194,14 +195,14 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * - 此时由于在尝试切换前已调 stopPreview() 停流，若不及时拦截抛出失败，系统将无法继续渲染后续帧，表现为预览画面黑屏 / 挂起 (即相机预览被迫关闭)。
      */
     public void onSwitchResolutionClicked() {
-        List<PreviewSize> previewSizes = cameraMainFragment.getAllPreviewSizes(null);
+        List<PreviewSize> previewSizes = CameraController.getInstance().getAllPreviewSizes(cameraMainFragment.getCurrentCamera(), null);
         if (ListUtils.listIsEmpty(previewSizes)) {
             ToastUtils.show("获取预览分辨率失败");
             return;
         }
         int selectedIndex = -1;
         String[] items = new String[previewSizes.size()];
-        PreviewSize currentPreviewSize = cameraMainFragment.getCurrentPreviewSize();
+        PreviewSize currentPreviewSize = CameraController.getInstance().getCurrentPreviewSize(cameraMainFragment.getCurrentCamera());
         for (int i = 0; i < previewSizes.size(); i++) {
             PreviewSize previewSize = previewSizes.get(i);
             int previewSizeWidth = previewSize.getWidth();
@@ -219,9 +220,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
                         // 相同分辨率无需重复做流重置
                         if (which != initialSelectedIndex) {
                             PreviewSize selectedPreviewSize = previewSizes.get(which);
-                            cameraMainFragment.updatePreviewSize(
+                            CameraController.getInstance().updatePreviewSize(cameraMainFragment.getCurrentCamera(),
                                     selectedPreviewSize.getWidth(),
                                     selectedPreviewSize.getHeight(),
+                                    cameraMainFragment.getTextureView(),
                                     (isSuccess, formatMode) -> {
                                         if (Boolean.TRUE.equals(isSuccess)) {
                                             String modeDesc = formatMode != null ? " [ " + formatMode + " ]" : "";
