@@ -78,4 +78,24 @@ public class FileKit {
             return String.format(Locale.getDefault(), "%.2f MB", sizeInMb);
         }
     }
+
+    /**
+     * 获取图像宽高像素
+     *
+     * @param imagePath 图像路径
+     * @return 图像宽高像素
+     */
+    @Contract("_ -> new")
+    public static int @NotNull [] getImageWidthHeightInPx(String imagePath) {
+        if (TextUtils.isEmpty(imagePath)) {
+            return new int[]{0, 0};
+        }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(imagePath, options);
+        if ((options.outWidth <= 0) || (options.outHeight <= 0)) {
+            return new int[]{0, 0};
+        }
+        return new int[]{options.outWidth, options.outHeight};
+    }
 }

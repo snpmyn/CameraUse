@@ -66,4 +66,46 @@ public class DensityUtils {
     public static int spToPx(@NotNull Context context, float sp) {
         return (int) ((sp * context.getResources().getDisplayMetrics().scaledDensity) + 0.5F);
     }
+
+    /**
+     * 获取逻辑 DPI
+     * <p>
+     * 系统归一化 DPI
+     * 如 120, 160, 240, 320, 480, 640 等
+     *
+     * @param context 上下文
+     * @return 逻辑 DPI
+     */
+    public static int getDensityDpi(@NotNull Context context) {
+        return context.getResources().getDisplayMetrics().densityDpi;
+    }
+
+    /**
+     * 获取系统逻辑 DPI
+     *
+     * @return 系统逻辑 DPI
+     */
+    public static int getSystemDensityDpi() {
+        return Resources.getSystem().getDisplayMetrics().densityDpi;
+    }
+
+    /**
+     * 获取 X 轴 DPI
+     *
+     * @param context 上下文
+     * @return X 轴 DPI
+     */
+    public static float getDpiOnX(@NotNull Context context) {
+        return context.getResources().getDisplayMetrics().xdpi;
+    }
+
+    /**
+     * 获取 Y 轴 DPI
+     *
+     * @param context 上下文
+     * @return Y 轴 DPI
+     */
+    public static float getDpiOnY(@NotNull Context context) {
+        return context.getResources().getDisplayMetrics().ydpi;
+    }
 }
