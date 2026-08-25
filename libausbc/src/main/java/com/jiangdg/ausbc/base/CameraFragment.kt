@@ -215,6 +215,15 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     /**
+     * 获取多相机客户端
+     *
+     * @return 多相机客户端
+     */
+    fun getMultiCameraClient(): MultiCameraClient? {
+        return mCameraClient
+    }
+
+    /**
      * Get current opened camera
      *
      * @return current camera, see [MultiCameraClient.ICamera]
