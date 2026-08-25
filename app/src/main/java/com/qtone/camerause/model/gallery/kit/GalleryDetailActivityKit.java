@@ -5,16 +5,20 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
 import com.qtone.camerause.model.gallery.GalleryDetailActivity;
 import com.qtone.camerause.model.gallery.adapter.MediaImageDetailAdapter;
+import com.qtone.camerause.util.density.DensityUtils;
+import com.qtone.camerause.util.file.FileKit;
 import com.qtone.camerause.util.media.MediaScanner;
 import com.qtone.camerause.util.systembar.SystemBarKit;
+import com.qtone.camerause.widget.dialog.kit.CommonDialogKit;
 import com.qtone.camerause.widget.image.ImageViewerOverlay;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemInnerClickListener;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created on 2026/8/21.
@@ -56,7 +60,7 @@ public class GalleryDetailActivityKit {
                     imageViewerOverlay.show((ViewGroup) galleryDetailActivity.getWindow().getDecorView(), fileItem.fileAbsolutePath);
                 } else if (viewId == R.id.mediaImageDetailItemAcibInfo) {
                     // 信息
-                    ToastUtils.show("信息");
+                    showInfo(galleryDetailActivity, fileItem);
                 }
             }
         });
@@ -75,5 +79,20 @@ public class GalleryDetailActivityKit {
         imageViewerOverlay = new ImageViewerOverlay(galleryDetailActivity);
         imageViewerOverlay.setLoadStrategy(ImageViewerOverlay.LoadStrategy.GLIDE);
         imageViewerOverlay.setOnCloseListener(() -> SystemBarKit.showSystemBars(galleryDetailActivity));
+    }
+
+    /**
+     * 显示信息
+     *
+     * @param galleryDetailActivity 图库详情页
+     * @param fileItem              文件条目
+     */
+    private void showInfo(GalleryDetailActivity galleryDetailActivity, MediaScanner.@NotNull FileItem fileItem) {
+        double[] imageSize = FileKit.getImageSize(fileItem.fileAbsolutePath, DensityUtils.getDensityDpi(galleryDetailActivity));
+        int[] widthHeightInPx = FileKit.getImageWidthHeightInPx(fileItem.fileAbsolutePath);
+        String info = "大小 " + fileItem.fileSize
+                + "\n" + "像素 " + widthHeightInPx[0] + " x " + widthHeightInPx[1]
+                + "\n" + "尺寸 " + imageSize[0] + " x " + imageSize[1];
+        CommonDialogKit.showInfoDialog(galleryDetailActivity, info, null);
     }
 }
