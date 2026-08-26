@@ -93,6 +93,6 @@ public class GalleryDetailActivityKit {
         String info = "大小 " + fileItem.fileSize
                 + "\n" + "像素 " + widthHeightInPx[0] + " x " + widthHeightInPx[1]
                 + "\n" + "尺寸 " + imageSize[0] + " x " + imageSize[1];
-        CommonDialogKit.showInfoDialog(galleryDetailActivity, info, null);
+        CommonDialogKit.showInfoDialog(galleryDetailActivity, info, true, null);
     }
 }
