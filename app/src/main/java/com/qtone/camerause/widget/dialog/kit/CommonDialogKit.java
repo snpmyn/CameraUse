@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.R;
 import com.qtone.camerause.widget.dialog.CommonDialog;
+import com.qtone.camerause.widget.dialog.DialogClickListener;
 
 /**
  * Created on 2026/8/25.
@@ -39,11 +40,12 @@ public class CommonDialogKit {
             return;
         }
         CommonDialog commonDialog = new CommonDialog(appCompatActivity);
+        commonDialog.setCancelable(false);
         commonDialog.setTitle(title)
                 .setContent(content)
                 .setCenterLongestLeftRest(centerLongestLeftRest)
                 .setPositiveText(positiveText)
-                .setOnDialogClickListener(new CommonDialog.OnDialogClickListener() {
+                .setDialogClickListener(new DialogClickListener() {
                     @Override
                     public void onConfirm() {
                         commonDialog.dismiss();
@@ -51,8 +53,6 @@ public class CommonDialogKit {
                             runnable.run();
                         }
                     }
-                });
-        commonDialog.setCancelable(false);
-        commonDialog.show();
+                }).show();
     }
 }
