@@ -178,6 +178,6 @@ public class MainActivityKit {
                 + "\n序列号\t" + usbDevice.getSerialNumber()
                 + "\n设备节点\t" + usbDevice.getDeviceName()
                 + "\n设备 ID\t" + usbDevice.getDeviceId();
-        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), deviceInfo, mainActivity.getString(R.string.iKonw), null);
+        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), deviceInfo, true, mainActivity.getString(R.string.iKonw), null);
     }
 }
