@@ -2,6 +2,7 @@ package com.qtone.camerause.widget.textview;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.text.Layout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -15,7 +16,7 @@ import androidx.appcompat.widget.AppCompatTextView;
  * Created on 2026/8/26.
  *
  * @author 郑少鹏
- * @desc 文本对齐视图
+ * @desc 对齐 TextView
  * <p>
  * 1. 默认单行 / 多行居中
  * 2. 显式设置 {@link #setCenterLongestLeftRest(boolean)} + 多行折行 -> 最长行居中其余行靠左
@@ -48,12 +49,12 @@ public class AlignTextView extends AppCompatTextView {
     /**
      * constructor
      *
-     * @param context      上下文
-     * @param attributeSet 属性集
-     * @param defStyleAttr 默认样式属性
+     * @param context           上下文
+     * @param attributeSet      属性集
+     * @param defStyleAttribute 默认样式属性
      */
-    public AlignTextView(@NonNull Context context, @Nullable AttributeSet attributeSet, int defStyleAttr) {
-        super(context, attributeSet, defStyleAttr);
+    public AlignTextView(@NonNull Context context, @Nullable AttributeSet attributeSet, int defStyleAttribute) {
+        super(context, attributeSet, defStyleAttribute);
         setGravity(Gravity.CENTER);
     }
 
@@ -107,6 +108,9 @@ public class AlignTextView extends AppCompatTextView {
         TextPaint textPaint = getPaint();
         textPaint.setColor(getCurrentTextColor());
         textPaint.drawableState = getDrawableState();
+        // 显式设置居左对齐
+        // 防止继承 Gravity.CENTER 导致二次偏移
+        textPaint.setTextAlign(Paint.Align.LEFT);
         // 精确计算最长行实际绘制宽度
         float maxLineWidth = 0;
         for (int i = 0; i < lineCount; i++) {
