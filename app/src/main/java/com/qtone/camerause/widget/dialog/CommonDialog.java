@@ -1,20 +1,14 @@
 package com.qtone.camerause.widget.dialog;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.DefaultLifecycleObserver;
-import androidx.lifecycle.LifecycleOwner;
 
 import com.qtone.camerause.R;
-import com.qtone.camerause.util.window.WindowKit;
 import com.qtone.camerause.widget.textview.AlignTextView;
 
 /**
@@ -23,7 +17,7 @@ import com.qtone.camerause.widget.textview.AlignTextView;
  * @author 郑少鹏
  * @desc 普通对话框
  */
-public class CommonDialog extends Dialog {
+public class CommonDialog extends BaseLifecycleDialog {
     /**
      * 控件
      */
@@ -58,7 +52,7 @@ public class CommonDialog extends Dialog {
     /**
      * 对话框点击监听
      */
-    private OnDialogClickListener onDialogClickListener;
+    private DialogClickListener dialogClickListener;
 
     /**
      * constructor
@@ -67,51 +61,23 @@ public class CommonDialog extends Dialog {
      */
     public CommonDialog(@NonNull Context context) {
         super(context);
-        // 规避内存泄漏
-        // 自动监听 Activity / Fragment 生命周期
-        if (context instanceof LifecycleOwner) {
-            ((LifecycleOwner) context).getLifecycle().addObserver(new DefaultLifecycleObserver() {
-                @Override
-                public void onDestroy(@NonNull LifecycleOwner owner) {
-                    // 页面销毁主动 dismiss 并置空对话框点击监听
-                    // 规避 WindowLeaked 和 Activity 内存泄漏
-                    if (isShowing()) {
-                        dismiss();
-                    }
-                    onDialogClickListener = null;
-                    owner.getLifecycle().removeObserver(this);
-                }
-            });
-        }
     }
 
+    /**
+     * 获取布局 ID
+     *
+     * @return 布局 ID
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.dialog_common);
-        // 设置背景位图资源透明
-        WindowKit.Companion.setBackgroundDrawableResourceTransparent(getWindow());
-        // 初始化控件
-        initView();
-        // 初始化数据
-        initData();
-        // 初始化事件
-        initEvent();
-    }
-
-    @Override
-    public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        // 规避内存泄漏
-        // 对话框从 Window 移除时置空对话框点击监听
-        onDialogClickListener = null;
+    protected int getLayoutId() {
+        return R.layout.dialog_common;
     }
 
     /**
      * 初始化控件
      */
-    private void initView() {
+    @Override
+    protected void initView() {
         commonDialogTvTitle = findViewById(R.id.commonDialogTvTitle);
         commonDialogAtvContent = findViewById(R.id.commonDialogAtvContent);
         commonDialogMbNegative = findViewById(R.id.commonDialogMbNegative);
@@ -121,7 +87,8 @@ public class CommonDialog extends Dialog {
     /**
      * 初始化数据
      */
-    private void initData() {
+    @Override
+    protected void initData() {
         // 标题
         if (!TextUtils.isEmpty(title)) {
             commonDialogTvTitle.setText(title);
@@ -146,19 +113,33 @@ public class CommonDialog extends Dialog {
     /**
      * 初始化事件
      */
-    private void initEvent() {
+    @Override
+    protected void initEvent() {
         commonDialogMbNegative.setOnClickListener(v -> {
             dismiss();
-            if (onDialogClickListener != null) {
-                onDialogClickListener.onCancel();
+            if (dialogClickListener != null) {
+                dialogClickListener.onCancel();
             }
         });
         commonDialogMbPositive.setOnClickListener(v -> {
             dismiss();
-            if (onDialogClickListener != null) {
-                onDialogClickListener.onConfirm();
+            if (dialogClickListener != null) {
+                dialogClickListener.onConfirm();
             }
         });
+    }
+
+    /**
+     * 清理资源
+     * <p>
+     * 对话框从 Window 移除时触发
+     */
+    @Override
+    protected void onClearResource() {
+        super.onClearResource();
+        // 规避内存泄漏
+        // 置空对话框点击监听
+        dialogClickListener = null;
     }
 
     /**
@@ -230,30 +211,11 @@ public class CommonDialog extends Dialog {
     /**
      * 设置对话框点击监听
      *
-     * @param onDialogClickListener 对话框点击监听
+     * @param dialogClickListener 对话框点击监听
      * @return 普通对话框
      */
-    public CommonDialog setOnDialogClickListener(OnDialogClickListener onDialogClickListener) {
-        this.onDialogClickListener = onDialogClickListener;
+    public CommonDialog setDialogClickListener(DialogClickListener dialogClickListener) {
+        this.dialogClickListener = dialogClickListener;
         return this;
-    }
-
-    /**
-     * 对话框点击监听
-     */
-    public interface OnDialogClickListener {
-        /**
-         * 取消
-         */
-        default void onCancel() {
-
-        }
-
-        /**
-         * 确认
-         */
-        default void onConfirm() {
-
-        }
     }
 }
