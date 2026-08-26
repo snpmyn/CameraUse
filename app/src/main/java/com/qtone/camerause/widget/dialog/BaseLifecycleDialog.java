@@ -12,6 +12,8 @@ import androidx.lifecycle.LifecycleOwner;
 
 import com.qtone.camerause.util.window.WindowKit;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created on 2026/8/26.
  *
@@ -20,16 +22,22 @@ import com.qtone.camerause.util.window.WindowKit;
  */
 public abstract class BaseLifecycleDialog extends Dialog {
     /**
+     * 资源是否已清理
+     */
+    private boolean isResourceCleared = false;
+    /**
      * DefaultLifecycleObserver
      */
     private final DefaultLifecycleObserver defaultLifecycleObserver = new DefaultLifecycleObserver() {
         @Override
-        public void onDestroy(@NonNull LifecycleOwner owner) {
+        public void onDestroy(@NonNull @NotNull LifecycleOwner owner) {
             if (isShowing()) {
                 dismiss();
             }
             // 清理资源
-            onClearResource();
+            clearResource();
+            // 移除观察者
+            owner.getLifecycle().removeObserver(this);
         }
     };
 
@@ -47,7 +55,7 @@ public abstract class BaseLifecycleDialog extends Dialog {
      * constructor
      *
      * @param context    上下文
-     * @param themeResId 主体资源 ID
+     * @param themeResId 主题资源 ID
      */
     public BaseLifecycleDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
@@ -113,7 +121,17 @@ public abstract class BaseLifecycleDialog extends Dialog {
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         // 清理资源
-        onClearResource();
+        clearResource();
+    }
+
+    /**
+     * 清理资源
+     */
+    private void clearResource() {
+        if (!isResourceCleared) {
+            isResourceCleared = true;
+            onClearResource();
+        }
     }
 
     /**
@@ -122,6 +140,6 @@ public abstract class BaseLifecycleDialog extends Dialog {
      * 对话框从 Window 移除时触发
      */
     protected void onClearResource() {
-        // 子类可扩展
+
     }
 }
