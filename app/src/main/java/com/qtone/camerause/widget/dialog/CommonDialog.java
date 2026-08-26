@@ -40,6 +40,10 @@ public class CommonDialog extends Dialog {
      */
     private String content;
     /**
+     * 最长行居中其余行靠左
+     */
+    private boolean centerLongestLeftRest = false;
+    /**
      * 消极文本
      */
     private String negativeText;
@@ -128,6 +132,8 @@ public class CommonDialog extends Dialog {
             commonDialogAtvContent.setText(content);
             commonDialogAtvContent.setVisibility(View.VISIBLE);
         }
+        // 最长行居中其余行靠左
+        commonDialogAtvContent.setCenterLongestLeftRest(centerLongestLeftRest);
         // 消极
         if (showNegative) {
             commonDialogMbNegative.setText(TextUtils.isEmpty(negativeText) ? getContext().getText(R.string.cancel) : negativeText);
@@ -184,7 +190,7 @@ public class CommonDialog extends Dialog {
      * @return 普通对话框
      */
     public CommonDialog setCenterLongestLeftRest(boolean centerLongestLeftRest) {
-        this.commonDialogAtvContent.setCenterLongestLeftRest(centerLongestLeftRest);
+        this.centerLongestLeftRest = centerLongestLeftRest;
         return this;
     }
 
