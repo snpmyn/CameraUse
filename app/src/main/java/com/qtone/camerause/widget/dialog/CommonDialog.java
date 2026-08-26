@@ -10,10 +10,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.qtone.camerause.R;
-import com.qtone.camerause.util.density.DensityUtils;
 import com.qtone.camerause.util.window.WindowKit;
+import com.qtone.camerause.widget.textview.AlignTextView;
 
 /**
  * Created on 2026/4/23.
@@ -26,7 +28,7 @@ public class CommonDialog extends Dialog {
      * 控件
      */
     private TextView commonDialogTvTitle;
-    private TextView commonDialogTvContent;
+    private AlignTextView commonDialogAtvContent;
     private Button commonDialogMbNegative;
     private Button commonDialogMbPositive;
     /**
@@ -37,14 +39,6 @@ public class CommonDialog extends Dialog {
      * 内容
      */
     private String content;
-    /**
-     * 内容位置
-     */
-    private int contentGravity;
-    /**
-     * 内容左内边距
-     */
-    private int contentPaddingStart;
     /**
      * 消极文本
      */
@@ -69,6 +63,22 @@ public class CommonDialog extends Dialog {
      */
     public CommonDialog(@NonNull Context context) {
         super(context);
+        // 规避内存泄漏
+        // 自动监听 Activity / Fragment 生命周期
+        if (context instanceof LifecycleOwner) {
+            ((LifecycleOwner) context).getLifecycle().addObserver(new DefaultLifecycleObserver() {
+                @Override
+                public void onDestroy(@NonNull LifecycleOwner owner) {
+                    // 页面销毁主动 dismiss 并置空对话框点击监听
+                    // 规避 WindowLeaked 和 Activity 内存泄漏
+                    if (isShowing()) {
+                        dismiss();
+                    }
+                    onDialogClickListener = null;
+                    owner.getLifecycle().removeObserver(this);
+                }
+            });
+        }
     }
 
     @Override
@@ -86,12 +96,20 @@ public class CommonDialog extends Dialog {
         initEvent();
     }
 
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // 规避内存泄漏
+        // 对话框从 Window 移除时置空对话框点击监听
+        onDialogClickListener = null;
+    }
+
     /**
      * 初始化控件
      */
     private void initView() {
         commonDialogTvTitle = findViewById(R.id.commonDialogTvTitle);
-        commonDialogTvContent = findViewById(R.id.commonDialogTvContent);
+        commonDialogAtvContent = findViewById(R.id.commonDialogAtvContent);
         commonDialogMbNegative = findViewById(R.id.commonDialogMbNegative);
         commonDialogMbPositive = findViewById(R.id.commonDialogMbPositive);
     }
@@ -107,21 +125,8 @@ public class CommonDialog extends Dialog {
         }
         // 内容
         if (!TextUtils.isEmpty(content)) {
-            commonDialogTvContent.setText(content);
-            commonDialogTvContent.setVisibility(View.VISIBLE);
-        }
-        // 内容位置
-        if (contentGravity != 0) {
-            commonDialogTvContent.setGravity(contentGravity);
-        }
-        // 内容左内边距
-        if (contentPaddingStart > 0) {
-            commonDialogTvContent.setPaddingRelative(
-                    contentPaddingStart,
-                    commonDialogTvContent.getPaddingTop(),
-                    commonDialogTvContent.getPaddingEnd(),
-                    commonDialogTvContent.getPaddingBottom()
-            );
+            commonDialogAtvContent.setText(content);
+            commonDialogAtvContent.setVisibility(View.VISIBLE);
         }
         // 消极
         if (showNegative) {
@@ -173,24 +178,13 @@ public class CommonDialog extends Dialog {
     }
 
     /**
-     * 设置内容位置
+     * 设置最长行居中其余行靠左
      *
-     * @param contentGravity 内容位置
+     * @param centerLongestLeftRest 最长行居中其余行靠左
      * @return 普通对话框
      */
-    public CommonDialog setContentGravity(int contentGravity) {
-        this.contentGravity = contentGravity;
-        return this;
-    }
-
-    /**
-     * 设置内容左内边距
-     *
-     * @param contentPaddingStart 内容左内边距
-     * @return 普通对话框
-     */
-    public CommonDialog contentPaddingStart(int contentPaddingStart) {
-        this.contentPaddingStart = DensityUtils.dipToPxByInt(contentPaddingStart);
+    public CommonDialog setCenterLongestLeftRest(boolean centerLongestLeftRest) {
+        this.commonDialogAtvContent.setCenterLongestLeftRest(centerLongestLeftRest);
         return this;
     }
 
@@ -246,12 +240,14 @@ public class CommonDialog extends Dialog {
          * 取消
          */
         default void onCancel() {
+
         }
 
         /**
          * 确认
          */
         default void onConfirm() {
+
         }
     }
 }
