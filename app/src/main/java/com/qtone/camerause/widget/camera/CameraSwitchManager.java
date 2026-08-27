@@ -2,24 +2,20 @@ package com.qtone.camerause.widget.camera;
 
 import android.hardware.usb.UsbDevice;
 import android.text.TextUtils;
-import android.util.TypedValue;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.utils.ToastUtils;
-import com.qtone.camerause.R;
-import com.qtone.camerause.util.density.DensityUtils;
 import com.qtone.camerause.util.list.ListUtils;
+import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
+import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
+import com.qtone.camerause.widget.dialog.singleselect.kit.SingleSelectDialogKit;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,55 +61,43 @@ public class CameraSwitchManager {
         // 当前 USB 设备唯一标识
         String currentUsbDeviceUniqueId = getUsbDeviceUniqueId(currentUsbDevice);
         // 构建弹框选项列表 + 定位默认选中索引
-        String[] items = new String[usbDeviceList.size()];
-        // 默认选中下标
+        List<SingleSelectDialogBean> singleSelectDialogBeanList = new ArrayList<>();
         int defaultSelectedIndex = 0;
         for (int i = 0; i < usbDeviceList.size(); i++) {
             UsbDevice usbDevice = usbDeviceList.get(i);
             String usbDeviceUniqueId = getUsbDeviceUniqueId(usbDevice);
-            // 组装显示文本
+            // 文本组装
             String productName = usbDevice.getProductName();
             if (TextUtils.isEmpty(productName)) {
+                // 文本兜底
                 productName = usbDevice.getDeviceName();
             }
-            items[i] = productName + "\n[" + usbDeviceUniqueId + "]";
-            // 高亮逻辑判断
+            String itemText = productName + " [" + usbDeviceUniqueId + "]";
+            // 是否选中
+            boolean isChecked = false;
             if (!TextUtils.isEmpty(currentUsbDeviceUniqueId) && usbDeviceUniqueId.equals(currentUsbDeviceUniqueId)) {
+                isChecked = true;
                 defaultSelectedIndex = i;
             }
+            // 添加单选对话框数据
+            singleSelectDialogBeanList.add(new SingleSelectDialogBean(itemText, isChecked));
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                appCompatActivity,
-                com.google.android.material.R.layout.select_dialog_singlechoice_material,
-                items
-        ) {
-            @NotNull
-            @Override
-            public View getView(int position, View convertView, @NotNull ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                if (view instanceof TextView) {
-                    // 条目字体大小
-                    ((TextView) view).setTextSize(TypedValue.COMPLEX_UNIT_SP, DensityUtils.spResToSp(appCompatActivity, R.dimen.sp_16));
-                }
-                return view;
-            }
-        };
         final int finalDefaultSelectedIndex = defaultSelectedIndex;
         // 显示单选弹框 + 点击切换相机
-        AlertDialog alertDialog = new MaterialAlertDialogBuilder(appCompatActivity, R.style.CustomMaterialAlertDialogTheme)
-                .setTitle("选择摄像头")
-                .setSingleChoiceItems(arrayAdapter, defaultSelectedIndex, (dialog, which) -> {
-                    dialog.dismiss();
-                    if (which == finalDefaultSelectedIndex) {
-                        // 点击默认选中不处理
-                        return;
-                    }
-                    UsbDevice selectedUsbDevice = usbDeviceList.get(which);
-                    CameraController.getInstance().switchCamera(iCamera, multiCameraClient, selectedUsbDevice);
-                })
-                .show();
-        if (alertDialog.getListView() != null) {
-            alertDialog.getListView().setVerticalScrollBarEnabled(false);
-        }
+        SingleSelectDialogKit.showSingleSelectDialog(appCompatActivity, "切换摄像头", singleSelectDialogBeanList, finalDefaultSelectedIndex, "切换", new DialogClickListener() {
+            @Override
+            public <T> void onConfirm(BaseLifecycleDialog baseLifecycleDialog, int position, T t) {
+                baseLifecycleDialog.dismiss();
+                // 点击默认选中不处理
+                if (position == finalDefaultSelectedIndex) {
+                    return;
+                }
+                // 边界校验
+                if ((position >= 0) && (position < usbDeviceList.size())) {
+                    // 切换相机
+                    CameraController.getInstance().switchCamera(iCamera, multiCameraClient, usbDeviceList.get(position));
+                }
+            }
+        });
     }
 }
