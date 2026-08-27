@@ -2,9 +2,9 @@ package com.qtone.camerause.widget.dialog.singleselect.kit;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
 import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialog;
 import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
+import com.qtone.camerause.widget.dialog.singleselect.listener.SingleSelectDialogClickListener;
 
 import java.util.List;
 
@@ -18,14 +18,14 @@ public class SingleSelectDialogKit {
     /**
      * 显示单选对话框
      *
-     * @param appCompatActivity          活动
-     * @param title                      标题
-     * @param singleSelectDialogBeanList 单选对话框数据集
-     * @param defaultSelectedPosition    默认选中位置
-     * @param positiveText               积极文本
-     * @param dialogClickListener        对话框点击监听
+     * @param appCompatActivity               活动
+     * @param title                           标题
+     * @param singleSelectDialogBeanList      单选对话框数据集
+     * @param defaultSelectedPosition         默认选中位置
+     * @param positiveText                    积极文本
+     * @param singleSelectDialogClickListener 单选对话框点击监听
      */
-    public static void showSingleSelectDialog(AppCompatActivity appCompatActivity, String title, List<SingleSelectDialogBean> singleSelectDialogBeanList, int defaultSelectedPosition, String positiveText, DialogClickListener dialogClickListener) {
+    public static void showSingleSelectDialog(AppCompatActivity appCompatActivity, String title, List<SingleSelectDialogBean> singleSelectDialogBeanList, int defaultSelectedPosition, String positiveText, SingleSelectDialogClickListener singleSelectDialogClickListener) {
         if ((appCompatActivity == null) || appCompatActivity.isFinishing() || appCompatActivity.isDestroyed()) {
             return;
         }
@@ -34,7 +34,7 @@ public class SingleSelectDialogKit {
                 .setSingleSelectDialogBeanList(singleSelectDialogBeanList)
                 .setDefaultSelectedPosition(defaultSelectedPosition)
                 .setPositiveText(positiveText)
-                .setDialogClickListener(dialogClickListener)
+                .setSingleSelectDialogClickListener(singleSelectDialogClickListener)
                 .show();
     }
 }
