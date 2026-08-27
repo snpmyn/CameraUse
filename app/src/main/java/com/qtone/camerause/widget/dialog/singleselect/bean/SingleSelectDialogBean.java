@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.dialog.singleselect;
+package com.qtone.camerause.widget.dialog.singleselect.bean;
 
 /**
  * Created on 2026/8/26.

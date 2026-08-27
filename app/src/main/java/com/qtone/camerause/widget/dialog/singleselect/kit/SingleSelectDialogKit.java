@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
 import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialog;
-import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialogBean;
+import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
 
 import java.util.List;
 

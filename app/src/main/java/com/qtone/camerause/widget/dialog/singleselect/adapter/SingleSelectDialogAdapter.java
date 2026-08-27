@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.dialog.singleselect;
+package com.qtone.camerause.widget.dialog.singleselect.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.qtone.camerause.R;
 import com.qtone.camerause.util.list.ListUtils;
+import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
 
 import java.util.ArrayList;

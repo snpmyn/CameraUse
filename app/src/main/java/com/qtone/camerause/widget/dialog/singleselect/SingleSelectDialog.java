@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
 import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
+import com.qtone.camerause.widget.dialog.singleselect.adapter.SingleSelectDialogAdapter;
+import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
