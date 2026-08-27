@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 
 import com.qtone.camerause.R;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
-import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
+import com.qtone.camerause.widget.dialog.common.listener.CommonDialogClickListener;
 import com.qtone.camerause.widget.textview.AlignTextView;
 
 /**
@@ -52,9 +52,9 @@ public class CommonDialog extends BaseLifecycleDialog {
      */
     private boolean showNegative = false;
     /**
-     * 对话框点击监听
+     * 普通对话框点击监听
      */
-    private DialogClickListener dialogClickListener;
+    private CommonDialogClickListener commonDialogClickListener;
 
     /**
      * constructor
@@ -118,13 +118,13 @@ public class CommonDialog extends BaseLifecycleDialog {
     @Override
     protected void initEvent() {
         commonDialogMbNegative.setOnClickListener(v -> {
-            if (dialogClickListener != null) {
-                dialogClickListener.onCancel(this);
+            if (commonDialogClickListener != null) {
+                commonDialogClickListener.onCancel(this);
             }
         });
         commonDialogMbPositive.setOnClickListener(v -> {
-            if (dialogClickListener != null) {
-                dialogClickListener.onConfirm(this);
+            if (commonDialogClickListener != null) {
+                commonDialogClickListener.onConfirm(this);
             }
         });
     }
@@ -138,8 +138,8 @@ public class CommonDialog extends BaseLifecycleDialog {
     protected void onClearResource() {
         super.onClearResource();
         // 规避内存泄漏
-        // 置空对话框点击监听
-        dialogClickListener = null;
+        // 置空普通对话框点击监听
+        commonDialogClickListener = null;
     }
 
     /**
@@ -209,13 +209,13 @@ public class CommonDialog extends BaseLifecycleDialog {
     }
 
     /**
-     * 设置对话框点击监听
+     * 设置普通对话框点击监听
      *
-     * @param dialogClickListener 对话框点击监听
+     * @param commonDialogClickListener 普通对话框点击监听
      * @return 普通对话框
      */
-    public CommonDialog setDialogClickListener(DialogClickListener dialogClickListener) {
-        this.dialogClickListener = dialogClickListener;
+    public CommonDialog setCommonDialogClickListener(CommonDialogClickListener commonDialogClickListener) {
+        this.commonDialogClickListener = commonDialogClickListener;
         return this;
     }
 }
