@@ -6,9 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
 
 import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.R;
 import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityMainBinding;
 import com.qtone.camerause.model.main.kit.MainActivityKit;
+import com.qtone.camerause.util.materialtoolbar.MaterialToolbarKit;
 
 /**
  * @decs: 主页
@@ -49,7 +51,8 @@ public class MainActivity extends BasePoolActivity {
      */
     @Override
     protected void stepUi() {
-
+        MaterialToolbarKit.getInstance().setMenuOverflowIcon(this, activityMainBinding.mainActivityMt, R.drawable.ic_arrows_more_down_cos_24dp);
+        MaterialToolbarKit.getInstance().setMenuOverflowIconTintColor(this, activityMainBinding.mainActivityMt, R.color.white);
     }
 
     /**
