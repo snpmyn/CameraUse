@@ -72,7 +72,7 @@
                 android:background="@drawable/ripple_oval"
                 android:contentDescription="@string/turnLeft"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_rotate_left_white_24dp"
+                android:src="@drawable/ic_rotate_left_cos_24dp"
                 app:tint="@color/white" />
         </RelativeLayout>
 
@@ -89,7 +89,7 @@
                 android:background="@drawable/ripple_oval"
                 android:contentDescription="@string/turnRight"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_rotate_right_white_24dp"
+                android:src="@drawable/ic_rotate_right_cos_24dp"
                 app:tint="@color/white" />
         </RelativeLayout>
 
@@ -106,7 +106,7 @@
                 android:background="@drawable/ripple_oval"
                 android:contentDescription="@string/shrink"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_reduce_circle_white_24dp"
+                android:src="@drawable/ic_reduce_circle_cos_24dp"
                 app:tint="@color/white" />
         </RelativeLayout>
 
@@ -123,7 +123,7 @@
                 android:background="@drawable/ripple_oval"
                 android:contentDescription="@string/enlarge"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_add_circle_white_24dp"
+                android:src="@drawable/ic_add_circle_cos_24dp"
                 app:tint="@color/white" />
         </RelativeLayout>
     </LinearLayout>
