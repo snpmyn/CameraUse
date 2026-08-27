@@ -2,11 +2,14 @@ package com.qtone.camerause.widget.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Bundle;
 import android.view.Window;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -26,7 +29,7 @@ public abstract class BaseLifecycleDialog extends Dialog {
      */
     private boolean isResourceCleared = false;
     /**
-     * DefaultLifecycleObserver
+     * 默认生命周期观察者
      */
     private final DefaultLifecycleObserver defaultLifecycleObserver = new DefaultLifecycleObserver() {
         @Override
@@ -68,10 +71,27 @@ public abstract class BaseLifecycleDialog extends Dialog {
      * @param context 上下文
      */
     private void initLifecycle(Context context) {
-        if (context instanceof LifecycleOwner) {
-            LifecycleOwner lifecycleOwner = (LifecycleOwner) context;
+        LifecycleOwner lifecycleOwner = getLifecycleOwner(context);
+        if (lifecycleOwner != null) {
             lifecycleOwner.getLifecycle().addObserver(defaultLifecycleObserver);
         }
+    }
+
+    /**
+     * 获取生命周期所有者
+     *
+     * @param context 上下文
+     * @return 生命周期所有者
+     */
+    @Nullable
+    private LifecycleOwner getLifecycleOwner(Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof LifecycleOwner) {
+                return (LifecycleOwner) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 
     @Override
@@ -113,11 +133,6 @@ public abstract class BaseLifecycleDialog extends Dialog {
     protected abstract void initEvent();
 
     @Override
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-    }
-
-    @Override
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         // 清理资源
@@ -137,9 +152,26 @@ public abstract class BaseLifecycleDialog extends Dialog {
     /**
      * 清理资源
      * <p>
-     * 对话框从 Window 移除时触发
+     * 对话框从 Window 移除触发
      */
     protected void onClearResource() {
 
+    }
+
+    /**
+     * 获取活动
+     *
+     * @return 活动
+     */
+    @Nullable
+    public AppCompatActivity getAppCompatActivity() {
+        Context context = getContext();
+        while (context instanceof ContextWrapper) {
+            if (context instanceof AppCompatActivity) {
+                return (AppCompatActivity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 }
