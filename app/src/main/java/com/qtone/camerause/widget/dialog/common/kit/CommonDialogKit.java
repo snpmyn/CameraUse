@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.qtone.camerause.R;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
 import com.qtone.camerause.widget.dialog.common.CommonDialog;
-import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
+import com.qtone.camerause.widget.dialog.common.listener.CommonDialogClickListener;
 
 /**
  * Created on 2026/8/25.
@@ -46,7 +46,7 @@ public class CommonDialogKit {
                 .setContent(content)
                 .setCenterLongestLeftRest(centerLongestLeftRest)
                 .setPositiveText(positiveText)
-                .setDialogClickListener(new DialogClickListener() {
+                .setCommonDialogClickListener(new CommonDialogClickListener() {
                     @Override
                     public void onConfirm(BaseLifecycleDialog baseLifecycleDialog) {
                         baseLifecycleDialog.dismiss();
