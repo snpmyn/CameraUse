@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @decs: 相机切换管理器
@@ -35,7 +36,7 @@ public class CameraSwitchManager {
         if (usbDevice == null) {
             return "";
         }
-        return (usbDevice.getVendorId() + "_" + usbDevice.getProductId());
+        return String.format(Locale.US, "0x%04X_0x%04X", usbDevice.getVendorId(), usbDevice.getProductId());
     }
 
     /**
