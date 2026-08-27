@@ -22,7 +22,7 @@ import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.main.MainActivity;
 import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.camera.CameraSwitchManager;
-import com.qtone.camerause.widget.dialog.kit.CommonDialogKit;
+import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
 
 import org.jetbrains.annotations.NotNull;
 

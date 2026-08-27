@@ -12,7 +12,7 @@ import com.qtone.camerause.util.density.DensityUtils;
 import com.qtone.camerause.util.file.FileKit;
 import com.qtone.camerause.util.media.MediaScanner;
 import com.qtone.camerause.util.systembar.SystemBarKit;
-import com.qtone.camerause.widget.dialog.kit.CommonDialogKit;
+import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
 import com.qtone.camerause.widget.image.ImageViewerOverlay;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
