@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.qtone.camerause.R;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
-import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
 import com.qtone.camerause.widget.dialog.singleselect.adapter.SingleSelectDialogAdapter;
 import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
+import com.qtone.camerause.widget.dialog.singleselect.listener.SingleSelectDialogClickListener;
 import com.qtone.camerause.widget.recyclerview.configure.RecyclerViewConfigure;
 import com.qtone.camerause.widget.recyclerview.controller.RecyclerViewDisplayController;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
@@ -63,9 +63,9 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      */
     private boolean showNegative = false;
     /**
-     * 对话框点击监听
+     * 单选对话框点击监听
      */
-    private DialogClickListener dialogClickListener;
+    private SingleSelectDialogClickListener singleSelectDialogClickListener;
 
     /**
      * constructor
@@ -136,13 +136,13 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
     @Override
     protected void initEvent() {
         singleDialogMbNegative.setOnClickListener(v -> {
-            if (dialogClickListener != null) {
-                dialogClickListener.onCancel(this);
+            if (singleSelectDialogClickListener != null) {
+                singleSelectDialogClickListener.onCancel(this);
             }
         });
         singleDialogMbPositive.setOnClickListener(v -> {
-            if (dialogClickListener != null) {
-                dialogClickListener.onConfirm(this, singleSelectDialogAdapter.getCurrentSelectedPosition(), singleSelectDialogAdapter.getCurrentSelectedSingleSelectDialogBean());
+            if (singleSelectDialogClickListener != null) {
+                singleSelectDialogClickListener.onConfirm(this, singleSelectDialogAdapter.getCurrentSelectedPosition(), singleSelectDialogAdapter.getCurrentSelectedSingleSelectDialogBean());
             }
         });
     }
@@ -156,15 +156,15 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
     protected void onClearResource() {
         super.onClearResource();
         // 规避内存泄漏
-        // 置空对话框点击监听
-        dialogClickListener = null;
+        // 置空单选对话框点击监听
+        singleSelectDialogClickListener = null;
     }
 
     /**
      * 设置标题
      *
      * @param title 标题
-     * @return 普通对话框
+     * @return 单选对话框
      */
     public SingleSelectDialog setTitle(String title) {
         this.title = title;
@@ -175,7 +175,7 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      * 设置单选对话框数据集
      *
      * @param singleSelectDialogBeanList 单选对话框数据集
-     * @return 普通对话框
+     * @return 单选对话框
      */
     public SingleSelectDialog setSingleSelectDialogBeanList(List<SingleSelectDialogBean> singleSelectDialogBeanList) {
         this.singleSelectDialogBeanList = singleSelectDialogBeanList;
@@ -196,7 +196,7 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      * 设置消极文本
      *
      * @param negativeText 消极文本
-     * @return 普通对话框
+     * @return 单选对话框
      */
     public SingleSelectDialog setNegativeText(String negativeText) {
         this.negativeText = negativeText;
@@ -207,7 +207,7 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      * 设置积极文本
      *
      * @param positiveText 积极文本
-     * @return 普通对话框
+     * @return 单选对话框
      */
     public SingleSelectDialog setPositiveText(String positiveText) {
         this.positiveText = positiveText;
@@ -218,7 +218,7 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      * 设置显示消极
      *
      * @param showNegative 显示消极
-     * @return 普通对话框
+     * @return 单选对话框
      */
     public SingleSelectDialog setShowNegative(boolean showNegative) {
         this.showNegative = showNegative;
@@ -226,13 +226,13 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
     }
 
     /**
-     * 设置对话框点击监听
+     * 设置单选对话框点击监听
      *
-     * @param dialogClickListener 对话框点击监听
-     * @return 普通对话框
+     * @param singleSelectDialogClickListener 单选对话框点击监听
+     * @return 单选对话框
      */
-    public SingleSelectDialog setDialogClickListener(DialogClickListener dialogClickListener) {
-        this.dialogClickListener = dialogClickListener;
+    public SingleSelectDialog setSingleSelectDialogClickListener(SingleSelectDialogClickListener singleSelectDialogClickListener) {
+        this.singleSelectDialogClickListener = singleSelectDialogClickListener;
         return this;
     }
 }
