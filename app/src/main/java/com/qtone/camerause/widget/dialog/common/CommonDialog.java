@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.dialog;
+package com.qtone.camerause.widget.dialog.common;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.qtone.camerause.R;
+import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
 import com.qtone.camerause.widget.textview.AlignTextView;
 
 /**
@@ -116,15 +118,13 @@ public class CommonDialog extends BaseLifecycleDialog {
     @Override
     protected void initEvent() {
         commonDialogMbNegative.setOnClickListener(v -> {
-            dismiss();
             if (dialogClickListener != null) {
-                dialogClickListener.onCancel();
+                dialogClickListener.onCancel(this);
             }
         });
         commonDialogMbPositive.setOnClickListener(v -> {
-            dismiss();
             if (dialogClickListener != null) {
-                dialogClickListener.onConfirm();
+                dialogClickListener.onConfirm(this);
             }
         });
     }

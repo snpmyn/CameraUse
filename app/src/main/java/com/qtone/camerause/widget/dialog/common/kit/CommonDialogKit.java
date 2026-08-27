@@ -1,10 +1,11 @@
-package com.qtone.camerause.widget.dialog.kit;
+package com.qtone.camerause.widget.dialog.common.kit;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.R;
-import com.qtone.camerause.widget.dialog.CommonDialog;
-import com.qtone.camerause.widget.dialog.DialogClickListener;
+import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.common.CommonDialog;
+import com.qtone.camerause.widget.dialog.listener.DialogClickListener;
 
 /**
  * Created on 2026/8/25.
@@ -47,8 +48,8 @@ public class CommonDialogKit {
                 .setPositiveText(positiveText)
                 .setDialogClickListener(new DialogClickListener() {
                     @Override
-                    public void onConfirm() {
-                        commonDialog.dismiss();
+                    public void onConfirm(BaseLifecycleDialog baseLifecycleDialog) {
+                        baseLifecycleDialog.dismiss();
                         if (runnable != null) {
                             runnable.run();
                         }
