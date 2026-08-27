@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.dialog;
+package com.qtone.camerause.widget.dialog.base;
 
 import android.app.Dialog;
 import android.content.Context;
