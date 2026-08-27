@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.radiobutton.MaterialRadioButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/singleSelectDialogItemMrb"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:button="@drawable/material_radio_button"
+    android:buttonTint="@color/material_radio_button_tint"
+    android:gravity="center"
+    android:textColor="?attr/colorOnSurface"
+    android:textSize="@dimen/sp_12"
+    tools:text="内容" />
