@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.radiobutton.MaterialRadioButton;
 import com.qtone.camerause.R;
+import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.widget.recyclerview.listener.OnRecyclerViewOnItemClickListener;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class SingleSelectDialogAdapter extends RecyclerView.Adapter<SingleSelect
     /**
      * 单选对话框数据集
      */
-    private final List<SingleSelectDialogBean> singleSelectDialogBeanList = new ArrayList<>();
+    private List<SingleSelectDialogBean> singleSelectDialogBeanList;
     /**
      * 当前选中位置
      */
@@ -64,7 +65,11 @@ public class SingleSelectDialogAdapter extends RecyclerView.Adapter<SingleSelect
      * @param defaultSelectedPosition    默认选中位置
      */
     public void setData(List<SingleSelectDialogBean> singleSelectDialogBeanList, int defaultSelectedPosition) {
-        this.singleSelectDialogBeanList.clear();
+        if (this.singleSelectDialogBeanList == null) {
+            this.singleSelectDialogBeanList = new ArrayList<>();
+        } else {
+            this.singleSelectDialogBeanList.clear();
+        }
         if (singleSelectDialogBeanList != null) {
             this.singleSelectDialogBeanList.addAll(singleSelectDialogBeanList);
         }
@@ -129,7 +134,7 @@ public class SingleSelectDialogAdapter extends RecyclerView.Adapter<SingleSelect
 
     @Override
     public int getItemCount() {
-        return singleSelectDialogBeanList.size();
+        return ListUtils.listIsNotEmpty(singleSelectDialogBeanList) ? singleSelectDialogBeanList.size() : 0;
     }
 
     /**
@@ -147,7 +152,7 @@ public class SingleSelectDialogAdapter extends RecyclerView.Adapter<SingleSelect
      * @return 当前选中单选对话框数据
      */
     public SingleSelectDialogBean getCurrentSelectedSingleSelectDialogBean() {
-        if ((currentSelectedPosition >= 0) && (currentSelectedPosition < singleSelectDialogBeanList.size())) {
+        if (ListUtils.listIsNotEmpty(singleSelectDialogBeanList) && (currentSelectedPosition >= 0) && (currentSelectedPosition < singleSelectDialogBeanList.size())) {
             return singleSelectDialogBeanList.get(currentSelectedPosition);
         }
         return null;
