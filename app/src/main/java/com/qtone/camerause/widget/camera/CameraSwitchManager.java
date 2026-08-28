@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.util.list.ListUtils;
-import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialog;
 import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
 import com.qtone.camerause.widget.dialog.singleselect.kit.SingleSelectDialogKit;
 import com.qtone.camerause.widget.dialog.singleselect.listener.SingleSelectDialogClickListener;
@@ -87,8 +87,8 @@ public class CameraSwitchManager {
         // 显示单选弹框 + 点击切换相机
         SingleSelectDialogKit.showSingleSelectDialog(appCompatActivity, "切换摄像头", singleSelectDialogBeanList, finalDefaultSelectedIndex, "切换", new SingleSelectDialogClickListener() {
             @Override
-            public <T> void onConfirm(BaseLifecycleDialog baseLifecycleDialog, int position, T t) {
-                baseLifecycleDialog.dismiss();
+            public <T> void onConfirm(SingleSelectDialog singleSelectDialog, int position, T t) {
+                singleSelectDialog.dismiss();
                 // 点击默认选中不处理
                 if (position == finalDefaultSelectedIndex) {
                     return;
