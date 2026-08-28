@@ -20,6 +20,7 @@ import com.jiangdg.ausbc.camera.bean.CameraRequest;
 import com.jiangdg.ausbc.render.env.RotateType;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.jiangdg.ausbc.widget.IAspectRatio;
+import com.qtone.camerause.base.kit.BaseCameraFragmentKit;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.camera.CameraAspectRatioKit;
@@ -55,6 +56,10 @@ public abstract class BaseCameraFragment extends CameraFragment {
             }
         }
     };
+    /**
+     * 相机碎片基类配套原件
+     */
+    private BaseCameraFragmentKit baseCameraFragmentKit;
 
     /**
      * 获取布局 ID
@@ -115,6 +120,8 @@ public abstract class BaseCameraFragment extends CameraFragment {
         super.initData();
         // 相机宽高比配套原件
         cameraAspectRatioKit = new CameraAspectRatioKit(getTextureView(), getMultiRoiOverlayView());
+        // 相机碎片基类配套原件
+        baseCameraFragmentKit = new BaseCameraFragmentKit(this);
     }
 
     /**
@@ -211,7 +218,9 @@ public abstract class BaseCameraFragment extends CameraFragment {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
             // 自动对焦
-            CameraController.getInstance().setAutoFocus(getCurrentCamera(), true);
+            baseCameraFragmentKit.setAutoFocus();
+            // 相机设置
+            baseCameraFragmentKit.cameraSetting();
             // 预览区域动态适配
             safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
