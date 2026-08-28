@@ -22,6 +22,8 @@ import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.main.MainActivity;
 import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.camera.CameraSwitchManager;
+import com.qtone.camerause.widget.dialog.camerasetting.CameraSettingDialog;
+import com.qtone.camerause.widget.dialog.camerasetting.listener.CameraSettingDialogClickListener;
 import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
 
 import org.jetbrains.annotations.NotNull;
@@ -150,6 +152,27 @@ public class MainActivityKit {
         if (itemId == R.id.mainActivityMenuDeviceInfo) {
             // 设备信息
             deviceInfo();
+        } else if (itemId == R.id.mainActivityMenuCameraSetting) {
+            // 相机设置
+            CameraSettingDialog cameraSettingDialog = new CameraSettingDialog(mainActivity);
+            cameraSettingDialog.setCancelable(false);
+            cameraSettingDialog.setTitle("相机设置")
+                    .setCameraMainFragment(getCameraMainFragment())
+                    .setPositiveText("关闭")
+                    .setShowNegative(true)
+                    .setNegativeText("重置")
+                    .setCameraSettingDialogClickListener(new CameraSettingDialogClickListener() {
+                        @Override
+                        public void onCancel(CameraSettingDialog cameraSettingDialog) {
+                            cameraSettingDialog.reset();
+                        }
+
+                        @Override
+                        public void onConfirm(CameraSettingDialog cameraSettingDialog) {
+                            cameraSettingDialog.dismiss();
+                        }
+                    })
+                    .show();
         } else if (itemId == R.id.mainActivityMenuSwitchCamera) {
             // 切换相机
             CameraSwitchManager.showCameraSelectDialog(mainActivity, getCameraMainFragment().getCurrentCamera(),
