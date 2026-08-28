@@ -233,19 +233,33 @@ public class CameraSettingDialog extends BaseLifecycleDialog {
      */
     private void setProgress() {
         // 亮度
-        cameraSettingDialogRsbBrightness.setProgress(43.0f);
+        float brightness = CameraController.getInstance().getBrightness(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbBrightness.setProgress(brightness);
+        Log.d(LogKit.TAG, "亮度 - " + brightness);
         // 对比度
-        cameraSettingDialogRsbContrast.setProgress(58.0f);
+        float contrast = CameraController.getInstance().getContrast(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbContrast.setProgress(contrast);
+        Log.d(LogKit.TAG, "对比度 - " + contrast);
         // 增益
-        cameraSettingDialogRsbGain.setProgress(6.0f);
+        float gain = CameraController.getInstance().getGain(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbGain.setProgress(gain);
+        Log.d(LogKit.TAG, "增益 - " + gain);
         // Gamma
-        cameraSettingDialogRsbGamma.setProgress(31.0f);
+        float gamma = CameraController.getInstance().getGamma(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbGamma.setProgress(gamma);
+        Log.d(LogKit.TAG, "Gamma - " + gamma);
         // 色调
-        cameraSettingDialogRsbHue.setProgress(52.0f);
+        float hue = CameraController.getInstance().getHue(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbHue.setProgress(hue);
+        Log.d(LogKit.TAG, "色调 - " + hue);
         // 锐度
-        cameraSettingDialogRsbSharpness.setProgress(60.0f);
+        float sharpness = CameraController.getInstance().getSharpness(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbSharpness.setProgress(sharpness);
+        Log.d(LogKit.TAG, "锐度 - " + sharpness);
         // 饱和度
-        cameraSettingDialogRsbSaturation.setProgress(82.0f);
+        float saturation = CameraController.getInstance().getSaturation(cameraMainFragment.getCurrentCamera()).floatValue();
+        cameraSettingDialogRsbSaturation.setProgress(saturation);
+        Log.d(LogKit.TAG, "饱和度 - " + saturation);
     }
 
     /**
@@ -407,38 +421,19 @@ public class CameraSettingDialog extends BaseLifecycleDialog {
     public void reset() {
         // 重置亮度
         CameraController.getInstance().resetBrightness(cameraMainFragment.getCurrentCamera());
-        float brightness = CameraController.getInstance().getBrightness(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbBrightness.setProgress(brightness);
-        Log.d(LogKit.TAG, "亮度 - " + brightness);
         // 重置对比度
         CameraController.getInstance().resetContrast(cameraMainFragment.getCurrentCamera());
-        float contrast = CameraController.getInstance().getContrast(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbContrast.setProgress(contrast);
-        Log.d(LogKit.TAG, "对比度 - " + contrast);
         // 重置增益
         CameraController.getInstance().resetGain(cameraMainFragment.getCurrentCamera());
-        float gain = CameraController.getInstance().getGain(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbGain.setProgress(gain);
-        Log.d(LogKit.TAG, "增益 - " + gain);
         // 重置 Gamma
         CameraController.getInstance().resetGamma(cameraMainFragment.getCurrentCamera());
-        float gamma = CameraController.getInstance().getGamma(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbGamma.setProgress(gamma);
-        Log.d(LogKit.TAG, "Gamma - " + gamma);
         // 重置色调
         CameraController.getInstance().resetHue(cameraMainFragment.getCurrentCamera());
-        float hue = CameraController.getInstance().getHue(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbHue.setProgress(hue);
-        Log.d(LogKit.TAG, "色调 - " + hue);
         // 重置锐度
         CameraController.getInstance().resetSharpness(cameraMainFragment.getCurrentCamera());
-        float sharpness = CameraController.getInstance().getSharpness(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbSharpness.setProgress(sharpness);
-        Log.d(LogKit.TAG, "锐度 - " + sharpness);
         // 重置饱和度
         CameraController.getInstance().resetSaturation(cameraMainFragment.getCurrentCamera());
-        float saturation = CameraController.getInstance().getSaturation(cameraMainFragment.getCurrentCamera()).floatValue();
-        cameraSettingDialogRsbSaturation.setProgress(saturation);
-        Log.d(LogKit.TAG, "饱和度 - " + saturation);
+        // 设置进度
+        setProgress();
     }
 }
