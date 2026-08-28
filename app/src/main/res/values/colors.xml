@@ -22,4 +22,7 @@
     <color name="colorGreen_50">#802ED184</color>
     <color name="colorProgress">#FFBB33</color>
     <color name="colorProgressDefault">#D7D7D7</color>
+
+    <color name="color_fbc2eb">#FBC2EB</color>
+    <color name="color_a6c1ee">#A6C1EE</color>
 </resources>
