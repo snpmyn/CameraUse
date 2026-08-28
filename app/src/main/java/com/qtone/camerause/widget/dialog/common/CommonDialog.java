@@ -2,13 +2,13 @@ package com.qtone.camerause.widget.dialog.common;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import com.qtone.camerause.R;
+import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
 import com.qtone.camerause.widget.dialog.common.listener.CommonDialogClickListener;
 import com.qtone.camerause.widget.textview.AlignTextView;
@@ -44,13 +44,13 @@ public class CommonDialog extends BaseLifecycleDialog {
      */
     private String negativeText;
     /**
-     * 积极文本
-     */
-    private String positiveText;
-    /**
      * 显示消极
      */
     private boolean showNegative = false;
+    /**
+     * 积极文本
+     */
+    private String positiveText;
     /**
      * 普通对话框点击监听
      */
@@ -94,19 +94,19 @@ public class CommonDialog extends BaseLifecycleDialog {
         // 标题
         if (!TextUtils.isEmpty(title)) {
             commonDialogTvTitle.setText(title);
-            commonDialogTvTitle.setVisibility(View.VISIBLE);
+            ViewUtils.showView(commonDialogTvTitle);
         }
         // 内容
         if (!TextUtils.isEmpty(content)) {
             commonDialogAtvContent.setText(content);
-            commonDialogAtvContent.setVisibility(View.VISIBLE);
+            ViewUtils.showView(commonDialogAtvContent);
         }
         // 最长行居中其余行靠左
         commonDialogAtvContent.setCenterLongestLeftRest(centerLongestLeftRest);
         // 消极
         if (showNegative) {
             commonDialogMbNegative.setText(TextUtils.isEmpty(negativeText) ? getContext().getText(R.string.cancel) : negativeText);
-            commonDialogMbNegative.setVisibility(View.VISIBLE);
+            ViewUtils.showView(commonDialogMbNegative);
         }
         // 积极
         commonDialogMbPositive.setText(TextUtils.isEmpty(positiveText) ? getContext().getText(R.string.ensure) : positiveText);
@@ -187,17 +187,6 @@ public class CommonDialog extends BaseLifecycleDialog {
     }
 
     /**
-     * 设置积极文本
-     *
-     * @param positiveText 积极文本
-     * @return 普通对话框
-     */
-    public CommonDialog setPositiveText(String positiveText) {
-        this.positiveText = positiveText;
-        return this;
-    }
-
-    /**
      * 设置显示消极
      *
      * @param showNegative 显示消极
@@ -205,6 +194,17 @@ public class CommonDialog extends BaseLifecycleDialog {
      */
     public CommonDialog setShowNegative(boolean showNegative) {
         this.showNegative = showNegative;
+        return this;
+    }
+
+    /**
+     * 设置积极文本
+     *
+     * @param positiveText 积极文本
+     * @return 普通对话框
+     */
+    public CommonDialog setPositiveText(String positiveText) {
+        this.positiveText = positiveText;
         return this;
     }
 

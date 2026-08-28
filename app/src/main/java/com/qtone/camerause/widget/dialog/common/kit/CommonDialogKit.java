@@ -3,7 +3,6 @@ package com.qtone.camerause.widget.dialog.common.kit;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.qtone.camerause.R;
-import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
 import com.qtone.camerause.widget.dialog.common.CommonDialog;
 import com.qtone.camerause.widget.dialog.common.listener.CommonDialogClickListener;
 
@@ -48,8 +47,8 @@ public class CommonDialogKit {
                 .setPositiveText(positiveText)
                 .setCommonDialogClickListener(new CommonDialogClickListener() {
                     @Override
-                    public void onConfirm(BaseLifecycleDialog baseLifecycleDialog) {
-                        baseLifecycleDialog.dismiss();
+                    public void onConfirm(CommonDialog commonDialog) {
+                        commonDialog.dismiss();
                         if (runnable != null) {
                             runnable.run();
                         }

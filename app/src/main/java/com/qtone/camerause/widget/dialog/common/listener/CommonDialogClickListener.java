@@ -1,6 +1,6 @@
 package com.qtone.camerause.widget.dialog.common.listener;
 
-import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.common.CommonDialog;
 
 /**
  * Created on 2026/8/26.
@@ -12,18 +12,18 @@ public interface CommonDialogClickListener {
     /**
      * 取消
      *
-     * @param baseLifecycleDialog 生命周期对话框基类
+     * @param commonDialog 普通对话框
      */
-    default void onCancel(BaseLifecycleDialog baseLifecycleDialog) {
+    default void onCancel(CommonDialog commonDialog) {
 
     }
 
     /**
      * 确认
      *
-     * @param baseLifecycleDialog 生命周期对话框基类
+     * @param commonDialog 普通对话框
      */
-    default void onConfirm(BaseLifecycleDialog baseLifecycleDialog) {
+    default void onConfirm(CommonDialog commonDialog) {
 
     }
 }
