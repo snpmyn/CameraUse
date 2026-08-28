@@ -7,7 +7,14 @@
         android:icon="@drawable/ic_vacuum_cos_24dp"
         android:title="@string/deviceInfo"
         app:iconTint="@color/white"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/mainActivityMenuCameraSetting"
+        android:contentDescription="@string/cameraSetting"
+        android:icon="@drawable/ic_settings_photo_camera_cos_24dp"
+        android:title="@string/cameraSetting"
+        app:iconTint="@color/white"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/mainActivityMenuSwitchCamera"
         android:contentDescription="@string/switchCamera"
