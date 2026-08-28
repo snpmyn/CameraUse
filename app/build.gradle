@@ -55,6 +55,8 @@ dependencies {
     implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
     implementation "androidx.constraintlayout:constraintlayout:${androidxConstraintlayoutVersion}"
 
+    /*seekbar*/
+    implementation project(':seekbar')
     /*libausbc*/
     implementation project(':libausbc')
 
