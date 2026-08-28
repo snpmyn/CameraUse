@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.qtone.camerause.R;
+import com.qtone.camerause.util.list.ListUtils;
+import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
 import com.qtone.camerause.widget.dialog.singleselect.adapter.SingleSelectDialogAdapter;
 import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
@@ -55,13 +57,13 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      */
     private String negativeText;
     /**
-     * 积极文本
-     */
-    private String positiveText;
-    /**
      * 显示消极
      */
     private boolean showNegative = false;
+    /**
+     * 积极文本
+     */
+    private String positiveText;
     /**
      * 单选对话框点击监听
      */
@@ -107,20 +109,24 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
             singleDialogTvTitle.setText(title);
             singleDialogTvTitle.setVisibility(View.VISIBLE);
         }
-        // 控件
-        RecyclerViewConfigure recyclerViewConfigure = new RecyclerViewConfigure(getAppCompatActivity(), singleDialogRv);
-        recyclerViewConfigure.linearVerticalLayout(true, 12, true, true);
-        // 适配器
-        singleSelectDialogAdapter = new SingleSelectDialogAdapter(getAppCompatActivity());
-        singleSelectDialogAdapter.setData(singleSelectDialogBeanList, defaultSelectedPosition);
-        singleSelectDialogAdapter.setOnRecyclerViewOnItemClickListener(new OnRecyclerViewOnItemClickListener() {
-            @Override
-            public <T> void onItemClick(View view, int position, T t) {
+        // 列表
+        if (ListUtils.listIsNotEmpty(singleSelectDialogBeanList)) {
+            // 控件
+            ViewUtils.showView(singleDialogRv);
+            RecyclerViewConfigure recyclerViewConfigure = new RecyclerViewConfigure(getAppCompatActivity(), singleDialogRv);
+            recyclerViewConfigure.linearVerticalLayout(true, 12, true, true);
+            // 适配器
+            singleSelectDialogAdapter = new SingleSelectDialogAdapter(getAppCompatActivity());
+            singleSelectDialogAdapter.setData(singleSelectDialogBeanList, defaultSelectedPosition);
+            singleSelectDialogAdapter.setOnRecyclerViewOnItemClickListener(new OnRecyclerViewOnItemClickListener() {
+                @Override
+                public <T> void onItemClick(View view, int position, T t) {
 
-            }
-        });
-        // 展示
-        RecyclerViewDisplayController.display(singleDialogRv, singleSelectDialogAdapter);
+                }
+            });
+            // 展示
+            RecyclerViewDisplayController.display(singleDialogRv, singleSelectDialogAdapter);
+        }
         // 消极
         if (showNegative) {
             singleDialogMbNegative.setText(TextUtils.isEmpty(negativeText) ? getContext().getText(R.string.cancel) : negativeText);
@@ -204,17 +210,6 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
     }
 
     /**
-     * 设置积极文本
-     *
-     * @param positiveText 积极文本
-     * @return 单选对话框
-     */
-    public SingleSelectDialog setPositiveText(String positiveText) {
-        this.positiveText = positiveText;
-        return this;
-    }
-
-    /**
      * 设置显示消极
      *
      * @param showNegative 显示消极
@@ -222,6 +217,17 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
      */
     public SingleSelectDialog setShowNegative(boolean showNegative) {
         this.showNegative = showNegative;
+        return this;
+    }
+
+    /**
+     * 设置积极文本
+     *
+     * @param positiveText 积极文本
+     * @return 单选对话框
+     */
+    public SingleSelectDialog setPositiveText(String positiveText) {
+        this.positiveText = positiveText;
         return this;
     }
 

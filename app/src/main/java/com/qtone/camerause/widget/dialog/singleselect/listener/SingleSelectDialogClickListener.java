@@ -1,6 +1,6 @@
 package com.qtone.camerause.widget.dialog.singleselect.listener;
 
-import com.qtone.camerause.widget.dialog.base.BaseLifecycleDialog;
+import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialog;
 
 /**
  * Created on 2026/8/27.
@@ -12,21 +12,21 @@ public interface SingleSelectDialogClickListener {
     /**
      * 取消
      *
-     * @param baseLifecycleDialog 生命周期对话框基类
+     * @param singleSelectDialog 单选对话框
      */
-    default void onCancel(BaseLifecycleDialog baseLifecycleDialog) {
+    default void onCancel(SingleSelectDialog singleSelectDialog) {
 
     }
 
     /**
      * 确认
      *
-     * @param baseLifecycleDialog 生命周期对话框基类
-     * @param position            位置
-     * @param t                   T
-     * @param <T>                 <T>
+     * @param singleSelectDialog 单选对话框
+     * @param position           位置
+     * @param t                  T
+     * @param <T>                <T>
      */
-    default <T> void onConfirm(BaseLifecycleDialog baseLifecycleDialog, int position, T t) {
+    default <T> void onConfirm(SingleSelectDialog singleSelectDialog, int position, T t) {
 
     }
 }
