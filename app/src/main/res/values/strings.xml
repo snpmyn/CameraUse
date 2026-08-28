@@ -25,4 +25,5 @@
     <string name="notice">温馨提示</string>
     <string name="iKonw">我知道了</string>
     <string name="switchCamera">切换相机</string>
+    <string name="cameraSetting">相机设置</string>
 </resources>
