@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false">
@@ -9,7 +10,7 @@
         android:layout_width="@dimen/dp_0"
         android:layout_height="match_parent"
         android:layout_weight="2.5"
-        android:background="@android:color/black">
+        android:background="@color/black">
 
         <FrameLayout
             android:id="@+id/cameraMainFragmentFl"
@@ -17,8 +18,8 @@
             android:layout_height="match_parent">
 
             <!--建议将 width 和 height 都设为 match_parent-->
-            <!--1. AspectRatioTextureView 内部重写的 onMeasure 会根据 setAspectRatio 传入的宽高比自动缩放-->
-            <!--2. 配合 FrameLayout 黑色背景，画面比例与屏幕不一致时会自动呈现上下或左右黑边 (Letterboxing)，保证画面 100% 完整且绝不拉伸变形-->
+            <!--1. AspectRatioTextureView 内部重写 onMeasure 根据 setAspectRatio 传入的宽高比自动缩放-->
+            <!--2. 配合 FrameLayout 黑色背景，画面比例与屏幕不一致时会自动呈现上下或左右黑边。保证画面 100% 完整且绝不拉伸变形-->
             <com.jiangdg.ausbc.widget.AspectRatioTextureView
                 android:id="@+id/cameraMainFragmentArtv"
                 android:layout_width="match_parent"
@@ -31,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            app:vvFrameCornerColor="@color/color_FFEE6002"
+            app:vvFrameCornerColor="@color/viewfinder_corner"
             app:vvFrameCornerRadius="@dimen/dp_10"
             app:vvFrameRatio="0.9"
             app:vvLaserStyle="line"
@@ -44,151 +45,140 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="@dimen/dp_0"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:gravity="center"
-        android:padding="@dimen/dp_10"
-        android:scrollbars="none">
+        android:background="@color/background"
+        android:orientation="vertical"
+        android:padding="@dimen/dp_20">
+
+        <!--普通按钮-->
+        <!--style="@style/Widget.MaterialComponents.Button"-->
+        <!--带图标-->
+        <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
+        <!--无背景 + 只有文字-->
+        <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
+        <!--描边按钮-->
+        <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
+        <!--扁平按钮 + 有背景 + 无阴影-->
+        <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cameraMainFragmentMbSingleCapture"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
+            android:layout_weight="1"
+            android:filterTouchesWhenObscured="true"
+            android:insetLeft="@dimen/dp_0"
+            android:insetTop="@dimen/dp_0"
+            android:insetRight="@dimen/dp_0"
+            android:insetBottom="@dimen/dp_0"
+            android:text="@string/singleCapture"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_10"
+            app:backgroundTint="@color/color_29a1f7"
+            tools:ignore="NestedWeights" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="@dimen/dp_0"
+            android:layout_marginVertical="@dimen/dp_10"
+            android:layout_weight="1">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <!--普通按钮-->
-                <!--style="@style/Widget.MaterialComponents.Button"-->
-                <!--带图标-->
-                <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
-                <!--无背景 + 只有文字-->
-                <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
-                <!--描边按钮-->
-                <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
-                <!--扁平按钮 + 有背景 + 无阴影-->
-                <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cameraMainFragmentMbSingleCapture"
-                    android:layout_width="@dimen/dp_0"
-                    android:layout_height="@dimen/dp_36"
-                    android:layout_weight="1"
-                    android:filterTouchesWhenObscured="true"
-                    android:insetLeft="@dimen/dp_0"
-                    android:insetTop="@dimen/dp_0"
-                    android:insetRight="@dimen/dp_0"
-                    android:insetBottom="@dimen/dp_0"
-                    android:text="@string/singleCapture"
-                    android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_FFEE6002" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cameraMainFragmentMbBurstCapture"
-                    android:layout_width="@dimen/dp_0"
-                    android:layout_height="@dimen/dp_36"
-                    android:layout_marginStart="@dimen/dp_10"
-                    android:layout_weight="1"
-                    android:filterTouchesWhenObscured="true"
-                    android:insetLeft="@dimen/dp_0"
-                    android:insetTop="@dimen/dp_0"
-                    android:insetRight="@dimen/dp_0"
-                    android:insetBottom="@dimen/dp_0"
-                    android:text="@string/burstCapture"
-                    android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_FFEE6002" />
-            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbBurstCapture"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="@dimen/dp_10"
+                android:layout_weight="1"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/burstCapture"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_10"
+                app:backgroundTint="@color/color_ff9800" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbStopBurstCapture"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_36"
-                android:layout_marginVertical="@dimen/dp_10"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:filterTouchesWhenObscured="true"
                 android:insetLeft="@dimen/dp_0"
                 android:insetTop="@dimen/dp_0"
                 android:insetRight="@dimen/dp_0"
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/stopBurstCapture"
+                android:textColor="@color/white"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_FFEE6002" />
+                app:backgroundTint="@color/color_e65100" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
+            android:layout_weight="1">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbScanCode"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_36"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="@dimen/dp_10"
+                android:layout_weight="1"
                 android:filterTouchesWhenObscured="true"
                 android:insetLeft="@dimen/dp_0"
                 android:insetTop="@dimen/dp_0"
                 android:insetRight="@dimen/dp_0"
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/scanCode"
+                android:textColor="@color/white"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_FFEE6002" />
+                app:backgroundTint="@color/color_00bfa5" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbStopScanCode"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_36"
-                android:layout_marginVertical="@dimen/dp_10"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:filterTouchesWhenObscured="true"
                 android:insetLeft="@dimen/dp_0"
                 android:insetTop="@dimen/dp_0"
                 android:insetRight="@dimen/dp_0"
                 android:insetBottom="@dimen/dp_0"
                 android:text="@string/stopScanCode"
+                android:textColor="@color/white"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_FFEE6002" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/cameraMainFragmentMbSwitchResolution"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_36"
-                android:filterTouchesWhenObscured="true"
-                android:insetLeft="@dimen/dp_0"
-                android:insetTop="@dimen/dp_0"
-                android:insetRight="@dimen/dp_0"
-                android:insetBottom="@dimen/dp_0"
-                android:text="@string/switchResolution"
-                android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_FFEE6002" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_10">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cameraMainFragmentMbSetting"
-                    android:layout_width="@dimen/dp_0"
-                    android:layout_height="@dimen/dp_36"
-                    android:layout_weight="1"
-                    android:filterTouchesWhenObscured="true"
-                    android:insetLeft="@dimen/dp_0"
-                    android:insetTop="@dimen/dp_0"
-                    android:insetRight="@dimen/dp_0"
-                    android:insetBottom="@dimen/dp_0"
-                    android:text="@string/setting"
-                    android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_FFEE6002" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cameraMainFragmentMbGallery"
-                    android:layout_width="@dimen/dp_0"
-                    android:layout_height="@dimen/dp_36"
-                    android:layout_marginStart="@dimen/dp_10"
-                    android:layout_weight="1"
-                    android:filterTouchesWhenObscured="true"
-                    android:insetLeft="@dimen/dp_0"
-                    android:insetTop="@dimen/dp_0"
-                    android:insetRight="@dimen/dp_0"
-                    android:insetBottom="@dimen/dp_0"
-                    android:text="@string/gallery"
-                    android:textSize="@dimen/sp_10"
-                    app:backgroundTint="@color/color_FFEE6002" />
-            </LinearLayout>
+                app:backgroundTint="@color/color_00bfa5" />
         </LinearLayout>
-    </ScrollView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cameraMainFragmentMbGallery"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
+            android:layout_marginTop="@dimen/dp_10"
+            android:layout_weight="1"
+            android:filterTouchesWhenObscured="true"
+            android:insetLeft="@dimen/dp_0"
+            android:insetTop="@dimen/dp_0"
+            android:insetRight="@dimen/dp_0"
+            android:insetBottom="@dimen/dp_0"
+            android:text="@string/gallery"
+            android:textColor="@color/white"
+            android:textSize="@dimen/sp_10"
+            app:backgroundTint="@color/color_7c4dff" />
+
+        <com.qtone.camerause.widget.dialog.button.CaptureButton
+            android:id="@+id/cameraMainFragmentCmbGallery"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
+            android:layout_marginTop="@dimen/dp_10"
+            android:layout_weight="1"
+            app:ccbCaptureMode="singleCapture"
+            app:ccbText="@string/singleCapture"
+            app:ccbTextColor="@color/white"
+            app:ccbTriggerMode="click" />
+    </LinearLayout>
 </LinearLayout>
