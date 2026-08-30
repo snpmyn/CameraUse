@@ -66,6 +66,6 @@ public class GalleryActivity extends BasePoolActivity {
     @Override
     protected void startLogic() {
         GalleryActivityKit galleryActivityKit = new GalleryActivityKit();
-        galleryActivityKit.execute(this, activityGalleryBinding.galleryActivityRv, 3, 12, 48);
+        galleryActivityKit.execute(this, activityGalleryBinding.galleryActivityRv, 4, 12, 60);
     }
 }
