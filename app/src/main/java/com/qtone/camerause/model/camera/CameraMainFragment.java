@@ -12,6 +12,7 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.value.CameraResolution;
+import com.qtone.camerause.widget.dialog.button.CaptureButton;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 import com.qtone.camerause.widget.scan.ViewFinderView;
 
@@ -31,6 +32,9 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
+
+    private CaptureButton cameraMainFragmentCmbGallery;
+
     /**
      * 相机主碎片配套原件
      */
@@ -92,9 +96,9 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         rootView.findViewById(R.id.cameraMainFragmentMbStopBurstCapture).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbStopScanCode).setOnClickListener(this);
-        rootView.findViewById(R.id.cameraMainFragmentMbSwitchResolution).setOnClickListener(this);
-        rootView.findViewById(R.id.cameraMainFragmentMbSetting).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
+
+        cameraMainFragmentCmbGallery = rootView.findViewById(R.id.cameraMainFragmentCmbGallery);
     }
 
     /**
@@ -158,12 +162,6 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         } else if (id == R.id.cameraMainFragmentMbStopScanCode) {
             // 停止扫码按钮点击事件
             cameraMainFragmentKit.onStopScanCodeClicked(cameraMainFragmentVfv);
-        } else if (id == R.id.cameraMainFragmentMbSwitchResolution) {
-            // 切换分辨率按钮点击事件
-            cameraMainFragmentKit.onSwitchResolutionClicked();
-        } else if (id == R.id.cameraMainFragmentMbSetting) {
-            // 设置按钮点击事件
-            cameraMainFragmentKit.onSettingClicked();
         } else if (id == R.id.cameraMainFragmentMbGallery) {
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
