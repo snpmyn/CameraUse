@@ -26,4 +26,5 @@
     <string name="iKonw">我知道了</string>
     <string name="switchCamera">切换相机</string>
     <string name="cameraSetting">相机设置</string>
+    <string name="functionSetting">功能设置</string>
 </resources>
