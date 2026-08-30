@@ -4,27 +4,20 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
 
-import androidx.appcompat.app.AlertDialog;
-
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
-import com.jiangdg.ausbc.camera.bean.PreviewSize;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.gallery.GalleryActivity;
-import com.qtone.camerause.model.setting.SettingActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
-import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
-import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
@@ -39,8 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import kotlin.jvm.functions.Function2;
 
 /**
  * Created on 2026/8/11.
@@ -170,85 +161,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         viewFinderView.stopScanner();
         // 隐藏视图
         ViewUtils.hideView(viewFinderView, View.GONE);
-    }
-
-    /**
-     * 切换分辨率按钮点击事件
-     * <p>
-     * 不再调用
-     * {@link CameraMainFragment#updateResolution(int, int)}
-     * 替换调用
-     * {@link CameraMainFragment#updatePreviewSize(int, int, Function2)}
-     * <p>
-     * 传输格式
-     * 1. FRAME_FORMAT_MJPEG - 压缩流格式
-     * - 图像在摄像头硬件内部经 Motion JPEG 压缩后再传入系统，占用 USB 带宽极小。
-     * - 支持在大分辨率 (1080P / 4K) 下保持高帧率 (30 ~ 60 FPS)
-     * - 作为首选默认切换格式
-     * 2. FRAME_FORMAT_YUYV - 未压缩原始数据流格式
-     * - 未经任何压缩的裸数据 (2 Bytes / Pixel)，对系统与 USB 总线带宽要求极高。
-     * - 受限于 USB 2.0 带宽瓶颈，大分辨率下硬件帧率会被迫降至 5 ~ 15 FPS，甚至引发底层传输丢帧。
-     * - 摄像头硬件在目标分辨率下不支持 MJPEG 格式时降级适配
-     * <p>
-     * 相机关闭原因说明
-     * - 若 MJPEG 与 YUYV 两次 setPreviewSize 均抛异常，说明摄像头固件 (UVC Firmware) 根本不支持该目标分辨率或底层 USB 管道 (Pipe) 配流失败。
-     * - 此时由于在尝试切换前已调 stopPreview() 停流，若不及时拦截抛出失败，系统将无法继续渲染后续帧，表现为预览画面黑屏 / 挂起 (即相机预览被迫关闭)。
-     */
-    public void onSwitchResolutionClicked() {
-        List<PreviewSize> previewSizes = CameraController.getInstance().getAllPreviewSizes(cameraMainFragment.getCurrentCamera(), null);
-        if (ListUtils.listIsEmpty(previewSizes)) {
-            ToastUtils.show("获取预览分辨率失败");
-            return;
-        }
-        int selectedIndex = -1;
-        String[] items = new String[previewSizes.size()];
-        PreviewSize currentPreviewSize = CameraController.getInstance().getCurrentPreviewSize(cameraMainFragment.getCurrentCamera());
-        for (int i = 0; i < previewSizes.size(); i++) {
-            PreviewSize previewSize = previewSizes.get(i);
-            int previewSizeWidth = previewSize.getWidth();
-            int previewSizeHeight = previewSize.getHeight();
-            if ((currentPreviewSize != null) && (currentPreviewSize.getWidth() == previewSizeWidth) && (currentPreviewSize.getHeight() == previewSizeHeight)) {
-                selectedIndex = i;
-            }
-            items[i] = (previewSizeWidth + " x " + previewSizeHeight);
-        }
-        final int initialSelectedIndex = selectedIndex;
-        int finalSelectedIndex = selectedIndex;
-        cameraMainFragment.safeRun(appCompatActivity -> {
-            AlertDialog alertDialog = new MaterialAlertDialogBuilder(appCompatActivity)
-                    .setSingleChoiceItems(items, finalSelectedIndex, (dialog, which) -> {
-                        // 相同分辨率无需重复做流重置
-                        if (which != initialSelectedIndex) {
-                            PreviewSize selectedPreviewSize = previewSizes.get(which);
-                            CameraController.getInstance().updatePreviewSize(cameraMainFragment.getCurrentCamera(),
-                                    selectedPreviewSize.getWidth(),
-                                    selectedPreviewSize.getHeight(),
-                                    cameraMainFragment.getTextureView(),
-                                    (isSuccess, formatMode) -> {
-                                        if (Boolean.TRUE.equals(isSuccess)) {
-                                            String modeDesc = formatMode != null ? " [ " + formatMode + " ]" : "";
-                                            ToastUtils.show("分辨率已切换为 " + selectedPreviewSize.getWidth() + " x " + selectedPreviewSize.getHeight() + modeDesc);
-                                        } else {
-                                            ToastUtils.show("分辨率切换失败");
-                                        }
-                                        return null;
-                                    }
-                            );
-                        }
-                        dialog.dismiss();
-                    })
-                    .show();
-            if (alertDialog.getListView() != null) {
-                alertDialog.getListView().setVerticalScrollBarEnabled(false);
-            }
-        });
-    }
-
-    /**
-     * 设置按钮点击事件
-     */
-    public void onSettingClicked() {
-        cameraMainFragment.safeRun(appCompatActivity -> IntentJump.getInstance().jumpWithAnimation(null, appCompatActivity, false, SettingActivity.class, 0, 0));
     }
 
     /**
