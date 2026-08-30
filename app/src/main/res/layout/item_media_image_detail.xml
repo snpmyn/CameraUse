@@ -48,7 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_6"
         android:gravity="center"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="@color/font_dark"
         android:textSize="@dimen/sp_12"
+        android:textStyle="bold"
         tools:text="名称" />
 </LinearLayout>
