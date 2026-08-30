@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="basic">#4E80F5</color>
+    <color name="basic">#29A1F7</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
+    <color name="font_dark">#1A1D26</color>
+    <color name="background">#F5F7FA</color>
+
     <color name="color_d7dae1">#D7DAE1</color>
-    <color name="color_FFEE6002">#EE6002</color>
+
+    <color name="color_29a1f7">#29A1F7</color>
+    <color name="color_ff9800">#FF9800</color>
+    <color name="color_e65100">#E65100</color>
+    <color name="color_00bfa5">#00BFA5</color>
+    <color name="color_7c4dff">#7C4DFF</color>
+
+    <color name="color_FFEE6002">#29A1F7</color>
     <color name="color_99000000">#99000000</color>
     <color name="color_DC000000">#CC000000</color>
     <color name="color_00000000">#00000000</color>
@@ -13,7 +23,7 @@
     <color name="viewfinder_mask">#60000000</color>
     <color name="viewfinder_laser">#1FB3E2</color>
     <color name="viewfinder_frame">#7F1FB3E2</color>
-    <color name="viewfinder_corner">#1FB3E2</color>
+    <color name="viewfinder_corner">#00C9A7</color>
     <color name="viewfinder_point">#1FB3E2</color>
     <color name="viewfinder_point_stroke">@color/white</color>
     <color name="viewfinder_label_text">#C0C0C0</color>

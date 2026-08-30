@@ -60,4 +60,46 @@
         <attr name="vvPointAnimationInterval" format="integer" />
         <attr name="vvFullRefresh" format="boolean" />
     </declare-styleable>
+    <!--CameraCaptureButton-->
+    <declare-styleable name="CameraCaptureButton">
+        <!--中央文本内容-->
+        <attr name="ccbText" format="string" />
+        <!--中央文本颜色-->
+        <attr name="ccbTextColor" format="color" />
+        <!--中央文本大小-->
+        <!--未设根据控件大小自适应-->
+        <attr name="ccbTextSize" format="dimension" />
+        <!--单拍模式主题颜色-->
+        <!--自动计算其 25% 透明度作为外轨道底槽色-->
+        <attr name="ccbSingleCaptureColor" format="color" />
+        <!--连拍模式主题颜色-->
+        <!--自动计算其 25% 透明度作为外轨道底槽色-->
+        <attr name="ccbBurstCaptureColor" format="color" />
+        <!-- 停止 / 收尾 / 禁用状态控件颜色 -->
+        <attr name="ccbDisabledColor" format="color" />
+        <!-- 拍照模式 -->
+        <attr name="ccbCaptureMode" format="enum">
+            <!--单拍-->
+            <!--应用 ccbSingleCaptureColor 主题色-->
+            <enum name="singleCapture" value="0" />
+            <!--连拍-->
+            <!--应用 ccbBurstCaptureColor 主题色-->
+            <enum name="burstCapture" value="1" />
+        </attr>
+        <!-- 触发模式 -->
+        <attr name="ccbTriggerMode" format="enum">
+            <!--单点-->
+            <!--松手后立即触发-->
+            <enum name="click" value="0" />
+            <!--长按蓄力-->
+            <!--按住开始环形进度填充 + 走满一圈触发 + 中途松手取消-->
+            <enum name="longPressCharge" value="1" />
+        </attr>
+        <!--动画时长配置-->
+        <!--单位 - 毫秒-->
+        <!--蓄力模式进度弧线顺时走满一圈所需时长 (仅在 triggerMode="longPressCharge" 生效)-->
+        <attr name="ccbChargeDuration" format="integer" />
+        <!--拍摄进行中外圈旋转流光 (光晕) 转完一圈所需时长-->
+        <attr name="ccbRotateDuration" format="integer" />
+    </declare-styleable>
 </resources>
