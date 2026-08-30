@@ -48,10 +48,8 @@ public class CameraSwitchManager {
      * @param currentUsbDevice  当前 USB 设备
      */
     public static void showCameraSelectDialog(AppCompatActivity appCompatActivity, MultiCameraClient.ICamera iCamera, MultiCameraClient multiCameraClient, UsbDevice currentUsbDevice) {
-        if ((appCompatActivity == null) || appCompatActivity.isFinishing() || appCompatActivity.isDestroyed()) {
-            return;
-        }
         if ((iCamera == null) || (multiCameraClient == null) || (currentUsbDevice == null)) {
+            ToastUtils.show("未检测到摄像头");
             return;
         }
         List<UsbDevice> usbDeviceList = CameraController.getInstance().getDeviceList(multiCameraClient);
