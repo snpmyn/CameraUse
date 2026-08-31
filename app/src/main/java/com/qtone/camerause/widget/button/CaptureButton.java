@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.dialog.button;
+package com.qtone.camerause.widget.button;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -199,31 +199,31 @@ public class CaptureButton extends View {
     private void init(Context context, @Nullable AttributeSet attrs) {
         // 读取 XML 自定属性
         if (attrs != null) {
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CameraCaptureButton);
-            if (typedArray.hasValue(R.styleable.CameraCaptureButton_ccbText)) {
-                String xmlText = typedArray.getString(R.styleable.CameraCaptureButton_ccbText);
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CaptureButton);
+            if (typedArray.hasValue(R.styleable.CaptureButton_cbText)) {
+                String xmlText = typedArray.getString(R.styleable.CaptureButton_cbText);
                 if (xmlText != null) {
                     text = xmlText;
                     idleText = xmlText;
                 }
             }
-            textColor = typedArray.getColor(R.styleable.CameraCaptureButton_ccbTextColor, textColor);
-            customTextSize = typedArray.getDimension(R.styleable.CameraCaptureButton_ccbTextSize, -1f);
+            textColor = typedArray.getColor(R.styleable.CaptureButton_cbTextColor, textColor);
+            customTextSize = typedArray.getDimension(R.styleable.CaptureButton_cbTextSize, -1f);
             // 读取单拍与连拍主题色
-            colorPrimary = typedArray.getColor(R.styleable.CameraCaptureButton_ccbSingleCaptureColor, colorPrimary);
-            colorBurst = typedArray.getColor(R.styleable.CameraCaptureButton_ccbBurstCaptureColor, colorBurst);
-            colorDisabled = typedArray.getColor(R.styleable.CameraCaptureButton_ccbDisabledColor, colorDisabled);
+            colorPrimary = typedArray.getColor(R.styleable.CaptureButton_cbSingleCaptureColor, colorPrimary);
+            colorBurst = typedArray.getColor(R.styleable.CaptureButton_cbBurstCaptureColor, colorBurst);
+            colorDisabled = typedArray.getColor(R.styleable.CaptureButton_cbDisabledColor, colorDisabled);
 
             // 当前状态
-            int modeVal = typedArray.getInt(R.styleable.CameraCaptureButton_ccbCaptureMode, 0);
+            int modeVal = typedArray.getInt(R.styleable.CaptureButton_cbCaptureMode, 0);
             currentState = (modeVal == 1) ? State.IDLE_BURST : State.IDLE_SINGLE;
 
             // 当前触发模式
-            int triggerVal = typedArray.getInt(R.styleable.CameraCaptureButton_ccbTriggerMode, 0);
+            int triggerVal = typedArray.getInt(R.styleable.CaptureButton_cbTriggerMode, 0);
             currentTriggerMode = TriggerMode.fromValue(triggerVal);
 
-            chargeDuration = typedArray.getInt(R.styleable.CameraCaptureButton_ccbChargeDuration, (int) chargeDuration);
-            rotateDuration = typedArray.getInt(R.styleable.CameraCaptureButton_ccbRotateDuration, (int) rotateDuration);
+            chargeDuration = typedArray.getInt(R.styleable.CaptureButton_cbChargeDuration, (int) chargeDuration);
+            rotateDuration = typedArray.getInt(R.styleable.CaptureButton_cbRotateDuration, (int) rotateDuration);
 
             typedArray.recycle();
         }
