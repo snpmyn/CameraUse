@@ -389,7 +389,7 @@ public class CaptureButton extends View {
                     if (isCharging) {
                         cancelChargingAnimation();
                     }
-                } else if ((currentTriggerMode == TriggerMode.CLICK) && !isBusy()) {
+                } else if ((currentTriggerMode == TriggerMode.CLICK) && !isBusy() && (event.getAction() == MotionEvent.ACTION_UP)) {
                     // CLICK 模式
                     // 点击直接触发拍摄
                     triggerCapture();
