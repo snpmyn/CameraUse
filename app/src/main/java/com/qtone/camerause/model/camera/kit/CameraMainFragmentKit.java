@@ -20,6 +20,7 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
+import com.qtone.camerause.widget.capture.CaptureState;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
@@ -80,6 +81,24 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     }
 
     /**
+     * 是否允许操作单拍按钮
+     *
+     * @return 是否允许操作单拍按钮
+     */
+    public boolean enableHandleSingleCaptureButton() {
+        return (captureProcessor.getCaptureState() == CaptureState.IDLE);
+    }
+
+    /**
+     * 是否允许操作连拍按钮
+     *
+     * @return 是否允许操作连拍按钮
+     */
+    public boolean enableHandleBurstCaptureButton() {
+        return ((captureProcessor.getCaptureState() == CaptureState.IDLE) || (captureProcessor.getCaptureState() == CaptureState.BURST_CAPTURE_RUNNING));
+    }
+
+    /**
      * 处理帧
      *
      * @param data       图像帧字节数组
@@ -100,8 +119,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 单拍按钮点击事件
      */
     public void onSingleCaptureClicked() {
-        // 停止连拍
-        captureProcessor.stopBurstCapture();
         // 设置拍照策略
         captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
@@ -227,6 +244,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
         ToastUtils.show("拍照成功");
+        if (captureProcessor.captureSuccessFromSingleCapture(captureMode)) {
+            captureProcessor.setCaptureState(CaptureState.IDLE);
+            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+        }
         cameraMainFragment.safeRun(appCompatActivity -> {
             // 1. 是否允许文档裁剪
             if (SharedPreferencesKit.isDocumentCropEnabled(appCompatActivity)) {
@@ -324,6 +345,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onCaptureError(String errorMsg) {
         ToastUtils.show("拍照错误");
+        if (captureProcessor.captureErrorFromSingleCapture()) {
+            captureProcessor.setCaptureState(CaptureState.IDLE);
+            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+        }
     }
 
     /**
