@@ -7,12 +7,15 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
+import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.value.CameraResolution;
-import com.qtone.camerause.widget.dialog.button.CaptureButton;
+import com.qtone.camerause.widget.button.CaptureButton;
+import com.qtone.camerause.widget.button.CaptureButtonState;
+import com.qtone.camerause.widget.button.OnCaptureButtonCallback;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 import com.qtone.camerause.widget.scan.ViewFinderView;
 
@@ -28,13 +31,11 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     /**
      * 控件
      */
+    public CaptureButton cameraMainFragmentCbSingleCapture;
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
-
-    private CaptureButton cameraMainFragmentCmbGallery;
-
     /**
      * 相机主碎片配套原件
      */
@@ -91,14 +92,64 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
-        rootView.findViewById(R.id.cameraMainFragmentMbSingleCapture).setOnClickListener(this);
-        rootView.findViewById(R.id.cameraMainFragmentMbBurstCapture).setOnClickListener(this);
-        rootView.findViewById(R.id.cameraMainFragmentMbStopBurstCapture).setOnClickListener(this);
+        cameraMainFragmentCbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentCbSingleCapture);
+        cameraMainFragmentCbSingleCapture.setOnCaptureButtonCallback(new OnCaptureButtonCallback() {
+            @Override
+            public boolean onCaptureButtonPreCheck() {
+                boolean enableHandleSingleCaptureButton = cameraMainFragmentKit.enableHandleSingleCaptureButton();
+                if (!enableHandleSingleCaptureButton) {
+                    ToastUtils.show("先停止连拍");
+                }
+                return enableHandleSingleCaptureButton;
+            }
+
+            @Override
+            public void onCaptureButtonStart(CaptureButtonState currentCaptureButtonState) {
+                // 单拍按钮点击事件
+                cameraMainFragmentKit.onSingleCaptureClicked();
+            }
+
+            @Override
+            public void onCaptureButtonChargeCancel() {
+
+            }
+
+            @Override
+            public void onCaptureButtonStop() {
+
+            }
+        });
+        CaptureButton cameraMainFragmentCbBurstCapture = rootView.findViewById(R.id.cameraMainFragmentCbBurstCapture);
+        cameraMainFragmentCbBurstCapture.setOnCaptureButtonCallback(new OnCaptureButtonCallback() {
+            @Override
+            public boolean onCaptureButtonPreCheck() {
+                boolean enableHandleBurstCaptureButton = cameraMainFragmentKit.enableHandleBurstCaptureButton();
+                if (!enableHandleBurstCaptureButton) {
+                    ToastUtils.show("需等单拍结束");
+                }
+                return enableHandleBurstCaptureButton;
+            }
+
+            @Override
+            public void onCaptureButtonStart(CaptureButtonState currentCaptureButtonState) {
+                // 连拍按钮点击事件
+                cameraMainFragmentKit.onBurstCaptureClicked(3000);
+            }
+
+            @Override
+            public void onCaptureButtonChargeCancel() {
+
+            }
+
+            @Override
+            public void onCaptureButtonStop() {
+                // 停止连拍按钮点击事件
+                cameraMainFragmentKit.onStopBurstCaptureClicked();
+            }
+        });
         rootView.findViewById(R.id.cameraMainFragmentMbScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbStopScanCode).setOnClickListener(this);
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
-
-        cameraMainFragmentCmbGallery = rootView.findViewById(R.id.cameraMainFragmentCmbGallery);
     }
 
     /**
@@ -147,16 +198,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @Override
     public void onClick(@NotNull View v) {
         int id = v.getId();
-        if (id == R.id.cameraMainFragmentMbSingleCapture) {
-            // 单拍按钮点击事件
-            cameraMainFragmentKit.onSingleCaptureClicked();
-        } else if (id == R.id.cameraMainFragmentMbBurstCapture) {
-            // 连拍按钮点击事件
-            cameraMainFragmentKit.onBurstCaptureClicked(3000);
-        } else if (id == R.id.cameraMainFragmentMbStopBurstCapture) {
-            // 停止连拍按钮点击事件
-            cameraMainFragmentKit.onStopBurstCaptureClicked();
-        } else if (id == R.id.cameraMainFragmentMbScanCode) {
+        if (id == R.id.cameraMainFragmentMbScanCode) {
             // 扫码按钮点击事件
             cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, 1200);
         } else if (id == R.id.cameraMainFragmentMbStopScanCode) {
