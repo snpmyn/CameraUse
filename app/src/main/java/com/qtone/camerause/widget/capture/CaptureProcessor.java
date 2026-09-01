@@ -23,11 +23,18 @@ public class CaptureProcessor {
      */
     private final FrameCaptureProcessor frameCaptureProcessor;
     /**
-     * 当前拍照策略
+     * 拍照策略
      * <p>
      * 默认 {@link CaptureStrategy#FRAME_CAPTURE}
      */
     private volatile CaptureStrategy captureStrategy = CaptureStrategy.FRAME_CAPTURE;
+    /**
+     * 拍照状态
+     * <p>
+     * 默认 {@link CaptureState#IDLE}
+     * 使用 volatile 保证多线程读写可见性
+     */
+    private volatile CaptureState captureState = CaptureState.IDLE;
 
     /**
      * constructor
@@ -52,12 +59,31 @@ public class CaptureProcessor {
     }
 
     /**
+     * 获取拍照状态
+     *
+     * @return 拍照状态
+     */
+    public CaptureState getCaptureState() {
+        return captureState;
+    }
+
+    /**
+     * 设置拍照状态
+     *
+     * @param captureState 拍照状态
+     */
+    public void setCaptureState(CaptureState captureState) {
+        this.captureState = captureState;
+    }
+
+    /**
      * 处理帧
      *
-     * @param data       图像帧字节数组
-     * @param width      帧物理宽
-     * @param height     帧物理高
-     * @param dataFormat 数据格式
+     * @param data              图像帧字节数组
+     * @param width             帧物理宽
+     * @param height            帧物理高
+     * @param dataFormat        数据格式
+     * @param onCaptureCallBack 拍照回调
      */
     public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.FRAME_CAPTURE) {
@@ -70,12 +96,22 @@ public class CaptureProcessor {
      *
      * @param context           上下文
      * @param iCamera           相机实例
-     * @param onCaptureCallBack 拍照回調
+     * @param onCaptureCallBack 拍照回调
      */
     public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, OnCaptureCallback onCaptureCallBack) {
+        // 单拍进行中
+        // 不重复触发
+        if (captureState == CaptureState.SINGLE_CAPTURE_RUNNING) {
+            notifyError(onCaptureCallBack, "单拍进行中");
+            return;
+        }
+        // 标记单拍进行中
+        captureState = CaptureState.SINGLE_CAPTURE_RUNNING;
         if (captureStrategy == CaptureStrategy.SDK_CAPTURE) {
+            // 开始单拍
             sdkCaptureProcessor.startSingleCapture(context, iCamera, onCaptureCallBack);
         } else {
+            // 开始单拍
             frameCaptureProcessor.startSingleCapture(context, iCamera, onCaptureCallBack);
         }
     }
@@ -86,12 +122,22 @@ public class CaptureProcessor {
      * @param context           上下文
      * @param iCamera           相机实例
      * @param intervalMs        间隔毫秒
-     * @param onCaptureCallBack 拍照回調
+     * @param onCaptureCallBack 拍照回调
      */
     public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, OnCaptureCallback onCaptureCallBack) {
+        // 连拍进行中
+        // 不重复触发
+        if (captureState == CaptureState.BURST_CAPTURE_RUNNING) {
+            notifyError(onCaptureCallBack, "连拍进行中");
+            return;
+        }
+        // 标记连拍进行中
+        captureState = CaptureState.BURST_CAPTURE_RUNNING;
         if (captureStrategy == CaptureStrategy.SDK_CAPTURE) {
+            // 开始连拍
             sdkCaptureProcessor.startBurstCapture(context, iCamera, intervalMs, onCaptureCallBack);
         } else {
+            // 开始连拍
             frameCaptureProcessor.startBurstCapture(context, iCamera, intervalMs, onCaptureCallBack);
         }
     }
@@ -102,6 +148,43 @@ public class CaptureProcessor {
     public void stopBurstCapture() {
         sdkCaptureProcessor.stopBurstCapture();
         frameCaptureProcessor.stopBurstCapture();
+        if (captureState == CaptureState.BURST_CAPTURE_RUNNING) {
+            Log.d(LogKit.TAG, "停止连拍 -> 恢复空闲");
+            // 停止连拍 -> 恢复空闲
+            captureState = CaptureState.IDLE;
+        }
+    }
+
+    /**
+     * 拍照成功是否来自单拍
+     *
+     * @param captureMode 拍照模式
+     * @return 拍照成功是否来自单拍
+     */
+    public boolean captureSuccessFromSingleCapture(CaptureMode captureMode) {
+        return ((captureMode == CaptureMode.SINGLE_CAPTURE) && (captureState == CaptureState.SINGLE_CAPTURE_RUNNING));
+    }
+
+    /**
+     * 拍照错误是否来自单拍
+     *
+     * @return 拍照错误是否来自单拍
+     */
+    public boolean captureErrorFromSingleCapture() {
+        return (captureState == CaptureState.SINGLE_CAPTURE_RUNNING);
+    }
+
+    /**
+     * 通知错误
+     *
+     * @param onCaptureCallBack 拍照回调
+     * @param errorMsg          错误消息
+     */
+    private void notifyError(CaptureProcessor.OnCaptureCallback onCaptureCallBack, String errorMsg) {
+        if (onCaptureCallBack != null) {
+            Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
+            onCaptureCallBack.onCaptureError(errorMsg);
+        }
     }
 
     /**
@@ -110,6 +193,7 @@ public class CaptureProcessor {
     public void release() {
         sdkCaptureProcessor.release();
         frameCaptureProcessor.release();
+        captureState = CaptureState.IDLE;
     }
 
     /**
