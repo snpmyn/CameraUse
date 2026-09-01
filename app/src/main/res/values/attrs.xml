@@ -75,7 +75,7 @@
         <!--连拍模式主题颜色-->
         <!--自动计算其 25% 透明度作为外轨道底槽色-->
         <attr name="cbBurstCaptureColor" format="color" />
-        <!-- 停止 / 收尾 / 禁用状态控件颜色 -->
+        <!-- 停止状态控件颜色 -->
         <attr name="cbDisabledColor" format="color" />
         <!-- 拍照模式 -->
         <attr name="cbCaptureMode" format="enum">
@@ -101,5 +101,21 @@
         <attr name="cbChargeDuration" format="integer" />
         <!--拍摄进行中外圈旋转流光转完一圈所需时长-->
         <attr name="cbRotateDuration" format="integer" />
+        <!--形状-->
+        <attr name="cbShape" format="enum">
+            <!--圆形-->
+            <enum name="circle" value="0" />
+            <!--方形-->
+            <enum name="square" value="1" />
+        </attr>
+        <!--圆角大小 (仅在 cbShape="square" 生效)-->
+        <!--同时控制外轨和内部实心图形-->
+        <attr name="cbCornerRadius" format="dimension" />
+        <!--外环宽度-->
+        <!--未设按比例自适应-->
+        <attr name="cbRingWidth" format="dimension" />
+        <!--中间图像与外环间距-->
+        <!--未设按比例自适应-->
+        <attr name="cbInnerPadding" format="dimension" />
     </declare-styleable>
 </resources>
