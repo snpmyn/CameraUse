@@ -2,7 +2,6 @@
     <string name="app_name">CameraUse</string>
     <string name="singleCapture">単写</string>
     <string name="burstCapture">連写</string>
-    <string name="stopBurstCapture">連写停止</string>
     <string name="scanCode">QRスキャン</string>
     <string name="stopScanCode">スキャン停止</string>
     <string name="switchResolution">解像度切替</string>
