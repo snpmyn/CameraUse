@@ -6,6 +6,7 @@
 
 * @SuppressWarnings("unused")
 * @SuppressWarnings("UnusedReturnValue")
+* @SuppressWarnings("SameParameterValue")
 
 ## 介绍
 
