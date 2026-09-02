@@ -146,8 +146,10 @@ public class UVCCamera {
         }
     }
 
-    protected long mControlSupports;            // カメラコントロールでサポートしている機能フラグ
-    protected long mProcSupports;                // プロセッシングユニットでサポートしている機能フラグ
+    // カメラコントロールでサポートしている機能フラグ
+    protected long mControlSupports;
+    // プロセッシングユニットでサポートしている機能フラグ
+    protected long mProcSupports;
     protected int mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
     protected int mCurrentWidth = 640, mCurrentHeight = 480;
     protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
@@ -274,7 +276,8 @@ public class UVCCamera {
     private static final native int nativeSetExposureRel(final long id_camera, final int exposure_rel);
 
     private static final native int nativeGetExposureRel(final long id_camera);
-//================================================================================
+
+    //================================================================================
 
     private static final native int nativeSetAutoFocus(final long id_camera, final boolean autofocus);
 
@@ -288,7 +291,7 @@ public class UVCCamera {
 
     private static final native int nativeGetFocusRel(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetIris(final long id_camera, final int iris);
 
@@ -297,7 +300,8 @@ public class UVCCamera {
     private static final native int nativeSetIrisRel(final long id_camera, final int iris_rel);
 
     private static final native int nativeGetIrisRel(final long id_camera);
-//================================================================================
+
+    //================================================================================
 
     private static final native int nativeSetPan(final long id_camera, final int pan);
 
@@ -307,7 +311,7 @@ public class UVCCamera {
 
     private static final native int nativeGetPanRel(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetTilt(final long id_camera, final int tilt);
 
@@ -317,7 +321,7 @@ public class UVCCamera {
 
     private static final native int nativeGetTiltRel(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetRoll(final long id_camera, final int roll);
 
@@ -326,7 +330,8 @@ public class UVCCamera {
     private static final native int nativeSetRollRel(final long id_camera, final int roll_rel);
 
     private static final native int nativeGetRollRel(final long id_camera);
-//================================================================================
+
+    //================================================================================
 
     private static final native int nativeSetAutoWhiteBlance(final long id_camera, final boolean autoWhiteBlance);
 
@@ -336,7 +341,7 @@ public class UVCCamera {
 
     private static final native int nativeGetAutoWhiteBlanceCompo(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetWhiteBlance(final long id_camera, final int whiteBlance);
 
@@ -346,7 +351,7 @@ public class UVCCamera {
 
     private static final native int nativeGetWhiteBlanceCompo(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetBacklightComp(final long id_camera, final int backlight_comp);
 
@@ -355,7 +360,8 @@ public class UVCCamera {
     private static final native int nativeSetBrightness(final long id_camera, final int brightness);
 
     private static final native int nativeGetBrightness(final long id_camera);
-//================================================================================
+
+    //================================================================================
 
     private static final native int nativeSetContrast(final long id_camera, final int contrast);
 
@@ -369,7 +375,7 @@ public class UVCCamera {
 
     private static final native int nativeGetSharpness(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetGain(final long id_camera, final int gain);
 
@@ -379,7 +385,7 @@ public class UVCCamera {
 
     private static final native int nativeGetGamma(final long id_camera);
 
-//================================================================================
+    //================================================================================
 
     private static final native int nativeSetSaturation(final long id_camera, final int saturation);
 
@@ -419,7 +425,7 @@ public class UVCCamera {
 
     private static final native int nativeGetAnalogVideoStandard(final long id_camera);
 
-//**********************************************************************
+    //**********************************************************************
 
     private static final native int nativeSetAnalogVideoLoackState(final long id_camera, final int state);
 
@@ -448,7 +454,7 @@ public class UVCCamera {
                     mCtrlBlock.getDevNum(),
                     getUSBFSName(mCtrlBlock));
             sb.append("调用nativeConnect返回值：" + result);
-//			long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs
+            /*long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs*/
         } catch (final Exception e) {
             XLogWrapper.w(TAG, e);
             for (int i = 0; i < e.getStackTrace().length; i++) {
@@ -458,7 +464,6 @@ public class UVCCamera {
             sb.append("core message ->" + e.getLocalizedMessage());
             result = -1;
         }
-
         if (result != 0) {
             throw new UnsupportedOperationException("open failed:result=" + result + "----->" +
                     "id_camera=" + mNativePtr + ";venderId=" + (mCtrlBlock == null ? "" : mCtrlBlock.getVenderId())
@@ -511,7 +516,8 @@ public class UVCCamera {
         stopPreview();
         if (mNativePtr != 0) {
             nativeRelease(mNativePtr);
-//    		mNativePtr = 0;	// nativeDestroyを呼ぶのでここでクリアしちゃダメ
+            // nativeDestroyを呼ぶのでここでクリアしちゃダメ
+            /*mNativePtr = 0;*/
         }
         if (mCtrlBlock != null) {
             mCtrlBlock.close();
@@ -598,12 +604,14 @@ public class UVCCamera {
      * @param bandwidthFactor
      */
     public void setPreviewSize(final int width, final int height, final int min_fps, final int max_fps, final int frameFormat, final float bandwidthFactor) {
-        if ((width == 0) || (height == 0))
+        if ((width == 0) || (height == 0)) {
             throw new IllegalArgumentException("invalid preview size");
+        }
         if (mNativePtr != 0) {
             final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
-            if (result != 0)
+            if (result != 0) {
                 throw new IllegalArgumentException("Failed to set preview size");
+            }
             mCurrentFrameFormat = frameFormat;
             mCurrentWidth = width;
             mCurrentHeight = height;
@@ -660,8 +668,10 @@ public class UVCCamera {
      *
      * @param texture
      */
-    public synchronized void setPreviewTexture(final SurfaceTexture texture) {    // API >= 11
-        final Surface surface = new Surface(texture);    // XXX API >= 14
+    public synchronized void setPreviewTexture(final SurfaceTexture texture) {
+        // API >= 11
+        // XXX API >= 14
+        final Surface surface = new Surface(texture);
         nativeSetPreviewDisplay(mNativePtr, surface);
     }
 
@@ -735,6 +745,7 @@ public class UVCCamera {
     }
 
     //================================================================================
+
     public synchronized void setAutoFocus(final boolean autoFocus) {
         if (mNativePtr != 0) {
             nativeSetAutoFocus(mNativePtr, autoFocus);
@@ -790,6 +801,7 @@ public class UVCCamera {
     }
 
     //================================================================================
+
     public synchronized void setAutoWhiteBlance(final boolean autoWhiteBlance) {
         if (mNativePtr != 0) {
             nativeSetAutoWhiteBlance(mNativePtr, autoWhiteBlance);
@@ -1121,6 +1133,7 @@ public class UVCCamera {
     }
 
     //================================================================================
+
     public void setPowerlineFrequency(final int frequency) {
         if (mNativePtr != 0)
             nativeSetPowerlineFrequency(mNativePtr, frequency);
@@ -1159,7 +1172,7 @@ public class UVCCamera {
             final float range = Math.abs(mZoomMax - mZoomMin);
             if (range > 0) {
                 final int z = (int) (zoom / 100.f * range) + mZoomMin;
-// 			   XLogWrapper.d(TAG, "setZoom:zoom=" + zoom + " ,value=" + z);
+                /*XLogWrapper.d(TAG, "setZoom:zoom=" + zoom + " ,value=" + z);*/
                 nativeSetZoom(mNativePtr, z);
             }
         }
@@ -1185,6 +1198,7 @@ public class UVCCamera {
     }
 
     //================================================================================
+
     public synchronized void updateCameraParams() {
         if (mNativePtr != 0) {
             if ((mControlSupports == 0) || (mProcSupports == 0)) {
