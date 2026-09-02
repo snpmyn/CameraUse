@@ -13,6 +13,7 @@ import com.baidu.ocr.sdk.model.AccessToken;
 import com.jiangdg.ausbc.base.BaseApplication;
 import com.qtone.camerause.util.activity.ActivitySuperviseManager;
 import com.qtone.camerause.util.app.AppListener;
+import com.qtone.camerause.util.density.DensityUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.mmkv.MmkvKit;
@@ -58,6 +59,11 @@ public class App extends BaseApplication {
                 Log.d(LogKit.TAG, "百度 OCR 初始化错误 || " + ocrError.getMessage());
             }
         }, this);
+        // DPI
+        String dpi = "X DPI = " + DensityUtils.getDpiOnX(getApplicationContext())
+                + " Y DPI = " + DensityUtils.getDpiOnY(getApplicationContext())
+                + " DPI = " + DensityUtils.getDensityDpi(getApplicationContext());
+        Log.d(LogKit.TAG, dpi);
     }
 
     /**
