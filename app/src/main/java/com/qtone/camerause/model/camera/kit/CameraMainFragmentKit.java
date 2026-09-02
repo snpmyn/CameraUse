@@ -120,7 +120,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onSingleCaptureClicked() {
         // 设置拍照策略
-        captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
+        captureProcessor.setCaptureStrategy(CaptureStrategy.SDK_CAPTURE);
         // 开始单拍
         cameraMainFragment.safeRun(appCompatActivity -> captureProcessor.startSingleCapture(appCompatActivity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
     }
