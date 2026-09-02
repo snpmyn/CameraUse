@@ -357,6 +357,37 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     }
 
     /**
+     * 设置曝光模式
+     *
+     * @param mode 模式 [1 - 手动模式 (Manual Mode)] [2 - 自动模式 (Auto Mode)] [4 - 光圈优先] [8 - 阴影优先]
+     */
+    fun setExposureMode(mode: Int) {
+        val camera = mUvcCamera ?: return
+        try {
+            // 1. 获取 UVCCamera 内部保存 Native 指针的字段 mNativePtr
+            val ptrField = camera.javaClass.getDeclaredField("mNativePtr")
+            ptrField.isAccessible = true
+            val nativePtr = ptrField.getLong(camera)
+
+            if (nativePtr != 0L) {
+                // 2. 反射获取底层 native 方法
+                // nativeSetExposureMode(long id_camera, int exposureMode)
+                val nativeMethod = camera.javaClass.getDeclaredMethod(
+                    "nativeSetExposureMode",
+                    Long::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                )
+                nativeMethod.isAccessible = true
+                // 3. 执行 native 方法
+                val result = nativeMethod.invoke(null, nativePtr, mode) as Int
+                Logger.d(TAG, "setExposureMode mode=$mode, result=$result")
+            }
+        } catch (e: Exception) {
+            Logger.e(TAG, "setExposureMode failed", e)
+        }
+    }
+
+    /**
      * Set auto focus
      *
      * @param enable true enable auto focus
@@ -438,6 +469,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     }
 
     /**
+     * Get gain min value
+     */
+    fun getGainMin(): Int = getUVCCameraParam("mGainMin")
+
+    /**
+     * Get gain max value
+     */
+    fun getGainMax(): Int = getUVCCameraParam("mGainMax")
+
+    /**
+     * Get gain default value
+     */
+    fun getGainDef(): Int = getUVCCameraParam("mGainDef")
+
+    /**
      * Set gamma
      *
      * @param gamma gamma value, 0 means reset
@@ -457,6 +503,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     fun resetGamma() {
         mUvcCamera?.resetGamma()
     }
+
+    /**
+     * Get gamma min value
+     */
+    fun getGammaMin(): Int = getUVCCameraParam("mGammaMin")
+
+    /**
+     * Get gamma max value
+     */
+    fun getGammaMax(): Int = getUVCCameraParam("mGammaMax")
+
+    /**
+     * Get gamma default value
+     */
+    fun getGammaDef(): Int = getUVCCameraParam("mGammaDef")
 
     /**
      * Set brightness
@@ -480,6 +541,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     }
 
     /**
+     * Get brightness min value
+     */
+    fun getBrightnessMin(): Int = getUVCCameraParam("mBrightnessMin")
+
+    /**
+     * Get brightness max value
+     */
+    fun getBrightnessMax(): Int = getUVCCameraParam("mBrightnessMax")
+
+    /**
+     * Get brightness default value
+     */
+    fun getBrightnessDef(): Int = getUVCCameraParam("mBrightnessDef")
+
+    /**
      * Set contrast
      *
      * @param contrast contrast value, 0 means reset
@@ -499,6 +575,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     fun resetContrast() {
         mUvcCamera?.resetContrast()
     }
+
+    /**
+     * Get contrast min value
+     */
+    fun getContrastMin(): Int = getUVCCameraParam("mContrastMin")
+
+    /**
+     * Get contrast max value
+     */
+    fun getContrastMax(): Int = getUVCCameraParam("mContrastMax")
+
+    /**
+     * Get contrast default value
+     */
+    fun getContrastDef(): Int = getUVCCameraParam("mContrastDef")
 
     /**
      * Set sharpness
@@ -522,6 +613,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     }
 
     /**
+     * Get sharpness min value
+     */
+    fun getSharpnessMin(): Int = getUVCCameraParam("mSharpnessMin")
+
+    /**
+     * Get sharpness max value
+     */
+    fun getSharpnessMax(): Int = getUVCCameraParam("mSharpnessMax")
+
+    /**
+     * Get sharpness default value
+     */
+    fun getSharpnessDef(): Int = getUVCCameraParam("mSharpnessDef")
+
+    /**
      * Set saturation
      *
      * @param saturation saturation value, 0 means reset
@@ -543,6 +649,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     }
 
     /**
+     * Get saturation min value
+     */
+    fun getSaturationMin(): Int = getUVCCameraParam("mSaturationMin")
+
+    /**
+     * Get saturation max value
+     */
+    fun getSaturationMax(): Int = getUVCCameraParam("mSaturationMax")
+
+    /**
+     * Get saturation default value
+     */
+    fun getSaturationDef(): Int = getUVCCameraParam("mSaturationDef")
+
+    /**
      * Set hue
      *
      * @param hue hue value, 0 means reset
@@ -561,6 +682,36 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
      */
     fun resetHue() {
         mUvcCamera?.resetHue()
+    }
+
+    /**
+     * Get hue min value
+     */
+    fun getHueMin(): Int = getUVCCameraParam("mHueMin")
+
+    /**
+     * Get hue max value
+     */
+    fun getHueMax(): Int = getUVCCameraParam("mHueMax")
+
+    /**
+     * Get hue default value
+     */
+    fun getHueDef(): Int = getUVCCameraParam("mHueDef")
+
+    /**
+     * 通过反射安全获取 UVCCamera 中的 protected 参数变量
+     */
+    private fun getUVCCameraParam(fieldName: String): Int {
+        val camera = mUvcCamera ?: return 0
+        return try {
+            val field = camera.javaClass.getDeclaredField(fieldName)
+            field.isAccessible = true
+            field.getInt(camera)
+        } catch (e: Exception) {
+            Logger.e(TAG, "getUVCCameraParam $fieldName failed", e)
+            0
+        }
     }
 
     /**
