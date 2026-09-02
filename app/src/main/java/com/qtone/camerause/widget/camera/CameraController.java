@@ -451,6 +451,30 @@ public class CameraController {
     }
 
     /**
+     * 设置曝光模式
+     *
+     * @param iCamera 相机实例
+     * @param mode    模式 [1 - 手动模式 (Manual Mode)] [2 - 自动模式 (Auto Mode)] [4 - 光圈优先] [8 - 阴影优先]
+     */
+    public void setExposureMode(MultiCameraClient.ICamera iCamera, int mode) {
+        if (iCamera instanceof CameraUVC) {
+            ((CameraUVC) iCamera).setExposureMode(mode);
+        }
+    }
+
+    /**
+     * 设置是否自动白平衡
+     *
+     * @param iCamera          相机实例
+     * @param autoWhiteBalance 是否自动白平衡
+     */
+    public void setAutoWhiteBalance(MultiCameraClient.ICamera iCamera, boolean autoWhiteBalance) {
+        if (iCamera instanceof CameraUVC) {
+            ((CameraUVC) iCamera).setAutoWhiteBalance(autoWhiteBalance);
+        }
+    }
+
+    /**
      * 设置自动对焦
      *
      * @param iCamera 相机实例
@@ -517,6 +541,36 @@ public class CameraController {
     }
 
     /**
+     * 获取最小亮度
+     *
+     * @param iCamera 相机实例
+     * @return 最小亮度值 [非 UVC 相机返回 null]
+     */
+    public Integer getBrightnessMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getBrightnessMin() : null;
+    }
+
+    /**
+     * 获取最大亮度
+     *
+     * @param iCamera 相机实例
+     * @return 最大亮度值 [非 UVC 相机返回 null]
+     */
+    public Integer getBrightnessMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getBrightnessMax() : null;
+    }
+
+    /**
+     * 获取默认亮度
+     *
+     * @param iCamera 相机实例
+     * @return 默认亮度值 [非 UVC 相机返回 null]
+     */
+    public Integer getBrightnessDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getBrightnessDef() : null;
+    }
+
+    /**
      * 设置对比度
      *
      * @param iCamera  相机实例
@@ -547,6 +601,36 @@ public class CameraController {
         if (iCamera instanceof CameraUVC) {
             ((CameraUVC) iCamera).resetContrast();
         }
+    }
+
+    /**
+     * 获取最小对比度
+     *
+     * @param iCamera 相机实例
+     * @return 最小对比度值 [非 UVC 相机返回 null]
+     */
+    public Integer getContrastMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getContrastMin() : null;
+    }
+
+    /**
+     * 获取最大对比度
+     *
+     * @param iCamera 相机实例
+     * @return 最大对比度值 [非 UVC 相机返回 null]
+     */
+    public Integer getContrastMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getContrastMax() : null;
+    }
+
+    /**
+     * 获取默认对比度
+     *
+     * @param iCamera 相机实例
+     * @return 默认对比度值 [非 UVC 相机返回 null]
+     */
+    public Integer getContrastDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getContrastDef() : null;
     }
 
     /**
@@ -583,6 +667,36 @@ public class CameraController {
     }
 
     /**
+     * 获取最小增益
+     *
+     * @param iCamera 相机实例
+     * @return 最小增益值 [非 UVC 相机返回 null]
+     */
+    public Integer getGainMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGainMin() : null;
+    }
+
+    /**
+     * 获取最大增益
+     *
+     * @param iCamera 相机实例
+     * @return 最大增益值 [非 UVC 相机返回 null]
+     */
+    public Integer getGainMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGainMax() : null;
+    }
+
+    /**
+     * 获取默认增益
+     *
+     * @param iCamera 相机实例
+     * @return 默认增益值 [非 UVC 相机返回 null]
+     */
+    public Integer getGainDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGainDef() : null;
+    }
+
+    /**
      * 设置 Gamma 值
      *
      * @param iCamera 相机实例
@@ -616,6 +730,36 @@ public class CameraController {
     }
 
     /**
+     * 获取最小 Gamma 值
+     *
+     * @param iCamera 相机实例
+     * @return 最小 Gamma 值 [非 UVC 相机返回 null]
+     */
+    public Integer getGammaMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGammaMin() : null;
+    }
+
+    /**
+     * 获取最大 Gamma 值
+     *
+     * @param iCamera 相机实例
+     * @return 最大 Gamma 值 [非 UVC 相机返回 null]
+     */
+    public Integer getGammaMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGammaMax() : null;
+    }
+
+    /**
+     * 获取默认 Gamma 值
+     *
+     * @param iCamera 相机实例
+     * @return 默认 Gamma 值 [非 UVC 相机返回 null]
+     */
+    public Integer getGammaDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getGammaDef() : null;
+    }
+
+    /**
      * 设置色调
      *
      * @param iCamera 相机实例
@@ -646,6 +790,36 @@ public class CameraController {
         if (iCamera instanceof CameraUVC) {
             ((CameraUVC) iCamera).resetHue();
         }
+    }
+
+    /**
+     * 获取最小色调
+     *
+     * @param iCamera 相机实例
+     * @return 最小色调值 [非 UVC 相机返回 null]
+     */
+    public Integer getHueMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getHueMin() : null;
+    }
+
+    /**
+     * 获取最大色调
+     *
+     * @param iCamera 相机实例
+     * @return 最大色调值 [非 UVC 相机返回 null]
+     */
+    public Integer getHueMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getHueMax() : null;
+    }
+
+    /**
+     * 获取默认色调
+     *
+     * @param iCamera 相机实例
+     * @return 默认色调值 [非 UVC 相机返回 null]
+     */
+    public Integer getHueDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getHueDef() : null;
     }
 
     /**
@@ -715,6 +889,36 @@ public class CameraController {
     }
 
     /**
+     * 获取最小锐度
+     *
+     * @param iCamera 相机实例
+     * @return 最小锐度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSharpnessMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSharpnessMin() : null;
+    }
+
+    /**
+     * 获取最大锐度
+     *
+     * @param iCamera 相机实例
+     * @return 最大锐度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSharpnessMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSharpnessMax() : null;
+    }
+
+    /**
+     * 获取默认锐度
+     *
+     * @param iCamera 相机实例
+     * @return 默认锐度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSharpnessDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSharpnessDef() : null;
+    }
+
+    /**
      * 设置饱和度
      *
      * @param iCamera    相机实例
@@ -745,5 +949,35 @@ public class CameraController {
         if (iCamera instanceof CameraUVC) {
             ((CameraUVC) iCamera).resetSaturation();
         }
+    }
+
+    /**
+     * 获取最小饱和度
+     *
+     * @param iCamera 相机实例
+     * @return 最小饱和度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSaturationMin(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSaturationMin() : null;
+    }
+
+    /**
+     * 获取最大饱和度
+     *
+     * @param iCamera 相机实例
+     * @return 最大饱和度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSaturationMax(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSaturationMax() : null;
+    }
+
+    /**
+     * 获取默认饱和度
+     *
+     * @param iCamera 相机实例
+     * @return 默认饱和度值 [非 UVC 相机返回 null]
+     */
+    public Integer getSaturationDef(MultiCameraClient.ICamera iCamera) {
+        return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSaturationDef() : null;
     }
 }
