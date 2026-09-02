@@ -3,7 +3,7 @@
     <string name="singleCapture">单拍</string>
     <string name="burstCapture">连拍</string>
     <string name="scanCode">扫码</string>
-    <string name="stopScanCode">停止扫码</string>
+    <string name="stopScanCode">停止\n扫码</string>
     <string name="switchResolution">切分辨率</string>
     <string name="setting">设置</string>
     <string name="gallery">图库</string>
@@ -19,6 +19,7 @@
     <string name="loadImageFail">图片加载失败</string>
     <string name="info">信息</string>
     <string name="cancel">取消</string>
+    <string name="neutral">中性</string>
     <string name="ensure">确定</string>
     <string name="deviceInfo">设备信息</string>
     <string name="notice">温馨提示</string>
@@ -26,4 +27,11 @@
     <string name="switchCamera">切换相机</string>
     <string name="cameraSetting">相机设置</string>
     <string name="functionSetting">功能设置</string>
+    <string name="brightness">亮度</string>
+    <string name="contrast">对比度</string>
+    <string name="gain">增益</string>
+    <string name="gamma">Gamma</string>
+    <string name="hue">色调</string>
+    <string name="sharpness">锐度</string>
+    <string name="saturation">饱和度</string>
 </resources>

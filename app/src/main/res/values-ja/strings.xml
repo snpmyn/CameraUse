@@ -3,7 +3,7 @@
     <string name="singleCapture">単写</string>
     <string name="burstCapture">連写</string>
     <string name="scanCode">QRスキャン</string>
-    <string name="stopScanCode">スキャン停止</string>
+    <string name="stopScanCode">スキャン\n停止</string>
     <string name="switchResolution">解像度切替</string>
     <string name="setting">設定</string>
     <string name="gallery">ギャラリー</string>
@@ -19,6 +19,7 @@
     <string name="loadImageFail">読み込み失敗</string>
     <string name="info">メッセージ</string>
     <string name="cancel">キャンセル</string>
+    <string name="neutral">中立</string>
     <string name="ensure">確定</string>
     <string name="deviceInfo">デバイス情報</string>
     <string name="notice">お知らせ</string>
@@ -26,4 +27,11 @@
     <string name="switchCamera">カメラ切替</string>
     <string name="cameraSetting">カメラ設定</string>
     <string name="functionSetting">きのうせってい</string>
+    <string name="brightness">明るさ</string>
+    <string name="contrast">コントラスト</string>
+    <string name="gain">ゲイン</string>
+    <string name="gamma">ガンマ</string>
+    <string name="hue">色相</string>
+    <string name="sharpness">シャープネス</string>
+    <string name="saturation">彩度</string>
 </resources>
