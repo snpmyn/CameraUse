@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * @decs: 相机切换管理器
+ * @decs: 相机切换配套原件
  * @author: 郑少鹏
  * @date: 2026/8/25 17:59
  * @version: v 1.0
  */
-public class CameraSwitchManager {
+public class CameraSwitchKit {
     /**
      * 获取 USB 设备唯一标识
      *
@@ -54,7 +54,7 @@ public class CameraSwitchManager {
         }
         List<UsbDevice> usbDeviceList = CameraController.getInstance().getDeviceList(multiCameraClient);
         if (ListUtils.listIsEmpty(usbDeviceList)) {
-            ToastUtils.show("未检测到摄像头");
+            ToastUtils.show("获取 USB 设备列表失败");
             return;
         }
         // 当前 USB 设备唯一标识
