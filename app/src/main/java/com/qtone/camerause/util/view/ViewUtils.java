@@ -16,6 +16,7 @@ import com.qtone.camerause.util.theme.ThemeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * Created on 2018/12/21.
@@ -37,6 +38,24 @@ public class ViewUtils {
     }
 
     /**
+     * 显示视图
+     *
+     * @param viewList 视图集
+     * @param view     视图
+     */
+    public static void showView(List<View> viewList, @NotNull View view) {
+        for (View viewInList : viewList) {
+            if (viewInList.getId() == view.getId()) {
+                continue;
+            }
+            int visibility = viewInList.getVisibility();
+            if ((visibility == View.GONE) || (visibility == View.INVISIBLE)) {
+                viewInList.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    /**
      * 隐藏视图
      *
      * @param view  视图
@@ -45,6 +64,24 @@ public class ViewUtils {
     public static void hideView(@NotNull View view, int state) {
         if (view.getVisibility() == View.VISIBLE) {
             view.setVisibility(state);
+        }
+    }
+
+    /**
+     * 隐藏视图
+     *
+     * @param viewList 视图集
+     * @param view     视图
+     * @param state    状态
+     */
+    public static void hideView(List<View> viewList, @NotNull View view, int state) {
+        for (View viewInList : viewList) {
+            if (viewInList.getId() == view.getId()) {
+                continue;
+            }
+            if (viewInList.getVisibility() == View.VISIBLE) {
+                viewInList.setVisibility(state);
+            }
         }
     }
 
@@ -94,7 +131,7 @@ public class ViewUtils {
     }
 
     /**
-     * 触摸指定 View 否（过滤控件）
+     * 触摸指定 View 否 (过滤控件)
      *
      * @param views       视图
      * @param motionEvent 手势事件
@@ -118,7 +155,7 @@ public class ViewUtils {
     }
 
     /**
-     * 触摸指定 View 否（过滤控件）
+     * 触摸指定 View 否 (过滤控件)
      *
      * @param appCompatActivity 活动
      * @param ids               控件数组
