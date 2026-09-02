@@ -28,7 +28,7 @@
             android:background="@drawable/ripple_oval"
             android:contentDescription="@string/fullScreen"
             android:src="@drawable/ic_fullscreen_cos_24dp"
-            app:tint="@color/color_FFEE6002" />
+            app:tint="@color/basic" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/mediaImageDetailItemAcibInfo"
@@ -39,7 +39,7 @@
             android:background="@drawable/ripple_oval"
             android:contentDescription="@string/info"
             android:src="@drawable/ic_info_cos_24dp"
-            app:tint="@color/color_FFEE6002" />
+            app:tint="@color/basic" />
     </FrameLayout>
 
     <TextView
