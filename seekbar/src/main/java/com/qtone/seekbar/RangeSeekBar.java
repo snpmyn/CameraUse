@@ -30,22 +30,29 @@ import java.util.List;
 import static com.qtone.seekbar.SeekBar.INDICATOR_ALWAYS_HIDE;
 import static com.qtone.seekbar.SeekBar.INDICATOR_ALWAYS_SHOW;
 
+/**
+ * @decs: 范围 SeekBar
+ * @author: 郑少鹏
+ * @date: 2026/9/2 11:55
+ * @version: v 1.0
+ */
 public class RangeSeekBar extends View {
-    // normal seekBar mode
+    // 单滑块模式
     public final static int SEEKBAR_MODE_SINGLE = 1;
-    // RangeSeekBar
+    // 双滑块范围模式
     public final static int SEEKBAR_MODE_RANGE = 2;
-    // number according to the actual proportion of the number of arranged
+    // 刻度模式：按数字实际比例排列
     public final static int TRICK_MARK_MODE_NUMBER = 0;
-    // other equally arranged
+    // 刻度模式：均分排列
     public final static int TRICK_MARK_MODE_OTHER = 1;
-    // tick mark text gravity
+    // 刻度对齐方向
     public final static int TICK_MARK_GRAVITY_LEFT = 0;
     public final static int TICK_MARK_GRAVITY_CENTER = 1;
     public final static int TICK_MARK_GRAVITY_RIGHT = 2;
-    private final static int MIN_INTERCEPT_DISTANCE = 100;
+    // 解决滑动冲突新增变量
+    private final int touchSlop;
     float touchDownX, touchDownY;
-    // 剩余最小间隔的进度
+    // 剩余最小间隔的进度百分比
     float reservePercent;
     boolean isScaleThumb = false;
     Paint paint = new Paint();
@@ -63,75 +70,86 @@ public class RangeSeekBar extends View {
     private int progressTop, progressBottom, progressLeft, progressRight;
     private int seekBarMode;
     // 刻度模式
-    // number 根据数字实际比例排列
-    // other 均分排列
     private int tickMarkMode;
     // 刻度与进度条间的间距
-    // The spacing between the tick mark and the progress bar
     private int tickMarkTextMargin;
-    // 刻度文字与提示文字的大小
-    // tick mark text and prompt text size
+    // 刻度文字大小
     private int tickMarkTextSize;
     private int tickMarkGravity;
     private int tickMarkLayoutGravity;
     private int tickMarkTextColor;
     private int tickMarkInRangeTextColor;
-    // 刻度上显示的文字
-    // The texts displayed on the scale
+    // 刻度上显示的文字数组
     private CharSequence[] tickMarkTextArray;
-    // 进度条圆角
-    // radius of progress bar
+    // 进度条圆角半径
     private float progressRadius;
-    // 进度中进度条的颜色
-    // the color of seekBar in progress
+    // 选中的进度条颜色
     private int progressColor;
-    // 默认进度条颜色
-    // the default color of the progress bar
+    // 默认背景进度条颜色
     private int progressDefaultColor;
-    // the drawable of seekBar in progress
+    // 选中的进度条 Drawable 资源
     private int progressDrawableId;
-    // the default Drawable of the progress bar
+    // 默认背景进度条 Drawable 资源
     private int progressDefaultDrawableId;
-    // the progress height
+    // 进度条高度
     private int progressHeight;
-    // the progress width
+    // 进度条实际有效宽度
     private int progressWidth;
-    // the range interval of RangeSeekBar
+    // 左右滑块的最小间隔范围
     private float minInterval;
     private int gravity;
-    // enable RangeSeekBar two thumb Overlap
+    // 是否开启两个滑块重叠
     private boolean enableThumbOverlap;
-    // the color of step divs
+    // Step 分隔点颜色
     private int stepsColor;
-    // the width of each step
+    // Step 分隔点宽度
     private float stepsWidth;
-    // the height of each step
+    // Step 分隔点高度
     private float stepsHeight;
-    // the radius of step divs
+    // Step 分隔点圆角
     private float stepsRadius;
-    // steps is 0 will disable StepSeekBar
+    // Step 节点数量
+    // 为 0 时禁用 Step 功能
     private int steps;
-    // the thumb will automatic bonding close to its value
+    // 释放手指后滑块是否自动吸附到最近的 Step 点
     private boolean stepsAutoBonding;
     private int stepsDrawableId;
-    // True values set by the user
+    // 用户设置的最大最小值
     private float minProgress, maxProgress;
     private boolean isEnable = true;
     private int progressPaddingRight;
     private OnRangeChangedListener callback;
+    // 是否锁定为横向拖拽滑动状态
+    private boolean isDragging;
 
+    /**
+     * constructor
+     *
+     * @param context 上下文
+     */
     public RangeSeekBar(Context context) {
         this(context, null);
     }
 
+    /**
+     * constructor
+     *
+     * @param context 上下文
+     * @param attrs   属性集
+     */
     public RangeSeekBar(Context context, AttributeSet attrs) {
         super(context, attrs);
+        // 获取系统触发移动的最小物理距离
+        touchSlop = android.view.ViewConfiguration.get(context).getScaledTouchSlop();
         initAttrs(attrs);
         initPaint();
         initSeekBar(attrs);
         initStepsBitmap();
     }
 
+    /**
+     * 初始化进度条位图资源
+     */
     private void initProgressBitmap() {
         if (progressBitmap == null) {
             progressBitmap = Utils.drawableToBitmap(getContext(), progressWidth, progressHeight, progressDrawableId);
@@ -141,12 +159,18 @@ public class RangeSeekBar extends View {
         }
     }
 
+    /**
+     * 校验 Step 模式参数是否合法
+     */
     private boolean verifyStepsMode() {
         return ((steps >= 1) && !(stepsHeight <= 0) && !(stepsWidth <= 0));
     }
 
+    /**
+     * 初始化 Step 节点图片列表
+     */
     private void initStepsBitmap() {
-        if (!verifyStepsMode() || stepsDrawableId == 0) {
+        if (!verifyStepsMode() || (stepsDrawableId == 0)) {
             return;
         }
         if (stepsBitmaps.isEmpty()) {
@@ -157,49 +181,62 @@ public class RangeSeekBar extends View {
         }
     }
 
+    /**
+     * 初始化左右滑块对象
+     *
+     * @param attrs 属性集
+     */
     private void initSeekBar(AttributeSet attrs) {
         leftSB = new SeekBar(this, attrs, true);
         rightSB = new SeekBar(this, attrs, false);
         rightSB.setVisible(seekBarMode != SEEKBAR_MODE_SINGLE);
     }
 
+    /**
+     * 解析 XML 属性
+     *
+     * @param attrs 属性集
+     */
     private void initAttrs(AttributeSet attrs) {
         try {
-            TypedArray t = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar);
-            seekBarMode = t.getInt(R.styleable.RangeSeekBar_rsb_mode, SEEKBAR_MODE_RANGE);
-            minProgress = t.getFloat(R.styleable.RangeSeekBar_rsb_min, 0);
-            maxProgress = t.getFloat(R.styleable.RangeSeekBar_rsb_max, 100);
-            minInterval = t.getFloat(R.styleable.RangeSeekBar_rsb_min_interval, 0);
-            gravity = t.getInt(R.styleable.RangeSeekBar_rsb_gravity, Gravity.TOP);
-            progressColor = t.getColor(R.styleable.RangeSeekBar_rsb_progress_color, 0xFF4BD962);
-            progressRadius = (int) t.getDimension(R.styleable.RangeSeekBar_rsb_progress_radius, -1);
-            progressDefaultColor = t.getColor(R.styleable.RangeSeekBar_rsb_progress_default_color, 0xFFD7D7D7);
-            progressDrawableId = t.getResourceId(R.styleable.RangeSeekBar_rsb_progress_drawable, 0);
-            progressDefaultDrawableId = t.getResourceId(R.styleable.RangeSeekBar_rsb_progress_drawable_default, 0);
-            progressHeight = (int) t.getDimension(R.styleable.RangeSeekBar_rsb_progress_height, Utils.dp2px(getContext(), 2));
-            tickMarkMode = t.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_mode, TRICK_MARK_MODE_NUMBER);
-            tickMarkGravity = t.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_gravity, TICK_MARK_GRAVITY_CENTER);
-            tickMarkLayoutGravity = t.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_layout_gravity, Gravity.TOP);
-            tickMarkTextArray = t.getTextArray(R.styleable.RangeSeekBar_rsb_tick_mark_text_array);
-            tickMarkTextMargin = (int) t.getDimension(R.styleable.RangeSeekBar_rsb_tick_mark_text_margin, Utils.dp2px(getContext(), 7));
-            tickMarkTextSize = (int) t.getDimension(R.styleable.RangeSeekBar_rsb_tick_mark_text_size, Utils.dp2px(getContext(), 12));
-            tickMarkTextColor = t.getColor(R.styleable.RangeSeekBar_rsb_tick_mark_text_color, progressDefaultColor);
-            tickMarkInRangeTextColor = t.getColor(R.styleable.RangeSeekBar_rsb_tick_mark_in_range_text_color, progressColor);
-            steps = t.getInt(R.styleable.RangeSeekBar_rsb_steps, 0);
-            stepsColor = t.getColor(R.styleable.RangeSeekBar_rsb_step_color, 0xFF9d9d9d);
-            stepsRadius = t.getDimension(R.styleable.RangeSeekBar_rsb_step_radius, 0);
-            stepsWidth = t.getDimension(R.styleable.RangeSeekBar_rsb_step_width, 0);
-            stepsHeight = t.getDimension(R.styleable.RangeSeekBar_rsb_step_height, 0);
-            stepsDrawableId = t.getResourceId(R.styleable.RangeSeekBar_rsb_step_drawable, 0);
-            stepsAutoBonding = t.getBoolean(R.styleable.RangeSeekBar_rsb_step_auto_bonding, true);
-            t.recycle();
+            TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.RangeSeekBar);
+            seekBarMode = typedArray.getInt(R.styleable.RangeSeekBar_rsb_mode, SEEKBAR_MODE_RANGE);
+            minProgress = typedArray.getFloat(R.styleable.RangeSeekBar_rsb_min, 0);
+            maxProgress = typedArray.getFloat(R.styleable.RangeSeekBar_rsb_max, 100);
+            minInterval = typedArray.getFloat(R.styleable.RangeSeekBar_rsb_min_interval, 0);
+            gravity = typedArray.getInt(R.styleable.RangeSeekBar_rsb_gravity, Gravity.TOP);
+            progressColor = typedArray.getColor(R.styleable.RangeSeekBar_rsb_progress_color, 0xFF4BD962);
+            progressRadius = (int) typedArray.getDimension(R.styleable.RangeSeekBar_rsb_progress_radius, -1);
+            progressDefaultColor = typedArray.getColor(R.styleable.RangeSeekBar_rsb_progress_default_color, 0xFFD7D7D7);
+            progressDrawableId = typedArray.getResourceId(R.styleable.RangeSeekBar_rsb_progress_drawable, 0);
+            progressDefaultDrawableId = typedArray.getResourceId(R.styleable.RangeSeekBar_rsb_progress_drawable_default, 0);
+            progressHeight = (int) typedArray.getDimension(R.styleable.RangeSeekBar_rsb_progress_height, Utils.dp2px(getContext(), 2));
+            tickMarkMode = typedArray.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_mode, TRICK_MARK_MODE_NUMBER);
+            tickMarkGravity = typedArray.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_gravity, TICK_MARK_GRAVITY_CENTER);
+            tickMarkLayoutGravity = typedArray.getInt(R.styleable.RangeSeekBar_rsb_tick_mark_layout_gravity, Gravity.TOP);
+            tickMarkTextArray = typedArray.getTextArray(R.styleable.RangeSeekBar_rsb_tick_mark_text_array);
+            tickMarkTextMargin = (int) typedArray.getDimension(R.styleable.RangeSeekBar_rsb_tick_mark_text_margin, Utils.dp2px(getContext(), 7));
+            tickMarkTextSize = (int) typedArray.getDimension(R.styleable.RangeSeekBar_rsb_tick_mark_text_size, Utils.dp2px(getContext(), 12));
+            tickMarkTextColor = typedArray.getColor(R.styleable.RangeSeekBar_rsb_tick_mark_text_color, progressDefaultColor);
+            tickMarkInRangeTextColor = typedArray.getColor(R.styleable.RangeSeekBar_rsb_tick_mark_in_range_text_color, progressColor);
+            steps = typedArray.getInt(R.styleable.RangeSeekBar_rsb_steps, 0);
+            stepsColor = typedArray.getColor(R.styleable.RangeSeekBar_rsb_step_color, 0xFF9d9d9d);
+            stepsRadius = typedArray.getDimension(R.styleable.RangeSeekBar_rsb_step_radius, 0);
+            stepsWidth = typedArray.getDimension(R.styleable.RangeSeekBar_rsb_step_width, 0);
+            stepsHeight = typedArray.getDimension(R.styleable.RangeSeekBar_rsb_step_height, 0);
+            stepsDrawableId = typedArray.getResourceId(R.styleable.RangeSeekBar_rsb_step_drawable, 0);
+            stepsAutoBonding = typedArray.getBoolean(R.styleable.RangeSeekBar_rsb_step_auto_bonding, true);
+            typedArray.recycle();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * measure progress bar position
+     * 计算并测量进度条及滑块的具体坐标范围
+     *
+     * @param w 宽
+     * @param h 高
      */
     protected void onMeasureProgress(int w, int h) {
         int viewHeight = (h - getPaddingBottom() - getPaddingTop());
@@ -207,23 +244,20 @@ public class RangeSeekBar extends View {
             return;
         }
         if (gravity == Gravity.TOP) {
-            // calculate the height of indicator and thumb exceeds the part of the progress
             float maxIndicatorHeight = 0;
-            if (leftSB.getIndicatorShowMode() != INDICATOR_ALWAYS_HIDE || rightSB.getIndicatorShowMode() != INDICATOR_ALWAYS_HIDE) {
+            if ((leftSB.getIndicatorShowMode() != INDICATOR_ALWAYS_HIDE) || (rightSB.getIndicatorShowMode() != INDICATOR_ALWAYS_HIDE)) {
                 maxIndicatorHeight = Math.max(leftSB.getIndicatorRawHeight(), rightSB.getIndicatorRawHeight());
             }
             float thumbHeight = Math.max(leftSB.getThumbScaleHeight(), rightSB.getThumbScaleHeight());
             thumbHeight -= progressHeight / 2f;
-            // default height is indicator + thumb exceeds the part of the progress bar
-            // if tickMark height is greater than (indicator + thumb exceeds the part of the progress)
             progressTop = (int) (maxIndicatorHeight + (thumbHeight - progressHeight) / 2f);
-            if (tickMarkTextArray != null && tickMarkLayoutGravity == Gravity.TOP) {
+            if ((tickMarkTextArray != null) && (tickMarkLayoutGravity == Gravity.TOP)) {
                 progressTop = (int) Math.max(getTickMarkRawHeight(), maxIndicatorHeight + (thumbHeight - progressHeight) / 2f);
             }
-            progressBottom = progressTop + progressHeight;
+            progressBottom = (progressTop + progressHeight);
         } else if (gravity == Gravity.BOTTOM) {
-            if (tickMarkTextArray != null && tickMarkLayoutGravity == Gravity.BOTTOM) {
-                progressBottom = viewHeight - getTickMarkRawHeight();
+            if ((tickMarkTextArray != null) && (tickMarkLayoutGravity == Gravity.BOTTOM)) {
+                progressBottom = (viewHeight - getTickMarkRawHeight());
             } else {
                 progressBottom = (int) (viewHeight - Math.max(leftSB.getThumbScaleHeight(), rightSB.getThumbScaleHeight()) / 2f + progressHeight / 2f);
             }
@@ -233,33 +267,30 @@ public class RangeSeekBar extends View {
             progressBottom = (progressTop + progressHeight);
         }
         int maxThumbWidth = (int) Math.max(leftSB.getThumbScaleWidth(), rightSB.getThumbScaleWidth());
-        progressLeft = maxThumbWidth / 2 + getPaddingLeft();
-        progressRight = w - maxThumbWidth / 2 - getPaddingRight();
-        progressWidth = progressRight - progressLeft;
+        progressLeft = (maxThumbWidth / 2 + getPaddingLeft());
+        progressRight = (w - maxThumbWidth / 2 - getPaddingRight());
+        progressWidth = (progressRight - progressLeft);
         progressDefaultDstRect.set(getProgressLeft(), getProgressTop(), getProgressRight(), getProgressBottom());
         progressPaddingRight = (w - progressRight);
-        // default value
+
         if (progressRadius <= 0) {
             progressRadius = (int) ((getProgressBottom() - getProgressTop()) * 0.45f);
         }
         initProgressBitmap();
     }
 
-    // Android 7.0 以后：优化了 View 的绘制 -> onMeasure 和 onSizeChanged 调用顺序有所变化
-    // Android7.0 以下：onMeasure -> onSizeChanged -> onMeasure
-    // Android7.0 以上：onMeasure -> onSizeChanged
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         if (heightMode == MeasureSpec.EXACTLY) {
             heightSize = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
-        } else if (heightMode == MeasureSpec.AT_MOST && getParent() instanceof ViewGroup && heightSize == ViewGroup.LayoutParams.MATCH_PARENT) {
+        } else if ((heightMode == MeasureSpec.AT_MOST) && getParent() instanceof ViewGroup && (heightSize == ViewGroup.LayoutParams.MATCH_PARENT)) {
             heightSize = MeasureSpec.makeMeasureSpec(((ViewGroup) getParent()).getMeasuredHeight(), MeasureSpec.AT_MOST);
         } else {
             int heightNeeded;
             if (gravity == Gravity.CENTER) {
-                if (tickMarkTextArray != null && tickMarkLayoutGravity == Gravity.BOTTOM) {
+                if ((tickMarkTextArray != null) && (tickMarkLayoutGravity == Gravity.BOTTOM)) {
                     heightNeeded = (int) (2 * (getRawHeight() - getTickMarkRawHeight()));
                 } else {
                     heightNeeded = (int) (2 * (getRawHeight() - Math.max(leftSB.getThumbScaleHeight(), rightSB.getThumbScaleHeight()) / 2));
@@ -272,13 +303,19 @@ public class RangeSeekBar extends View {
         super.onMeasure(widthMeasureSpec, heightSize);
     }
 
+    /**
+     * 获取刻度文字占据的物理高度
+     */
     protected int getTickMarkRawHeight() {
-        if (tickMarkTextArray != null && tickMarkTextArray.length > 0) {
-            return tickMarkTextMargin + Utils.measureText(String.valueOf(tickMarkTextArray[0]), tickMarkTextSize).height() + 3;
+        if ((tickMarkTextArray != null) && (tickMarkTextArray.length > 0)) {
+            return (tickMarkTextMargin + Utils.measureText(String.valueOf(tickMarkTextArray[0]), tickMarkTextSize).height() + 3);
         }
         return 0;
     }
 
+    /**
+     * 获取控件整体需要的未裁剪原始高度
+     */
     protected float getRawHeight() {
         float rawHeight;
         if (seekBarMode == SEEKBAR_MODE_SINGLE) {
@@ -321,8 +358,14 @@ public class RangeSeekBar extends View {
         onDrawSeekBar(canvas);
     }
 
-    // 绘制刻度并且根据当前位置是否在刻度范围内设置不同的颜色显示
-    // Draw the scales, and according to the current position is set within the scale range of different color display.
+    /**
+     * 绘制刻度文本
+     * <p>
+     * 绘制刻度并且根据当前位置是否在刻度范围内设置不同的颜色显示
+     *
+     * @param canvas 画布
+     * @param paint  画笔
+     */
     protected void onDrawTickMark(Canvas canvas, Paint paint) {
         if (tickMarkTextArray != null) {
             int trickPartWidth = progressWidth / (tickMarkTextArray.length - 1);
@@ -331,7 +374,6 @@ public class RangeSeekBar extends View {
                 if (TextUtils.isEmpty(text2Draw)) continue;
                 paint.getTextBounds(text2Draw, 0, text2Draw.length(), tickMarkTextRect);
                 paint.setColor(tickMarkTextColor);
-                // 平分显示
                 float x;
                 if (tickMarkMode == TRICK_MARK_MODE_OTHER) {
                     if (tickMarkGravity == TICK_MARK_GRAVITY_RIGHT) {
@@ -347,7 +389,6 @@ public class RangeSeekBar extends View {
                     if (Utils.compareFloat(num, states[0].value) != -1 && Utils.compareFloat(num, states[1].value) != 1 && (seekBarMode == SEEKBAR_MODE_RANGE)) {
                         paint.setColor(tickMarkInRangeTextColor);
                     }
-                    // 按实际比例显示
                     x = getProgressLeft() + progressWidth * (num - minProgress) / (maxProgress - minProgress) - tickMarkTextRect.width() / 2f;
                 }
                 float y;
@@ -361,17 +402,23 @@ public class RangeSeekBar extends View {
         }
     }
 
-    // 绘制进度条
-    // draw the progress bar
+    /**
+     * 绘制进度条
+     * <p>
+     * 背景与选中高亮区域
+     *
+     * @param canvas 画布
+     * @param paint  画笔
+     */
     protected void onDrawProgressBar(Canvas canvas, Paint paint) {
-        // draw default progress
+        // 1. 绘制背景默认进度条
         if (Utils.verifyBitmap(progressDefaultBitmap)) {
             canvas.drawBitmap(progressDefaultBitmap, null, progressDefaultDstRect, paint);
         } else {
             paint.setColor(progressDefaultColor);
             canvas.drawRoundRect(progressDefaultDstRect, progressRadius, progressRadius, paint);
         }
-        // draw progress
+        // 2. 算高亮区域范围
         if (seekBarMode == SEEKBAR_MODE_RANGE) {
             progressDstRect.top = getProgressTop();
             progressDstRect.left = leftSB.left + leftSB.getThumbScaleWidth() / 2f + progressWidth * leftSB.currPercent;
@@ -383,6 +430,7 @@ public class RangeSeekBar extends View {
             progressDstRect.right = leftSB.left + leftSB.getThumbScaleWidth() / 2f + progressWidth * leftSB.currPercent;
             progressDstRect.bottom = getProgressBottom();
         }
+        // 3. 绘制高亮选中进度
         if (Utils.verifyBitmap(progressBitmap)) {
             progressSrcRect.top = 0;
             progressSrcRect.bottom = progressBitmap.getHeight();
@@ -401,7 +449,12 @@ public class RangeSeekBar extends View {
         }
     }
 
-    // draw steps
+    /**
+     * 绘制 Step 刻度节点
+     *
+     * @param canvas 画布
+     * @param paint  画笔
+     */
     protected void onDrawSteps(Canvas canvas, Paint paint) {
         if (!verifyStepsMode()) {
             return;
@@ -420,14 +473,16 @@ public class RangeSeekBar extends View {
         }
     }
 
-    // 绘制 SeekBar 相关
+    /**
+     * 绘制滑块与气泡 Indicator
+     *
+     * @param canvas 画布
+     */
     protected void onDrawSeekBar(Canvas canvas) {
-        // draw left SeekBar
         if (leftSB.getIndicatorShowMode() == INDICATOR_ALWAYS_SHOW) {
             leftSB.setShowIndicatorEnable(true);
         }
         leftSB.draw(canvas);
-        // draw right SeekBar
         if (seekBarMode == SEEKBAR_MODE_RANGE) {
             if (rightSB.getIndicatorShowMode() == INDICATOR_ALWAYS_SHOW) {
                 rightSB.setShowIndicatorEnable(true);
@@ -436,13 +491,18 @@ public class RangeSeekBar extends View {
         }
     }
 
-    // 初始化画笔
+    /**
+     * 初始化画笔
+     */
     private void initPaint() {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(progressDefaultColor);
         paint.setTextSize(tickMarkTextSize);
     }
 
+    /**
+     * 改变当前激活滑块的选中状态
+     */
     private void changeThumbActivateState(boolean hasActivate) {
         if (hasActivate && currTouchSB != null) {
             boolean state = currTouchSB == leftSB;
@@ -465,7 +525,7 @@ public class RangeSeekBar extends View {
     }
 
     /**
-     * scale the touch seekBar thumb
+     * 放大被触碰的滑块
      */
     private void scaleCurrentSeekBarThumb() {
         if (currTouchSB != null && currTouchSB.getThumbScaleRatio() > 1f && !isScaleThumb) {
@@ -475,7 +535,7 @@ public class RangeSeekBar extends View {
     }
 
     /**
-     * reset the touch seekBar thumb
+     * 重置并还原滑块大小
      */
     private void resetCurrentSeekBarThumb() {
         if (currTouchSB != null && currTouchSB.getThumbScaleRatio() > 1f && isScaleThumb) {
@@ -484,7 +544,12 @@ public class RangeSeekBar extends View {
         }
     }
 
-    // calculate currTouchSB percent by MotionEvent
+    /**
+     * 根据触摸点 X 坐标计算对应进度百分比 (0.0 ~ 1.0)
+     *
+     * @param touchDownX 触摸点 X 坐标
+     * @return 进度百分比 (0.0 ~ 1.0)
+     */
     protected float calculateCurrentSeekBarPercent(float touchDownX) {
         if (currTouchSB == null) return 0;
         float percent = (touchDownX - getProgressLeft()) * 1f / (progressWidth);
@@ -493,7 +558,7 @@ public class RangeSeekBar extends View {
         } else if (touchDownX > getProgressRight()) {
             percent = 1;
         }
-        // RangeMode minimum interval
+        // 双滑块模式下的最小间隔边界把控
         if (seekBarMode == SEEKBAR_MODE_RANGE) {
             if (currTouchSB == leftSB) {
                 if (percent > rightSB.currPercent - reservePercent) {
@@ -508,6 +573,27 @@ public class RangeSeekBar extends View {
         return percent;
     }
 
+    /**
+     * 判断触摸点是否落在 SeekBar 的有效响应区域
+     * <p>
+     * 滑块碰撞区或进度条本体
+     * <p>
+     * 用于横向滑动冲突判定
+     * 避免在空白区域拦截父容器手势
+     */
+    private boolean isTouchInSeekBarArea(float x, float y) {
+        if ((currTouchSB != null) && currTouchSB.collide(x, y)) {
+            return true;
+        }
+        // 扩展垂直 10dp 的点击容错响应区
+        return y >= getProgressTop() - Utils.dp2px(getContext(), 10)
+                && y <= getProgressBottom() + Utils.dp2px(getContext(), 10)
+                && x >= getProgressLeft() && x <= getProgressRight();
+    }
+
+    /**
+     * 触摸事件拦截与滑动冲突调度处理
+     */
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -518,123 +604,144 @@ public class RangeSeekBar extends View {
             case MotionEvent.ACTION_DOWN:
                 touchDownX = getEventX(event);
                 touchDownY = getEventY(event);
+                // 重置拖拽标志
+                isDragging = false;
+                // 预判目标滑块
+                // 离触摸点近的滑块优先
                 if (seekBarMode == SEEKBAR_MODE_RANGE) {
                     if (rightSB.currPercent >= 1 && leftSB.collide(getEventX(event), getEventY(event))) {
                         currTouchSB = leftSB;
-                        scaleCurrentSeekBarThumb();
                     } else if (rightSB.collide(getEventX(event), getEventY(event))) {
                         currTouchSB = rightSB;
-                        scaleCurrentSeekBarThumb();
                     } else {
-                        float performClick = (touchDownX - getProgressLeft()) * 1f / (progressWidth);
+                        float performClick = (touchDownX - getProgressLeft()) * 1f / progressWidth;
                         float distanceLeft = Math.abs(leftSB.currPercent - performClick);
                         float distanceRight = Math.abs(rightSB.currPercent - performClick);
-                        if (distanceLeft < distanceRight) {
-                            currTouchSB = leftSB;
-                        } else {
-                            currTouchSB = rightSB;
-                        }
-                        performClick = calculateCurrentSeekBarPercent(touchDownX);
-                        currTouchSB.slide(performClick);
+                        currTouchSB = (distanceLeft < distanceRight) ? leftSB : rightSB;
                     }
                 } else {
                     currTouchSB = leftSB;
-                    scaleCurrentSeekBarThumb();
                 }
-                // Intercept parent TouchEvent
-                if (getParent() != null) {
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                if (callback != null) {
-                    callback.onStartTrackingTouch(this, currTouchSB == leftSB);
-                }
-                changeThumbActivateState(true);
+                // DOWN 阶段不强行拦截父容器，放行给 MOVE 阶段动态判定。
                 return true;
             case MotionEvent.ACTION_MOVE:
                 float x = getEventX(event);
-                if ((seekBarMode == SEEKBAR_MODE_RANGE) && leftSB.currPercent == rightSB.currPercent) {
-                    currTouchSB.materialRestore();
-                    if (callback != null) {
-                        callback.onStopTrackingTouch(this, currTouchSB == leftSB);
-                    }
-                    if (x - touchDownX > 0) {
-                        // method to move right
-                        if (currTouchSB != rightSB) {
-                            currTouchSB.setShowIndicatorEnable(false);
-                            resetCurrentSeekBarThumb();
-                            currTouchSB = rightSB;
+                float y = getEventY(event);
+                float dx = Math.abs(x - touchDownX);
+                float dy = Math.abs(y - touchDownY);
+                // 未锁定手势时，判断是纵向滑动还是横向滑动。
+                if (!isDragging) {
+                    if (dy > touchSlop && dy > dx) {
+                        // 1. 纵向滑动偏移更大
+                        // 释放控制权给纵向父容器 (如 ScrollView)
+                        if (getParent() != null) {
+                            getParent().requestDisallowInterceptTouchEvent(false);
                         }
-                    } else {
-                        // method to move left
-                        if (currTouchSB != leftSB) {
-                            currTouchSB.setShowIndicatorEnable(false);
-                            resetCurrentSeekBarThumb();
-                            currTouchSB = leftSB;
+                        changeThumbActivateState(false);
+                        resetCurrentSeekBarThumb();
+                        return false;
+                    } else if (dx > touchSlop && dx > dy) {
+                        // 2. 横向滑动
+                        // 进一步校验触摸点是否落在了滑块或进度条有效区
+                        if (isTouchInSeekBarArea(touchDownX, touchDownY)) {
+                            // 确认对 SeekBar 进行拖拽
+                            // 阻止横向父容器 (如 ViewPager/HorizontalScrollView) 拦截手势
+                            isDragging = true;
+                            if (getParent() != null) {
+                                getParent().requestDisallowInterceptTouchEvent(true);
+                            }
+                            scaleCurrentSeekBarThumb();
+                            changeThumbActivateState(true);
+                            if (callback != null) {
+                                callback.onStartTrackingTouch(this, currTouchSB == leftSB);
+                            }
+                        } else {
+                            // 触摸点在 View 空白处
+                            // 放行手势给外层横向父容器
+                            if (getParent() != null) {
+                                getParent().requestDisallowInterceptTouchEvent(false);
+                            }
+                            return false;
                         }
                     }
-                    if (callback != null) {
-                        callback.onStartTrackingTouch(this, currTouchSB == leftSB);
+                }
+                // 进入横向拖拽锁定状态，实时更新滑块位置。
+                if (isDragging) {
+                    // 处理双滑块完全重合时的滑动方向交替切换
+                    if ((seekBarMode == SEEKBAR_MODE_RANGE) && leftSB.currPercent == rightSB.currPercent) {
+                        currTouchSB.materialRestore();
+                        if (callback != null) {
+                            callback.onStopTrackingTouch(this, currTouchSB == leftSB);
+                        }
+                        if (x - touchDownX > 0) {
+                            if (currTouchSB != rightSB) {
+                                currTouchSB.setShowIndicatorEnable(false);
+                                resetCurrentSeekBarThumb();
+                                currTouchSB = rightSB;
+                            }
+                        } else {
+                            if (currTouchSB != leftSB) {
+                                currTouchSB.setShowIndicatorEnable(false);
+                                resetCurrentSeekBarThumb();
+                                currTouchSB = leftSB;
+                            }
+                        }
+                        if (callback != null) {
+                            callback.onStartTrackingTouch(this, currTouchSB == leftSB);
+                        }
                     }
+                    scaleCurrentSeekBarThumb();
+                    currTouchSB.material = currTouchSB.material >= 1 ? 1 : currTouchSB.material + 0.1f;
+                    // 滑动更新当前百分比
+                    currTouchSB.slide(calculateCurrentSeekBarPercent(x));
+                    currTouchSB.setShowIndicatorEnable(true);
+                    if (callback != null) {
+                        SeekBarState[] states = getRangeSeekBarState();
+                        callback.onRangeChanged(this, states[0].value, states[1].value, true);
+                    }
+                    invalidate();
+                    changeThumbActivateState(true);
                 }
-                scaleCurrentSeekBarThumb();
-                currTouchSB.material = currTouchSB.material >= 1 ? 1 : currTouchSB.material + 0.1f;
-                touchDownX = x;
-                currTouchSB.slide(calculateCurrentSeekBarPercent(touchDownX));
-                currTouchSB.setShowIndicatorEnable(true);
-                if (callback != null) {
-                    SeekBarState[] states = getRangeSeekBarState();
-                    callback.onRangeChanged(this, states[0].value, states[1].value, true);
-                }
-                invalidate();
-                // Intercept parent TouchEvent
-                if (getParent() != null) {
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                changeThumbActivateState(true);
                 break;
             case MotionEvent.ACTION_CANCEL:
-                if (seekBarMode == SEEKBAR_MODE_RANGE) {
-                    rightSB.setShowIndicatorEnable(false);
-                }
-                if (currTouchSB == leftSB) {
-                    resetCurrentSeekBarThumb();
-                } else if (currTouchSB == rightSB) {
-                    resetCurrentSeekBarThumb();
-                }
-                leftSB.setShowIndicatorEnable(false);
-                if (callback != null) {
-                    SeekBarState[] states = getRangeSeekBarState();
-                    callback.onRangeChanged(this, states[0].value, states[1].value, false);
-                }
-                // Intercept parent TouchEvent
-                if (getParent() != null) {
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                changeThumbActivateState(false);
-                break;
             case MotionEvent.ACTION_UP:
-                if (verifyStepsMode() && stepsAutoBonding) {
-                    float percent = calculateCurrentSeekBarPercent(getEventX(event));
-                    float stepPercent = 1.0f / steps;
-                    int stepSelected = new BigDecimal(percent / stepPercent).setScale(0, RoundingMode.HALF_UP).intValue();
-                    currTouchSB.slide(stepSelected * stepPercent);
+                if (isDragging) {
+                    // 1. 拖拽结束
+                    // 如果开启了 Step 自动吸附，计算吸附点。
+                    if (event.getAction() == MotionEvent.ACTION_UP && verifyStepsMode() && stepsAutoBonding) {
+                        float percent = calculateCurrentSeekBarPercent(getEventX(event));
+                        float stepPercent = 1.0f / steps;
+                        int stepSelected = new BigDecimal(percent / stepPercent).setScale(0, RoundingMode.HALF_UP).intValue();
+                        currTouchSB.slide(stepSelected * stepPercent);
+                    }
+                    if (seekBarMode == SEEKBAR_MODE_RANGE) {
+                        rightSB.setShowIndicatorEnable(false);
+                    }
+                    leftSB.setShowIndicatorEnable(false);
+                    if (currTouchSB != null) {
+                        currTouchSB.materialRestore();
+                    }
+                    resetCurrentSeekBarThumb();
+                    if (callback != null) {
+                        SeekBarState[] states = getRangeSeekBarState();
+                        callback.onRangeChanged(this, states[0].value, states[1].value, false);
+                        callback.onStopTrackingTouch(this, currTouchSB == leftSB);
+                    }
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // 2. 未触发拖拽的纯点击行为
+                    // 滑块跳变到点击位置
+                    float performClick = calculateCurrentSeekBarPercent(getEventX(event));
+                    currTouchSB.slide(performClick);
+                    if (callback != null) {
+                        SeekBarState[] states = getRangeSeekBarState();
+                        callback.onRangeChanged(this, states[0].value, states[1].value, false);
+                    }
+                    invalidate();
                 }
-                if (seekBarMode == SEEKBAR_MODE_RANGE) {
-                    rightSB.setShowIndicatorEnable(false);
-                }
-                leftSB.setShowIndicatorEnable(false);
-                currTouchSB.materialRestore();
-                resetCurrentSeekBarThumb();
-                if (callback != null) {
-                    SeekBarState[] states = getRangeSeekBarState();
-                    callback.onRangeChanged(this, states[0].value, states[1].value, false);
-                }
-                // Intercept parent TouchEvent
+                // 清理状态，还原父容器拦截标志。
+                isDragging = false;
                 if (getParent() != null) {
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                if (callback != null) {
-                    callback.onStopTrackingTouch(this, currTouchSB == leftSB);
+                    getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 changeThumbActivateState(false);
                 break;
@@ -683,11 +790,11 @@ public class RangeSeekBar extends View {
     public void setProgress(float leftValue, float rightValue) {
         leftValue = Math.min(leftValue, rightValue);
         rightValue = Math.max(leftValue, rightValue);
-        if (rightValue - leftValue < minInterval) {
-            if (leftValue - minProgress > maxProgress - rightValue) {
-                leftValue = rightValue - minInterval;
+        if ((rightValue - leftValue) < minInterval) {
+            if ((leftValue - minProgress) > (maxProgress - rightValue)) {
+                leftValue = (rightValue - minInterval);
             } else {
-                rightValue = leftValue + minInterval;
+                rightValue = (leftValue + minInterval);
             }
         }
         if (leftValue < minProgress) {
@@ -696,7 +803,7 @@ public class RangeSeekBar extends View {
         if (rightValue > maxProgress) {
             throw new IllegalArgumentException("setProgress() max > (preset max - offsetValue) . #max:" + rightValue + " #preset max:" + rightValue);
         }
-        float range = maxProgress - minProgress;
+        float range = (maxProgress - minProgress);
         leftSB.currPercent = Math.abs(leftValue - minProgress) / range;
         if (seekBarMode == SEEKBAR_MODE_RANGE) {
             rightSB.currPercent = Math.abs(rightValue - minProgress) / range;
@@ -750,7 +857,11 @@ public class RangeSeekBar extends View {
     }
 
     /**
-     * @return the two seekBar state , see {@link SeekBarState}
+     * 获取左右滑块的当前状态数据
+     * <p>
+     * 真实数值、提示文本、极值状态
+     * <p>
+     * see {@link SeekBarState}
      */
     public SeekBarState[] getRangeSeekBarState() {
         SeekBarState leftSeekBarState = new SeekBarState();
@@ -812,7 +923,7 @@ public class RangeSeekBar extends View {
     }
 
     /**
-     * if is single mode, please use it to get the SeekBar
+     * If is single mode, please use it to get the SeekBar.
      *
      * @return left seek bar
      */
@@ -1080,6 +1191,7 @@ public class RangeSeekBar extends View {
 
     /**
      * the tick mark layout gravity
+     * <p>
      * Gravity.TOP and Gravity.BOTTOM
      *
      * @param tickMarkLayoutGravity TickMarkLayoutGravity
@@ -1094,6 +1206,7 @@ public class RangeSeekBar extends View {
 
     /**
      * the RangeSeekBar gravity
+     * <p>
      * Gravity.TOP and Gravity.BOTTOM
      *
      * @param gravity 位置
