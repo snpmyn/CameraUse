@@ -38,7 +38,7 @@
         tools:ignore="VectorPath" />
     <!-- 2. 镜头光效反光弧 (增加高光细节与机械质感) -->
     <path
-        android:fillColor="@color/color_00000000"
+        android:fillColor="@android:color/transparent"
         android:pathData="
             M41,33 A20,20 0 0,1 67,33
             M46,40 A15,15 0 0,1 62,40
