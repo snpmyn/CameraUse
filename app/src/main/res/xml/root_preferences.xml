@@ -28,7 +28,7 @@
             app:defaultValue="false"
             app:icon="@drawable/ic_document_scanner_cos_24dp"
             app:key="baidu_ocr"
-            app:summary="开启后通过百度对文档 OCR 识别"
+            app:summary="开启后对文档进行 OCR 识别"
             app:title="百度 OCR" />
         <!--文档裁剪-->
         <SwitchPreferenceCompat
@@ -42,7 +42,7 @@
             app:defaultValue="false"
             app:icon="@drawable/ic_crop_cos_24dp"
             app:key="wechat_crop"
-            app:summary="微信裁剪"
+            app:summary="自动检测并裁剪图片中二维码"
             app:title="微信裁剪" />
     </PreferenceCategory>
 </PreferenceScreen>
