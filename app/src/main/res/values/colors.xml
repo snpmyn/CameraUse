@@ -7,32 +7,22 @@
     <color name="font_dark">#1A1D26</color>
     <color name="background">#F5F7FA</color>
 
-    <color name="color_d7dae1">#D7DAE1</color>
+    <color name="color_D7DAE1">#D7DAE1</color>
+    <color name="color_FF9800">#FF9800</color>
+    <color name="color_00BFA5">#00BFA5</color>
+    <color name="color_7C4DFF">#7C4DFF</color>
+    <color name="color_C0C0C0">#C0C0C0</color>
+    <color name="color_1FB3E2">#1FB3E2</color>
+    <color name="color_00C9A7">#00C9A7</color>
+    <color name="color_FBC2EB">#FBC2EB</color>
+    <color name="color_A6C1EE">#A6C1EE</color>
+    <color name="color_F44336">#F44336</color>
+    <color name="color_FFBB33">#FFBB33</color>
+    <color name="color_D7D7D7">#D7D7D7</color>
 
-    <color name="color_29a1f7">#29A1F7</color>
-    <color name="color_ff9800">#FF9800</color>
-    <color name="color_e65100">#E65100</color>
-    <color name="color_00bfa5">#00BFA5</color>
-    <color name="color_7c4dff">#7C4DFF</color>
-
-    <color name="color_FFEE6002">#29A1F7</color>
     <color name="color_99000000">#99000000</color>
     <color name="color_DC000000">#CC000000</color>
-    <color name="color_00000000">#00000000</color>
-
-    <color name="viewfinder_mask">#60000000</color>
-    <color name="viewfinder_laser">#1FB3E2</color>
-    <color name="viewfinder_frame">#7F1FB3E2</color>
-    <color name="viewfinder_corner">#00C9A7</color>
-    <color name="viewfinder_point">#1FB3E2</color>
-    <color name="viewfinder_point_stroke">@color/white</color>
-    <color name="viewfinder_label_text">#C0C0C0</color>
-
-    <color name="colorRed">#F44336</color>
-    <color name="colorGreen_50">#802ED184</color>
-    <color name="colorProgress">#FFBB33</color>
-    <color name="colorProgressDefault">#D7D7D7</color>
-
-    <color name="color_fbc2eb">#FBC2EB</color>
-    <color name="color_a6c1ee">#A6C1EE</color>
+    <color name="color_B3000000">#B3000000</color>
+    <color name="color_60000000">#60000000</color>
+    <color name="color_7F1FB3E2">#7F1FB3E2</color>
 </resources>
