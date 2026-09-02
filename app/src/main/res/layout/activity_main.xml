@@ -10,6 +10,7 @@
         style="@style/Widget.MaterialComponents.Toolbar.PrimarySurface"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        android:elevation="@dimen/dp_0"
         app:menu="@menu/main_activity_menu"
         app:title="@string/app_name"
         app:titleCentered="true" />
