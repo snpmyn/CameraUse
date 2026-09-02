@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/dp_320"
     android:layout_height="wrap_content"
-    android:background="@drawable/white_solid_r12"
+    android:background="@drawable/color_b3000000_solid_r12"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="@dimen/dp_16">
@@ -24,7 +24,6 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_0"
-        android:layout_marginBottom="@dimen/dp_10"
         android:layout_weight="1"
         android:scrollbars="none"
         tools:ignore="InefficientWeight">
@@ -34,193 +33,366 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbBrightness"
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlBrightness"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                android:orientation="vertical">
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbContrast"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbGain"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/brightness"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbGamma"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvBrightness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="43" />
+                </RelativeLayout>
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbHue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                <!--app:rsb_indicator_background_color="@color/basic"
+                        app:rsb_indicator_height="wrap_content"
+                        app:rsb_indicator_padding_bottom="@dimen/dp_10"
+                        app:rsb_indicator_padding_left="@dimen/dp_10"
+                        app:rsb_indicator_padding_right="@dimen/dp_10"
+                        app:rsb_indicator_padding_top="@dimen/dp_10"
+                        app:rsb_indicator_radius="@dimen/dp_6"
+                        app:rsb_indicator_show_mode="alwaysShow"
+                        app:rsb_indicator_text_size="@dimen/sp_12"
+                        app:rsb_indicator_width="wrap_content"-->
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbBrightness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbSharpness"
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlContrast"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                android:orientation="vertical">
 
-            <com.qtone.seekbar.RangeSeekBar
-                android:id="@+id/cameraSettingDialogRsbSaturation"
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/contrast"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvContrast"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="58" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbContrast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlGain"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:rsb_gravity="center"
-                app:rsb_indicator_background_color="@color/basic"
-                app:rsb_indicator_height="wrap_content"
-                app:rsb_indicator_padding_bottom="@dimen/dp_10"
-                app:rsb_indicator_padding_left="@dimen/dp_10"
-                app:rsb_indicator_padding_right="@dimen/dp_10"
-                app:rsb_indicator_padding_top="@dimen/dp_10"
-                app:rsb_indicator_radius="@dimen/dp_6"
-                app:rsb_indicator_show_mode="alwaysShow"
-                app:rsb_indicator_text_size="@dimen/sp_12"
-                app:rsb_indicator_width="wrap_content"
-                app:rsb_max="100"
-                app:rsb_min="0"
-                app:rsb_mode="single"
-                app:rsb_progress_drawable="@drawable/progress"
-                app:rsb_progress_drawable_default="@drawable/progress_default"
-                app:rsb_progress_height="@dimen/dp_4"
-                app:rsb_thumb_drawable="@drawable/thumb_gradient"
-                app:rsb_thumb_height="@dimen/dp_24"
-                app:rsb_thumb_scale_ratio="1"
-                app:rsb_thumb_width="@dimen/dp_24" />
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/gain"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvGain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="60" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbGain"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlGamma"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/gamma"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvGamma"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="31" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbGamma"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlHue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/hue"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvHue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="52" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbHue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlSharpness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/sharpness"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvSharpness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="60" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbSharpness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cameraSettingDialogLlSaturation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/saturation"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cameraSettingDialogTvSaturation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/sp_12"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap"
+                        tools:text="82" />
+                </RelativeLayout>
+
+                <com.qtone.seekbar.RangeSeekBar
+                    android:id="@+id/cameraSettingDialogRsbSaturation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:rsb_gravity="center"
+                    app:rsb_max="100"
+                    app:rsb_min="0"
+                    app:rsb_mode="single"
+                    app:rsb_progress_drawable="@drawable/gradient_solid_r180"
+                    app:rsb_progress_drawable_default="@drawable/color_d7d7d7_solid_r180"
+                    app:rsb_progress_height="@dimen/dp_4"
+                    app:rsb_thumb_drawable="@drawable/thumb_oval"
+                    app:rsb_thumb_height="@dimen/dp_16"
+                    app:rsb_thumb_scale_ratio="0.06"
+                    app:rsb_thumb_width="@dimen/dp_16" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
     <LinearLayout
+        android:id="@+id/cameraSettingDialogLlBottom"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_32"
+        android:layout_marginTop="@dimen/dp_10"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
@@ -240,6 +412,24 @@
             app:rippleColor="@color/basic"
             app:strokeColor="@color/basic"
             tools:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cameraSettingDialogMbNeutral"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="@dimen/dp_0"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/dp_20"
+            android:layout_weight="1"
+            android:insetLeft="@dimen/dp_0"
+            android:insetTop="@dimen/dp_0"
+            android:insetRight="@dimen/dp_0"
+            android:insetBottom="@dimen/dp_0"
+            android:textColor="@color/basic"
+            android:textSize="@dimen/sp_10"
+            android:visibility="gone"
+            app:rippleColor="@color/basic"
+            app:strokeColor="@color/basic"
+            tools:text="中性" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cameraSettingDialogMbPositive"
