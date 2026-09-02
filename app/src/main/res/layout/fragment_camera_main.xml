@@ -32,11 +32,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            app:vvFrameCornerColor="@color/viewfinder_corner"
+            app:vvFrameCornerColor="@color/color_00C9A7"
             app:vvFrameCornerRadius="@dimen/dp_10"
             app:vvFrameRatio="0.9"
             app:vvLaserStyle="line"
-            app:vvMaskColor="@color/viewfinder_mask"
+            app:vvMaskColor="@color/color_60000000"
             app:vvViewFinderStyle="classic" />
 
         <com.qtone.camerause.widget.roi.MultiRoiOverlayView
@@ -66,7 +66,7 @@
                 android:layout_weight="1"
                 app:cbCaptureMode="singleCapture"
                 app:cbShape="square"
-                app:cbSingleCaptureColor="@color/color_ff9800"
+                app:cbSingleCaptureColor="@color/color_FF9800"
                 app:cbText="@string/singleCapture"
                 app:cbTextColor="@color/white"
                 app:cbTextSize="@dimen/sp_12"
@@ -77,7 +77,7 @@
                 android:layout_width="@dimen/dp_0"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                app:cbBurstCaptureColor="@color/color_7c4dff"
+                app:cbBurstCaptureColor="@color/color_7C4DFF"
                 app:cbCaptureMode="burstCapture"
                 app:cbShape="square"
                 app:cbText="@string/burstCapture"
@@ -106,7 +106,7 @@
                 android:text="@string/scanCode"
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_00bfa5" />
+                app:backgroundTint="@color/color_00BFA5" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cameraMainFragmentMbStopScanCode"
@@ -121,7 +121,7 @@
                 android:text="@string/stopScanCode"
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_00bfa5" />
+                app:backgroundTint="@color/color_00BFA5" />
         </LinearLayout>
 
         <!--普通按钮-->
@@ -138,7 +138,7 @@
             android:id="@+id/cameraMainFragmentMbGallery"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:filterTouchesWhenObscured="true"
             android:insetLeft="@dimen/dp_0"
             android:insetTop="@dimen/dp_0"
@@ -147,6 +147,6 @@
             android:text="@string/gallery"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_10"
-            app:backgroundTint="@color/color_7c4dff" />
+            app:backgroundTint="@color/color_7C4DFF" />
     </LinearLayout>
 </LinearLayout>
