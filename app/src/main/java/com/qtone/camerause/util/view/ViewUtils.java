@@ -43,7 +43,7 @@ public class ViewUtils {
      * @param viewList 视图集
      * @param view     视图
      */
-    public static void showView(List<View> viewList, @NotNull View view) {
+    public static void showView(@NonNull List<View> viewList, @NotNull View view) {
         for (View viewInList : viewList) {
             if (viewInList.getId() == view.getId()) {
                 continue;
@@ -74,7 +74,7 @@ public class ViewUtils {
      * @param view     视图
      * @param state    状态
      */
-    public static void hideView(List<View> viewList, @NotNull View view, int state) {
+    public static void hideView(@NonNull List<View> viewList, @NotNull View view, int state) {
         for (View viewInList : viewList) {
             if (viewInList.getId() == view.getId()) {
                 continue;
