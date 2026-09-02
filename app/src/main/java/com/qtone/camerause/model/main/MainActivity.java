@@ -51,8 +51,9 @@ public class MainActivity extends BasePoolActivity {
      */
     @Override
     protected void stepUi() {
-        MaterialToolbarKit.getInstance().setMenuOverflowIcon(this, activityMainBinding.mainActivityMt, R.drawable.ic_arrows_more_down_cos_24dp);
+        MaterialToolbarKit.getInstance().setMenuOverflowIconSize(this, activityMainBinding.mainActivityMt, R.dimen.dp_24);
         MaterialToolbarKit.getInstance().setMenuOverflowIconTintColor(this, activityMainBinding.mainActivityMt, R.color.white);
+        /*MaterialToolbarKit.getInstance().setMenuOverflowIcon(this, activityMainBinding.mainActivityMt, R.drawable.ic_arrows_more_down_cos_24dp);*/
     }
 
     /**
