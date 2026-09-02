@@ -19,6 +19,15 @@ public interface CameraSettingDialogClickListener {
     }
 
     /**
+     * 中性
+     *
+     * @param cameraSettingDialog 相机设置对话框
+     */
+    default void onNeutral(CameraSettingDialog cameraSettingDialog) {
+
+    }
+
+    /**
      * 确认
      *
      * @param cameraSettingDialog 相机设置对话框
