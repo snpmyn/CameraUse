@@ -25,6 +25,7 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.camera.CameraAspectRatioKit;
 import com.qtone.camerause.widget.camera.CameraController;
+import com.qtone.camerause.widget.camera.CameraSettingKit;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,23 +44,34 @@ public abstract class BaseCameraFragment extends CameraFragment {
      */
     protected CameraAspectRatioKit cameraAspectRatioKit;
     /**
+     * 是否首帧
+     */
+    private volatile boolean isFirstFrame = true;
+    /**
+     * 相机碎片基类配套原件
+     */
+    private BaseCameraFragmentKit baseCameraFragmentKit;
+    /**
      * 预览数据回调
      */
     private final IPreviewDataCallBack previewDataCallBack = new IPreviewDataCallBack() {
         @Override
         public void onPreviewData(@org.jetbrains.annotations.Nullable byte[] data, int width, int height, @NotNull DataFormat format) {
-            // 预览区域动态适配
-            safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, width, height)));
-            // 实时分发原始数据
             if (data != null) {
+                // 预览区域动态适配
+                safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, width, height)));
+                if (isFirstFrame) {
+                    isFirstFrame = false;
+                    // 自动对焦
+                    baseCameraFragmentKit.setAutoFocus();
+                    // 相机设置
+                    CameraSettingKit.cameraSetting(getCurrentCamera());
+                }
+                // 实时分发原始数据
                 onPreviewFrame(data, width, height, format);
             }
         }
     };
-    /**
-     * 相机碎片基类配套原件
-     */
-    private BaseCameraFragmentKit baseCameraFragmentKit;
 
     /**
      * 获取布局 ID
@@ -217,10 +229,8 @@ public abstract class BaseCameraFragment extends CameraFragment {
     public void onCameraState(@NotNull MultiCameraClient.ICamera self, @NotNull ICameraStateCallBack.State code, @org.jetbrains.annotations.Nullable String msg) {
         if (code == ICameraStateCallBack.State.OPENED) {
             Log.d(LogKit.TAG, "相机打开成功");
-            // 自动对焦
-            baseCameraFragmentKit.setAutoFocus();
-            // 相机设置
-            baseCameraFragmentKit.cameraSetting();
+            // 重置首帧标志
+            isFirstFrame = true;
             // 预览区域动态适配
             safeRun(appCompatActivity -> appCompatActivity.runOnUiThread(() -> cameraAspectRatioKit.updateAspectRatio(appCompatActivity, getCameraResolution().getWidth(), getCameraResolution().getHeight())));
             // 清除已有预览帧回调
