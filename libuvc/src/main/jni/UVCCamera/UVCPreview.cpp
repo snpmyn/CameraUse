@@ -86,7 +86,6 @@ UVCPreview::UVCPreview(uvc_device_handle_t *devh)
 }
 
 UVCPreview::~UVCPreview() {
-
     ENTER();
     if (mPreviewWindow)
         ANativeWindow_release(mPreviewWindow);
@@ -142,7 +141,6 @@ void UVCPreview::recycle_frame(uvc_frame_t *frame) {
         uvc_free_frame(frame);
     }
 }
-
 
 void UVCPreview::init_pool(size_t data_bytes) {
     ENTER();
@@ -219,7 +217,6 @@ int UVCPreview::setPreviewDisplay(ANativeWindow *preview_window) {
 }
 
 int UVCPreview::setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format) {
-
     ENTER();
     pthread_mutex_lock(&capture_mutex);
     {
@@ -707,6 +704,7 @@ UVCPreview::draw_preview_one(uvc_frame_t *frame, ANativeWindow **window, convFun
 //======================================================================
 //
 //======================================================================
+
 inline const bool UVCPreview::isCapturing() const { return mIsCapturing; }
 
 int UVCPreview::setCaptureDisplay(ANativeWindow *capture_window) {
@@ -812,9 +810,13 @@ void UVCPreview::clearCaptureFrame() {
     pthread_mutex_unlock(&capture_mutex);
 }
 
-//======================================================================
+//**********************************************************************
+//
+//**********************************************************************
+
 /*
  * thread function
+ *
  * @param vptr_args pointer to UVCPreview instance
  */
 // static
@@ -842,7 +844,6 @@ void *UVCPreview::capture_thread_func(void *vptr_args) {
  * the actual function for capturing
  */
 void UVCPreview::do_capture(JNIEnv *env) {
-
     ENTER();
 
     clearCaptureFrame();
