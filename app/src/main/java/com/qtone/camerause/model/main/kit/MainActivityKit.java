@@ -27,7 +27,8 @@ import com.qtone.camerause.model.setting.SettingActivity;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.widget.camera.CameraController;
-import com.qtone.camerause.widget.camera.CameraSwitchManager;
+import com.qtone.camerause.widget.camera.CameraSettingKit;
+import com.qtone.camerause.widget.camera.CameraSwitchKit;
 import com.qtone.camerause.widget.dialog.camerasetting.CameraSettingDialog;
 import com.qtone.camerause.widget.dialog.camerasetting.listener.CameraSettingDialogClickListener;
 import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
@@ -218,6 +219,10 @@ public class MainActivityKit {
      * - 此时由于在尝试切换前已调 stopPreview() 停流，若不及时拦截抛出失败，系统将无法继续渲染后续帧，表现为预览画面黑屏 / 挂起 (即相机预览被迫关闭)。
      */
     private void switchResolution() {
+        if (getCameraMainFragment().getCurrentCamera() == null) {
+            ToastUtils.show("未检测到摄像头");
+            return;
+        }
         List<PreviewSize> previewSizes = CameraController.getInstance().getAllPreviewSizes(getCameraMainFragment().getCurrentCamera(), null);
         if (ListUtils.listIsEmpty(previewSizes)) {
             ToastUtils.show("获取预览分辨率失败");
@@ -268,7 +273,7 @@ public class MainActivityKit {
      * 切换相机
      */
     private void switchCamera() {
-        CameraSwitchManager.showCameraSelectDialog(mainActivity, getCameraMainFragment().getCurrentCamera(),
+        CameraSwitchKit.showCameraSelectDialog(mainActivity, getCameraMainFragment().getCurrentCamera(),
                 getCameraMainFragment().getMultiCameraClient(), CameraController.getInstance().getUsbDevice(getCameraMainFragment().getCurrentCamera()));
     }
 
@@ -284,13 +289,22 @@ public class MainActivityKit {
         cameraSettingDialog.setCancelable(false);
         cameraSettingDialog.setTitle("相机设置")
                 .setCameraMainFragment(getCameraMainFragment())
-                .setPositiveText("关闭")
-                .setShowNegative(true)
                 .setNegativeText("重置")
+                .setShowNegative(true)
+                .setNeutralText("最优")
+                .setShowNeutral(true)
+                .setPositiveText("关闭")
                 .setCameraSettingDialogClickListener(new CameraSettingDialogClickListener() {
                     @Override
                     public void onCancel(CameraSettingDialog cameraSettingDialog) {
-                        cameraSettingDialog.reset();
+                        CameraSettingKit.reset(getCameraMainFragment().getCurrentCamera());
+                        cameraSettingDialog.setProgress();
+                    }
+
+                    @Override
+                    public void onNeutral(CameraSettingDialog cameraSettingDialog) {
+                        CameraSettingKit.cameraSetting(getCameraMainFragment().getCurrentCamera());
+                        cameraSettingDialog.setProgress();
                     }
 
                     @Override
