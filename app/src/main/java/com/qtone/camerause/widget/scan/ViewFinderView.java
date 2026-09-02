@@ -315,9 +315,9 @@ public class ViewFinderView extends View {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
 
         viewfinderStyle = array.getInt(R.styleable.ViewFinderView_vvViewFinderStyle, ViewfinderStyle.CLASSIC);
-        maskColor = array.getColor(R.styleable.ViewFinderView_vvMaskColor, getColor(context, R.color.viewfinder_mask));
+        maskColor = array.getColor(R.styleable.ViewFinderView_vvMaskColor, getColor(context, R.color.color_60000000));
 
-        frameColor = array.getColor(R.styleable.ViewFinderView_vvFrameColor, getColor(context, R.color.viewfinder_frame));
+        frameColor = array.getColor(R.styleable.ViewFinderView_vvFrameColor, getColor(context, R.color.color_7F1FB3E2));
         frameWidth = array.getDimensionPixelSize(R.styleable.ViewFinderView_vvFrameWidth, 0);
         frameHeight = array.getDimensionPixelSize(R.styleable.ViewFinderView_vvFrameHeight, 0);
         frameRatio = array.getFloat(R.styleable.ViewFinderView_vvFrameRatio, 0.625f);
@@ -327,7 +327,7 @@ public class ViewFinderView extends View {
         framePaddingRight = array.getDimension(R.styleable.ViewFinderView_vvFramePaddingRight, 0);
         framePaddingBottom = array.getDimension(R.styleable.ViewFinderView_vvFramePaddingBottom, 0);
         frameGravity = FrameGravity.getFromInt(array.getInt(R.styleable.ViewFinderView_vvFrameGravity, FrameGravity.CENTER.mValue));
-        frameCornerColor = array.getColor(R.styleable.ViewFinderView_vvFrameCornerColor, getColor(context, R.color.viewfinder_corner));
+        frameCornerColor = array.getColor(R.styleable.ViewFinderView_vvFrameCornerColor, getColor(context, R.color.color_00C9A7));
         frameCornerSize = array.getDimension(R.styleable.ViewFinderView_vvFrameCornerSize, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, displayMetrics));
         frameCornerStrokeWidth = array.getDimension(R.styleable.ViewFinderView_vvFrameCornerStrokeWidth, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, displayMetrics));
         frameCornerRadius = array.getDimension(R.styleable.ViewFinderView_vvFrameCornerRadius, 0);
@@ -341,20 +341,20 @@ public class ViewFinderView extends View {
         laserGridHeight = array.getDimension(R.styleable.ViewFinderView_vvLaserGridHeight, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, displayMetrics));
         laserGridStrokeWidth = array.getDimension(R.styleable.ViewFinderView_vvLaserGridStrokeWidth, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, displayMetrics));
 
-        laserColor = array.getColor(R.styleable.ViewFinderView_vvLaserColor, getColor(context, R.color.viewfinder_laser));
+        laserColor = array.getColor(R.styleable.ViewFinderView_vvLaserColor, getColor(context, R.color.color_1FB3E2));
         laserStyle = LaserStyle.getFromInt(array.getInt(R.styleable.ViewFinderView_vvLaserStyle, LaserStyle.LINE.mValue));
         laserBitmapRatio = array.getFloat(R.styleable.ViewFinderView_vvLaserDrawableRatio, 0.625f);
         Drawable laserDrawable = array.getDrawable(R.styleable.ViewFinderView_vvLaserDrawable);
 
         labelText = array.getString(R.styleable.ViewFinderView_vvLabelText);
-        labelTextColor = array.getColor(R.styleable.ViewFinderView_vvLabelTextColor, getColor(context, R.color.viewfinder_label_text));
+        labelTextColor = array.getColor(R.styleable.ViewFinderView_vvLabelTextColor, getColor(context, R.color.color_C0C0C0));
         labelTextSize = array.getDimension(R.styleable.ViewFinderView_vvLabelTextSize, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, displayMetrics));
         labelTextPadding = array.getDimension(R.styleable.ViewFinderView_vvLabelTextPadding, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, displayMetrics));
         labelTextWidth = array.getDimensionPixelSize(R.styleable.ViewFinderView_vvLabelTextWidth, 0);
         labelTextLocation = TextLocation.getFromInt(array.getInt(R.styleable.ViewFinderView_vvLabelTextLocation, 1));
 
-        pointColor = array.getColor(R.styleable.ViewFinderView_vvPointColor, getColor(context, R.color.viewfinder_point));
-        pointStrokeColor = array.getColor(R.styleable.ViewFinderView_vvPointStrokeColor, getColor(context, R.color.viewfinder_point_stroke));
+        pointColor = array.getColor(R.styleable.ViewFinderView_vvPointColor, getColor(context, R.color.color_1FB3E2));
+        pointStrokeColor = array.getColor(R.styleable.ViewFinderView_vvPointStrokeColor, getColor(context, R.color.white));
         pointRadius = array.getDimension(R.styleable.ViewFinderView_vvPointRadius, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, displayMetrics));
         pointStrokeRatio = array.getFloat(R.styleable.ViewFinderView_vvPointStrokeRatio, DEFAULT_RANGE_RATIO);
         Drawable pointDrawable = array.getDrawable(R.styleable.ViewFinderView_vvPointDrawable);
