@@ -4,9 +4,9 @@ package com.qtone.camerause.widget.button;
  * Created on 2026/9/1.
  *
  * @author 郑少鹏
- * @desc 拍照按钮触发模式
+ * @desc 流光按钮触发模式
  */
-public enum CaptureButtonTriggerMode {
+public enum ShimmerButtonTriggerMode {
     /**
      * 普通点击触发
      * <p>
@@ -29,7 +29,7 @@ public enum CaptureButtonTriggerMode {
      *
      * @param value 值
      */
-    CaptureButtonTriggerMode(int value) {
+    ShimmerButtonTriggerMode(int value) {
         this.value = value;
     }
 
@@ -37,12 +37,12 @@ public enum CaptureButtonTriggerMode {
      * 从值
      *
      * @param val 变量
-     * @return 拍照按钮触发模式
+     * @return 流光按钮触发模式
      */
-    static CaptureButtonTriggerMode fromValue(int val) {
-        for (CaptureButtonTriggerMode captureButtonTriggerMode : values()) {
-            if (captureButtonTriggerMode.value == val) {
-                return captureButtonTriggerMode;
+    static ShimmerButtonTriggerMode fromValue(int val) {
+        for (ShimmerButtonTriggerMode shimmerButtonTriggerMode : values()) {
+            if (shimmerButtonTriggerMode.value == val) {
+                return shimmerButtonTriggerMode;
             }
         }
         return CLICK;
