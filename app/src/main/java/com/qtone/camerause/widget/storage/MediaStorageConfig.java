@@ -93,45 +93,65 @@ public class MediaStorageConfig {
      * @param mediaStorageMode 媒体存储模式
      */
     public void init(Context context, String folderName, MediaStorageMode mediaStorageMode) {
-        init(context, folderName, mediaStorageMode, Environment.DIRECTORY_DCIM);
+        String defaultDirectoryType = null;
+        if (mediaStorageMode == MediaStorageMode.EXTERNAL_PUBLIC) {
+            defaultDirectoryType = Environment.DIRECTORY_DCIM;
+        } else if (mediaStorageMode == MediaStorageMode.EXTERNAL_PRIVATE) {
+            defaultDirectoryType = Environment.DIRECTORY_PICTURES;
+        }
+        init(context, folderName, mediaStorageMode, defaultDirectoryType);
     }
 
     /**
      * 初始化
+     * <p>
+     * 三种存储模式实际生成路径示例 (假设 folderName 为 "ZYR")
+     * 1. EXTERNAL_PUBLIC
+     * - 传入 DIRECTORY_DCIM ➔ /storage/emulated/0/DCIM/ZYR
+     * - 传入 DIRECTORY_PICTURES ➔ /storage/emulated/0/Pictures/ZYR
+     * 2. EXTERNAL_PRIVATE
+     * - 传入 DIRECTORY_PICTURES ➔ /storage/emulated/0/Android/data/PackageName/files/Pictures/ZYR
+     * - 传入 DIRECTORY_DCIM ➔ /storage/emulated/0/Android/data/PackageName/files/DCIM/ZYR
+     * 3. INTERNAL
+     * - 忽略 directoryType ➔ /data/user/0/PackageName/files/ZYR
      *
-     * @param context                     上下文
-     * @param folderName                  目录名称
-     * @param mediaStorageMode            媒体存储模式
-     * @param externalPublicDirectoryType 外部公共目录类型
-     *                                    仅 StorageMode.EXTERNAL_PUBLIC 模式下生效
-     *                                    如 Environment.DIRECTORY_DCIM / Environment.DIRECTORY_PICTURES
+     * @param context          上下文
+     * @param folderName       目录名称
+     *                         为空默用 "ZYR"
+     * @param mediaStorageMode 媒体存储模式
+     *                         为空默认退为 INTERNAL
+     * @param directoryType    外部公共目录类型
+     *                         如 Environment.DIRECTORY_DCIM / Environment.DIRECTORY_PICTURES 仅在 EXTERNAL_PUBLIC / EXTERNAL_PRIVATE 模式生效
      */
-    public void init(Context context, String folderName, MediaStorageMode mediaStorageMode, String externalPublicDirectoryType) {
+    public void init(Context context, String folderName, MediaStorageMode mediaStorageMode, String directoryType) {
         if (context == null) {
             return;
         }
         Context appContext = context.getApplicationContext();
         String targetFolderName = TextUtils.isEmpty(folderName) ? "ZYR" : folderName;
         MediaStorageMode mode = (mediaStorageMode == null) ? MediaStorageMode.INTERNAL : mediaStorageMode;
-        File baseDir;
+        File baseDirectory;
         if (mode == MediaStorageMode.EXTERNAL_PUBLIC) {
             // 外部公共存储
-            // 如 /storage/emulated/0/DCIM 或 /storage/emulated/0/Pictures
-            String dirType = TextUtils.isEmpty(externalPublicDirectoryType) ? Environment.DIRECTORY_DCIM : externalPublicDirectoryType;
-            baseDir = Environment.getExternalStoragePublicDirectory(dirType);
+            // 如 /storage/emulated/0/DCIM/ZYR
+            // 或 /storage/emulated/0/Pictures/ZYR
+            baseDirectory = Environment.getExternalStoragePublicDirectory(directoryType);
         } else if (mode == MediaStorageMode.EXTERNAL_PRIVATE) {
             // 外部私有存储
             // 无需动态申请 WRITE_EXTERNAL_STORAGE 权限 + 适用 Android 10+
-            baseDir = appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-            if (baseDir == null) {
+            // 如 /storage/emulated/0/Android/data/PackageName/files/Pictures/ZYR
+            // 或 /storage/emulated/0/Android/data/PackageName/files/DCIM/ZYR
+            baseDirectory = appContext.getExternalFilesDir(directoryType);
+            if (baseDirectory == null) {
                 // 外存挂载异常自动退化使用内部存储
-                baseDir = appContext.getFilesDir();
+                baseDirectory = appContext.getFilesDir();
             }
         } else {
-            // 内部存储
-            baseDir = appContext.getFilesDir();
+            // 内部存储纯净模式
+            // 独立位于 /data/user/0/PackageName/files/ZYR
+            baseDirectory = appContext.getFilesDir();
         }
-        imageDirectoryFile = new File(baseDir, targetFolderName);
+        imageDirectoryFile = new File(baseDirectory, targetFolderName);
         if (!imageDirectoryFile.exists()) {
             boolean isSuccess = imageDirectoryFile.mkdirs();
             Log.d(LogKit.TAG, "媒体存储文件夹初始化\n绝对路径 || " + imageDirectoryFile.getAbsolutePath() + "\n结果 || " + isSuccess);
