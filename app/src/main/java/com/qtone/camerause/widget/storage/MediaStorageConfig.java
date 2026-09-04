@@ -7,6 +7,8 @@ import android.util.Log;
 
 import com.qtone.camerause.util.log.LogKit;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 
 /**
@@ -184,68 +186,30 @@ public class MediaStorageConfig {
     }
 
     /**
-     * 存储模式
+     * 生成保存文件
+     *
+     * @param storageType 存储类型
+     * @param sourcePath  资源路径
+     * @return 保存文件
      */
-    public enum StorageMode {
-        /**
-         * 内部存储
-         */
-        INTERNAL,
-        /**
-         * 外部私有存储
-         */
-        EXTERNAL_PRIVATE,
-        /**
-         * 外部公共存储
-         */
-        EXTERNAL_PUBLIC
+    public @Nullable File generateSaveFile(StorageType storageType, String sourcePath) {
+        return generateSaveFile(storageType, sourcePath, -1);
     }
 
     /**
-     * 存储类型
+     * 生成保存文件
+     *
+     * @param storageType 存储类型
+     * @param sourcePath  资源路径
+     * @param subIndex    子下标
+     * @return 保存文件
      */
-    public enum StorageType {
-        /**
-         * 拍照
-         */
-        CAPTURE("capture"),
-        /**
-         * ROI 裁剪
-         */
-        ROI_CROP("RoiCrop"),
-        /**
-         * ROI 叠加
-         */
-        ROI_OVERLAY("RoiOverlay"),
-        /**
-         * 微信裁剪
-         */
-        WE_CHAT_CROP("WeChatCrop"),
-        /**
-         * 文档裁剪
-         */
-        DOCUMENT_CROP("DocumentCrop");
-        /**
-         * 子文件夹名称
-         */
-        private final String subFolderName;
-
-        /**
-         * constructor
-         *
-         * @param subFolderName 子文件夹名称
-         */
-        StorageType(String subFolderName) {
-            this.subFolderName = subFolderName;
+    public @Nullable File generateSaveFile(StorageType storageType, String sourcePath, int subIndex) {
+        File dir = getDirectoryFileByStorageType(storageType);
+        if (dir == null) {
+            return null;
         }
-
-        /**
-         * 获取子文件夹名称
-         *
-         * @return 子文件夹名称
-         */
-        public String getSubFolderName() {
-            return subFolderName;
-        }
+        String fileName = MediaFileNameEngine.generateFileName(storageType, sourcePath, subIndex);
+        return new File(dir, fileName);
     }
 }
