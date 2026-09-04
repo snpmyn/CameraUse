@@ -20,7 +20,6 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
-import com.qtone.camerause.widget.capture.CaptureState;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created on 2026/8/11.
@@ -63,6 +63,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 扫码处理器
      */
     private final ScanCodeProcessor scanCodeProcessor;
+    /**
+     * 连拍计数器
+     * <p>
+     * 使用 AtomicInteger 保证多线程并发环境下的绝对原子性
+     */
+    private final AtomicInteger burstCaptureCount = new AtomicInteger(0);
 
     /**
      * constructor
@@ -78,24 +84,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         this.documentCropProcessor = new DocumentCropProcessor();
         // 扫码处理器
         this.scanCodeProcessor = new ScanCodeProcessor(this);
-    }
-
-    /**
-     * 是否允许操作单拍按钮
-     *
-     * @return 是否允许操作单拍按钮
-     */
-    public boolean enableHandleSingleCaptureButton() {
-        return (captureProcessor.getCaptureState() == CaptureState.IDLE);
-    }
-
-    /**
-     * 是否允许操作连拍按钮
-     *
-     * @return 是否允许操作连拍按钮
-     */
-    public boolean enableHandleBurstCaptureButton() {
-        return ((captureProcessor.getCaptureState() == CaptureState.IDLE) || (captureProcessor.getCaptureState() == CaptureState.BURST_CAPTURE_RUNNING));
     }
 
     /**
@@ -120,7 +108,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onSingleCaptureClicked() {
         // 设置拍照策略
-        captureProcessor.setCaptureStrategy(CaptureStrategy.SDK_CAPTURE);
+        captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
         cameraMainFragment.safeRun(appCompatActivity -> captureProcessor.startSingleCapture(appCompatActivity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
     }
@@ -245,8 +233,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
         ToastUtils.show("拍照成功");
         if (captureProcessor.captureSuccessFromSingleCapture(captureMode)) {
-            captureProcessor.setCaptureState(CaptureState.IDLE);
-            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+            cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
+        }
+        if (captureProcessor.captureSuccessFromBurstCapture(captureMode)) {
+            burstCaptureCount.incrementAndGet();
+            cameraMainFragment.cameraMainFragmentSbBurstCapture.setText(String.valueOf(burstCaptureCount.get()));
         }
         cameraMainFragment.safeRun(appCompatActivity -> {
             // 1. 是否允许文档裁剪
@@ -344,10 +335,9 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        ToastUtils.show("拍照错误");
+        ToastUtils.show("拍照错误 - " + errorMsg);
         if (captureProcessor.captureErrorFromSingleCapture()) {
-            captureProcessor.setCaptureState(CaptureState.IDLE);
-            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+            cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
         }
     }
 
@@ -390,6 +380,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onScanCodeFailure(Exception e) {
-        ToastUtils.show("扫码失败");
+        ToastUtils.show("扫码失败 - " + e.getMessage());
     }
 }
