@@ -433,6 +433,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cameraSettingDialogMbPositive"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="@dimen/dp_0"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -443,6 +444,8 @@
             android:insetBottom="@dimen/dp_0"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_10"
+            app:backgroundTint="@color/basic"
+            app:rippleColor="@color/color_1D80C7"
             tools:text="@string/ensure" />
     </LinearLayout>
 </LinearLayout>
