@@ -8,10 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
+import com.qtone.camerause.widget.storage.StorageType;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/3.
@@ -41,11 +39,6 @@ import java.util.regex.Pattern;
  */
 public class DocumentCropProcessor {
     /**
-     * 时间戳及序号正则表达式
-     */
-    private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
-
-    /**
      * 线程消息调度器
      */
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -53,26 +46,6 @@ public class DocumentCropProcessor {
      * 增强实现
      */
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    /**
-     * 从文件名提取时间戳及序号
-     *
-     * @param fileName 文件名
-     *                 如 IMG_1754294400000_0001.jpg
-     * @return 时间戳及序号 [如 1754294400000_0001] [未识别到则使用当前时间戳]
-     */
-    private static @NotNull String extractTimestampAndIndex(String fileName) {
-        if (fileName != null) {
-            Matcher matcher = TIMESTAMP_WITH_INDEX_PATTERN.matcher(fileName);
-            if (matcher.find()) {
-                String result = matcher.group();
-                if (!result.isEmpty()) {
-                    return result;
-                }
-            }
-        }
-        return String.valueOf(CurrentTimeMillisClock.getInstance().now());
-    }
 
     /**
      * 通过路径处理
@@ -141,22 +114,13 @@ public class DocumentCropProcessor {
             notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体 - 文档裁剪");
             return;
         }
-        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.DOCUMENT_CROP);
-        if ((mediaDir != null) && !mediaDir.exists()) {
-            boolean isCreated = mediaDir.mkdirs();
-            if (!isCreated && !mediaDir.exists()) {
-                Log.w(LogKit.TAG, "创建裁剪图片保存目录失败 - 文档裁剪");
-            }
-        }
-        if (mediaDir == null) {
+        File destFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.DOCUMENT_CROP, originalFileName, -1);
+        if (destFile == null) {
             croppedMat.release();
             notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录 - 文档裁剪");
             return;
         }
-        // 从源文件名中提取时间戳及序号
-        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
-        String timeAndIndexKey = extractTimestampAndIndex(originalFileName);
-        String outputPath = new File(mediaDir, "DOC_CROP_" + timeAndIndexKey + ".jpg").getAbsolutePath();
+        String outputPath = destFile.getAbsolutePath();
         boolean saved = Imgcodecs.imwrite(outputPath, croppedMat);
         Bitmap resultBitmap = matToBitmap(croppedMat);
         croppedMat.release();
