@@ -82,18 +82,18 @@ public class MediaStorageConfig {
      * @param folderName 目录名称
      */
     public void init(Context context, String folderName) {
-        init(context, folderName, StorageMode.EXTERNAL_PRIVATE);
+        init(context, folderName, MediaStorageMode.EXTERNAL_PRIVATE);
     }
 
     /**
      * 初始化
      *
-     * @param context     上下文
-     * @param folderName  目录名称
-     * @param storageMode 存储模式
+     * @param context          上下文
+     * @param folderName       目录名称
+     * @param mediaStorageMode 媒体存储模式
      */
-    public void init(Context context, String folderName, StorageMode storageMode) {
-        init(context, folderName, storageMode, Environment.DIRECTORY_DCIM);
+    public void init(Context context, String folderName, MediaStorageMode mediaStorageMode) {
+        init(context, folderName, mediaStorageMode, Environment.DIRECTORY_DCIM);
     }
 
     /**
@@ -101,25 +101,25 @@ public class MediaStorageConfig {
      *
      * @param context                     上下文
      * @param folderName                  目录名称
-     * @param storageMode                 存储模式
+     * @param mediaStorageMode            媒体存储模式
      * @param externalPublicDirectoryType 外部公共目录类型
      *                                    仅 StorageMode.EXTERNAL_PUBLIC 模式下生效
      *                                    如 Environment.DIRECTORY_DCIM / Environment.DIRECTORY_PICTURES
      */
-    public void init(Context context, String folderName, StorageMode storageMode, String externalPublicDirectoryType) {
+    public void init(Context context, String folderName, MediaStorageMode mediaStorageMode, String externalPublicDirectoryType) {
         if (context == null) {
             return;
         }
         Context appContext = context.getApplicationContext();
         String targetFolderName = TextUtils.isEmpty(folderName) ? "ZYR" : folderName;
-        StorageMode mode = (storageMode == null) ? StorageMode.INTERNAL : storageMode;
+        MediaStorageMode mode = (mediaStorageMode == null) ? MediaStorageMode.INTERNAL : mediaStorageMode;
         File baseDir;
-        if (mode == StorageMode.EXTERNAL_PUBLIC) {
+        if (mode == MediaStorageMode.EXTERNAL_PUBLIC) {
             // 外部公共存储
             // 如 /storage/emulated/0/DCIM 或 /storage/emulated/0/Pictures
             String dirType = TextUtils.isEmpty(externalPublicDirectoryType) ? Environment.DIRECTORY_DCIM : externalPublicDirectoryType;
             baseDir = Environment.getExternalStoragePublicDirectory(dirType);
-        } else if (mode == StorageMode.EXTERNAL_PRIVATE) {
+        } else if (mode == MediaStorageMode.EXTERNAL_PRIVATE) {
             // 外部私有存储
             // 无需动态申请 WRITE_EXTERNAL_STORAGE 权限 + 适用 Android 10+
             baseDir = appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -158,29 +158,29 @@ public class MediaStorageConfig {
     }
 
     /**
-     * 通过存储类型获取专属子目录文件
+     * 通过媒体存储类型获取专属子目录文件
      * <p>
      * 场景二
      * 针对不同业务模块划分独立子目录时调
      * 路径规则 [基础根目录]/[StorageType.subFolderName]
      * 注意 storageType 为 null 或未定义子目录将自动退化返回基础根目录文件
      *
-     * @param storageType 存储类型
-     *                    参考 {@link StorageType}
+     * @param mediaStorageType 媒体存储类型
+     *                         参考 {@link MediaStorageType}
      * @return 专属子目录文件
      */
-    public File getDirectoryFileByStorageType(StorageType storageType) {
+    public File getDirectoryFileByStorageType(MediaStorageType mediaStorageType) {
         File parentDir = getDirectoryFile();
         if (parentDir == null) {
             return null;
         }
-        if ((storageType == null) || TextUtils.isEmpty(storageType.getSubFolderName())) {
+        if ((mediaStorageType == null) || TextUtils.isEmpty(mediaStorageType.getSubFolderName())) {
             return parentDir;
         }
-        File targetDir = new File(parentDir, storageType.getSubFolderName());
+        File targetDir = new File(parentDir, mediaStorageType.getSubFolderName());
         if (!targetDir.exists()) {
             boolean isSuccess = targetDir.mkdirs();
-            Log.d(LogKit.TAG, "媒体存储文件夹初始化 [" + storageType.name() + "]\n绝对路径 || " + targetDir.getAbsolutePath() + "\n结果 || " + isSuccess);
+            Log.d(LogKit.TAG, "媒体存储文件夹初始化 [" + mediaStorageType.name() + "]\n绝对路径 || " + targetDir.getAbsolutePath() + "\n结果 || " + isSuccess);
         }
         return targetDir;
     }
@@ -188,28 +188,28 @@ public class MediaStorageConfig {
     /**
      * 生成保存文件
      *
-     * @param storageType 存储类型
-     * @param sourcePath  资源路径
+     * @param mediaStorageType 媒体存储类型
+     * @param sourcePath       资源路径
      * @return 保存文件
      */
-    public @Nullable File generateSaveFile(StorageType storageType, String sourcePath) {
-        return generateSaveFile(storageType, sourcePath, -1);
+    public @Nullable File generateSaveFile(MediaStorageType mediaStorageType, String sourcePath) {
+        return generateSaveFile(mediaStorageType, sourcePath, -1);
     }
 
     /**
      * 生成保存文件
      *
-     * @param storageType 存储类型
-     * @param sourcePath  资源路径
-     * @param subIndex    子下标
+     * @param mediaStorageType 媒体存储类型
+     * @param sourcePath       资源路径
+     * @param subIndex         子下标
      * @return 保存文件
      */
-    public @Nullable File generateSaveFile(StorageType storageType, String sourcePath, int subIndex) {
-        File dir = getDirectoryFileByStorageType(storageType);
+    public @Nullable File generateSaveFile(MediaStorageType mediaStorageType, String sourcePath, int subIndex) {
+        File dir = getDirectoryFileByStorageType(mediaStorageType);
         if (dir == null) {
             return null;
         }
-        String fileName = MediaFileNameEngine.generateFileName(storageType, sourcePath, subIndex);
+        String fileName = MediaFileNameEngine.generateFileName(mediaStorageType, sourcePath, subIndex);
         return new File(dir, fileName);
     }
 }

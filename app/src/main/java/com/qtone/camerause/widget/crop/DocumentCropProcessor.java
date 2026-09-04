@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
-import com.qtone.camerause.widget.storage.StorageType;
+import com.qtone.camerause.widget.storage.MediaStorageType;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -114,7 +114,7 @@ public class DocumentCropProcessor {
             notifyError(onDocumentCropCallback, "未能精确识别到试卷白纸主体 - 文档裁剪");
             return;
         }
-        File destFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.DOCUMENT_CROP, originalFileName, -1);
+        File destFile = MediaStorageConfig.getInstance().generateSaveFile(MediaStorageType.DOCUMENT_CROP, originalFileName, -1);
         if (destFile == null) {
             croppedMat.release();
             notifyError(onDocumentCropCallback, "无法获取裁剪图片保存目录 - 文档裁剪");

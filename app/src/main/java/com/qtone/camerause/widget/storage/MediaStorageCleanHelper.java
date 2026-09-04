@@ -10,17 +10,17 @@ import java.io.File;
  * Created on 2026/9/4.
  *
  * @author 郑少鹏
- * @desc 存储清理辅助者
+ * @desc 媒体存储清理辅助者
  */
-public class StorageCleanHelper {
+public class MediaStorageCleanHelper {
     /**
-     * 根据存储类型清理目录
+     * 根据媒体存储类型清理目录
      *
-     * @param storageType 存储类型
+     * @param mediaStorageType 媒体存储类型
      * @return 是否成功删除该目录下所有文件
      */
-    public static boolean clearDirectoryByStorageType(StorageType storageType) {
-        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(storageType);
+    public static boolean clearDirectoryByMediaStorageType(MediaStorageType mediaStorageType) {
+        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(mediaStorageType);
         if ((targetDir == null) || !targetDir.exists() || !targetDir.isDirectory()) {
             return false;
         }
@@ -32,24 +32,24 @@ public class StorageCleanHelper {
         for (File file : files) {
             if (file.isFile() && !file.delete()) {
                 isAllDeleted = false;
-                Log.w(LogKit.TAG, "删除指定存储类型缓存文件失败 || " + file.getAbsolutePath());
+                Log.w(LogKit.TAG, "删除指定媒体存储类型缓存文件失败 || " + file.getAbsolutePath());
             }
         }
-        Log.d(LogKit.TAG, "清理媒体存储目录 [" + storageType.name() + "]\n清理结果 || " + isAllDeleted);
+        Log.d(LogKit.TAG, "清理媒体存储目录 [" + mediaStorageType.name() + "]\n清理结果 || " + isAllDeleted);
         return isAllDeleted;
     }
 
     /**
-     * 根据存储类型清理过期文件
+     * 根据媒体存储类型清理过期文件
      *
-     * @param storageType 存储类型
-     * @param maxKeepMs   最大保存时长毫秒
+     * @param mediaStorageType 媒体存储类型
+     * @param maxKeepMs        最大保存时长毫秒
      */
-    public static void clearExpiredFilesByStorageType(StorageType storageType, long maxKeepMs) {
+    public static void clearExpiredFilesByMediaStorageType(MediaStorageType mediaStorageType, long maxKeepMs) {
         if (maxKeepMs <= 0) {
             return;
         }
-        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(storageType);
+        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(mediaStorageType);
         if ((targetDir == null) || !targetDir.exists() || !targetDir.isDirectory()) {
             return;
         }
@@ -66,17 +66,17 @@ public class StorageCleanHelper {
                 }
             }
         }
-        Log.d(LogKit.TAG, "清理过期媒体文件 [" + storageType.name() + "]\n清理数量 || " + deletedCount);
+        Log.d(LogKit.TAG, "清理过期媒体文件 [" + mediaStorageType.name() + "]\n清理数量 || " + deletedCount);
     }
 
     /**
-     * 根据存储类型获取目录大小
+     * 根据媒体存储类型获取目录大小
      *
-     * @param storageType 存储类型
+     * @param mediaStorageType 媒体存储类型
      * @return 目录大小
      */
-    public static long getDirectorySizeByStorageType(StorageType storageType) {
-        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(storageType);
+    public static long getDirectorySizeByMediaStorageType(MediaStorageType mediaStorageType) {
+        File targetDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(mediaStorageType);
         if ((targetDir == null) || !targetDir.exists() || !targetDir.isDirectory()) {
             return 0L;
         }

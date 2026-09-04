@@ -4,9 +4,9 @@ package com.qtone.camerause.widget.storage;
  * Created on 2026/9/4.
  *
  * @author 郑少鹏
- * @desc 存储模式
+ * @desc 媒体存储模式
  */
-public enum StorageMode {
+public enum MediaStorageMode {
     /**
      * 内部存储
      */

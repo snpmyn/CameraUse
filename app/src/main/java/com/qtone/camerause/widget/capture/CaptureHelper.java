@@ -8,7 +8,7 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.storage.MediaFileNameEngine;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
-import com.qtone.camerause.widget.storage.StorageType;
+import com.qtone.camerause.widget.storage.MediaStorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ public class CaptureHelper {
      * @return 保存路径
      */
     public static @Nullable String generateSavePath(Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        File targetFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.CAPTURE, null);
+        File targetFile = MediaStorageConfig.getInstance().generateSaveFile(MediaStorageType.CAPTURE, null);
         if (targetFile == null) {
             notifyError(handler, onCaptureCallBack, "无法获取照片存储目录");
             return null;

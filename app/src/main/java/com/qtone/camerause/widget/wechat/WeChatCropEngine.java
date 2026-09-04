@@ -9,7 +9,7 @@ import android.util.Log;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
-import com.qtone.camerause.widget.storage.StorageType;
+import com.qtone.camerause.widget.storage.MediaStorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
@@ -158,7 +158,7 @@ public class WeChatCropEngine {
                     for (int i = 0; i < finalMatList.size(); i++) {
                         // 1, 2, 3...
                         int index = i + 1;
-                        File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.WE_CHAT_CROP, imagePath, index);
+                        File saveFile = MediaStorageConfig.getInstance().generateSaveFile(MediaStorageType.WE_CHAT_CROP, imagePath, index);
                         if (saveFile != null) {
                             String savePath = saveFile.getAbsolutePath();
                             boolean saved = Imgcodecs.imwrite(savePath, finalMatList.get(i));

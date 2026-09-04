@@ -79,16 +79,16 @@ public class MediaFileNameEngine {
      * 默认追加序号 _01
      * 多张处理 _01, _02...
      *
-     * @param storageType 存储类型
-     * @param sourcePath  资源路径
-     * @param subIndex    子下标
+     * @param mediaStorageType 媒体存储类型
+     * @param sourcePath       资源路径
+     * @param subIndex         子下标
      * @return 文件名
      */
-    public static String generateFileName(StorageType storageType, String sourcePath, int subIndex) {
-        StorageType type = (storageType != null) ? storageType : StorageType.CAPTURE;
+    public static String generateFileName(MediaStorageType mediaStorageType, String sourcePath, int subIndex) {
+        MediaStorageType type = (mediaStorageType != null) ? mediaStorageType : MediaStorageType.CAPTURE;
         String prefix = type.getFileNamePrefix();
         String rootKey = parseOrGenerateRootKey(sourcePath);
-        if (type == StorageType.CAPTURE) {
+        if (type == MediaStorageType.CAPTURE) {
             // 拍照原图
             // 不加子序号后缀
             // IMG_1754294400000_0001.jpg

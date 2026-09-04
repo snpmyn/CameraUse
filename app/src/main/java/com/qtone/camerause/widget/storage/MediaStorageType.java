@@ -4,9 +4,9 @@ package com.qtone.camerause.widget.storage;
  * Created on 2026/9/4.
  *
  * @author 郑少鹏
- * @desc 存储类型
+ * @desc 媒体存储类型
  */
-public enum StorageType {
+public enum MediaStorageType {
     /**
      * 拍照
      */
@@ -42,7 +42,7 @@ public enum StorageType {
      * @param subFolderName  子文件夹名
      * @param fileNamePrefix 文件名前缀
      */
-    StorageType(String subFolderName, String fileNamePrefix) {
+    MediaStorageType(String subFolderName, String fileNamePrefix) {
         this.subFolderName = subFolderName;
         this.fileNamePrefix = fileNamePrefix;
     }

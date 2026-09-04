@@ -15,7 +15,7 @@ import androidx.exifinterface.media.ExifInterface;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
-import com.qtone.camerause.widget.storage.StorageType;
+import com.qtone.camerause.widget.storage.MediaStorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +68,7 @@ public class ImageRoiProcessor {
                 }
                 // 创建裁剪子图 Bitmap
                 Bitmap croppedBitmap = Bitmap.createBitmap(srcBitmap, cropLeft, cropTop, cropWidth, cropHeight);
-                File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.ROI_CROP, imagePath, i + 1);
+                File saveFile = MediaStorageConfig.getInstance().generateSaveFile(MediaStorageType.ROI_CROP, imagePath, i + 1);
                 if (saveFile == null) {
                     if (!croppedBitmap.isRecycled()) {
                         croppedBitmap.recycle();
@@ -157,7 +157,7 @@ public class ImageRoiProcessor {
             // 覆盖原图
             outputPath = imagePath;
         } else {
-            File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.ROI_OVERLAY, imagePath, -1);
+            File saveFile = MediaStorageConfig.getInstance().generateSaveFile(MediaStorageType.ROI_OVERLAY, imagePath, -1);
             if (saveFile == null) {
                 if (!srcBitmap.isRecycled()) {
                     srcBitmap.recycle();
