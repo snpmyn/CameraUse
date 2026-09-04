@@ -4,9 +4,9 @@ package com.qtone.camerause.widget.button;
  * Created on 2026/9/1.
  *
  * @author 郑少鹏
- * @desc 拍照按钮形状
+ * @desc 流光按钮形状
  */
-public enum CaptureButtonShape {
+public enum ShimmerButtonShape {
     /**
      * 圆形
      */
@@ -25,7 +25,7 @@ public enum CaptureButtonShape {
      *
      * @param value 值
      */
-    CaptureButtonShape(int value) {
+    ShimmerButtonShape(int value) {
         this.value = value;
     }
 
@@ -33,12 +33,12 @@ public enum CaptureButtonShape {
      * 从值
      *
      * @param val 变量
-     * @return 拍照按钮形状
+     * @return 流光按钮形状
      */
-    static CaptureButtonShape fromValue(int val) {
-        for (CaptureButtonShape captureButtonShape : values()) {
-            if (captureButtonShape.value == val) {
-                return captureButtonShape;
+    static ShimmerButtonShape fromValue(int val) {
+        for (ShimmerButtonShape shimmerButtonShape : values()) {
+            if (shimmerButtonShape.value == val) {
+                return shimmerButtonShape;
             }
         }
         return CIRCLE;
