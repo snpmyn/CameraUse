@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
+import com.qtone.camerause.R;
 import com.qtone.camerause.util.log.LogKit;
 
 /**
@@ -35,6 +36,10 @@ public class CaptureProcessor {
      * 使用 volatile 保证多线程读写可见性
      */
     private volatile CaptureState captureState = CaptureState.IDLE;
+    /**
+     * 单拍包装回调
+     */
+    private volatile OnCaptureCallback singleCaptureWrapCallback;
 
     /**
      * constructor
@@ -87,7 +92,10 @@ public class CaptureProcessor {
      */
     public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.FRAME_CAPTURE) {
-            frameCaptureProcessor.processFrame(data, width, height, dataFormat, onCaptureCallBack);
+            OnCaptureCallback targetCallback = ((captureState == CaptureState.SINGLE_CAPTURE_RUNNING) && (singleCaptureWrapCallback != null))
+                    ? singleCaptureWrapCallback
+                    : onCaptureCallBack;
+            frameCaptureProcessor.processFrame(data, width, height, dataFormat, targetCallback);
         }
     }
 
@@ -102,17 +110,58 @@ public class CaptureProcessor {
         // 单拍进行中
         // 不重复触发
         if (captureState == CaptureState.SINGLE_CAPTURE_RUNNING) {
-            notifyError(onCaptureCallBack, "单拍进行中");
+            notifyError(onCaptureCallBack, context.getString(R.string.singleCaptureRunning));
+            return;
+        }
+        // 连拍进行中
+        // 不触发单拍
+        if (captureState == CaptureState.BURST_CAPTURE_RUNNING) {
+            notifyError(onCaptureCallBack, context.getString(R.string.burstCaptureRunning));
             return;
         }
         // 标记单拍进行中
         captureState = CaptureState.SINGLE_CAPTURE_RUNNING;
+        // 包装回调
+        OnCaptureCallback wrapCallback = new OnCaptureCallback() {
+            @Override
+            public void onCaptureBegin() {
+                if (onCaptureCallBack != null) {
+                    onCaptureCallBack.onCaptureBegin();
+                }
+            }
+
+            @Override
+            public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
+                if (onCaptureCallBack != null) {
+                    onCaptureCallBack.onCaptureProcessing(data, width, height, captureMode);
+                }
+            }
+
+            @Override
+            public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
+                captureState = CaptureState.IDLE;
+                singleCaptureWrapCallback = null;
+                if (onCaptureCallBack != null) {
+                    onCaptureCallBack.onCaptureSuccess(savePath, width, height, captureMode);
+                }
+            }
+
+            @Override
+            public void onCaptureError(String errorMsg) {
+                captureState = CaptureState.IDLE;
+                singleCaptureWrapCallback = null;
+                if (onCaptureCallBack != null) {
+                    onCaptureCallBack.onCaptureError(errorMsg);
+                }
+            }
+        };
+        this.singleCaptureWrapCallback = wrapCallback;
         if (captureStrategy == CaptureStrategy.SDK_CAPTURE) {
             // 开始单拍
-            sdkCaptureProcessor.startSingleCapture(context, iCamera, onCaptureCallBack);
+            sdkCaptureProcessor.startSingleCapture(context, iCamera, wrapCallback);
         } else {
             // 开始单拍
-            frameCaptureProcessor.startSingleCapture(context, iCamera, onCaptureCallBack);
+            frameCaptureProcessor.startSingleCapture(context, iCamera, wrapCallback);
         }
     }
 
@@ -128,7 +177,13 @@ public class CaptureProcessor {
         // 连拍进行中
         // 不重复触发
         if (captureState == CaptureState.BURST_CAPTURE_RUNNING) {
-            notifyError(onCaptureCallBack, "连拍进行中");
+            notifyError(onCaptureCallBack, context.getString(R.string.burstCaptureRunning));
+            return;
+        }
+        // 单拍进行中
+        // 不触发连拍
+        if (captureState == CaptureState.SINGLE_CAPTURE_RUNNING) {
+            notifyError(onCaptureCallBack, context.getString(R.string.singleCaptureRunning));
             return;
         }
         // 标记连拍进行中
@@ -149,8 +204,6 @@ public class CaptureProcessor {
         sdkCaptureProcessor.stopBurstCapture();
         frameCaptureProcessor.stopBurstCapture();
         if (captureState == CaptureState.BURST_CAPTURE_RUNNING) {
-            Log.d(LogKit.TAG, "停止连拍 -> 恢复空闲");
-            // 停止连拍 -> 恢复空闲
             captureState = CaptureState.IDLE;
         }
     }
@@ -162,16 +215,29 @@ public class CaptureProcessor {
      * @return 拍照成功是否来自单拍
      */
     public boolean captureSuccessFromSingleCapture(CaptureMode captureMode) {
-        return ((captureMode == CaptureMode.SINGLE_CAPTURE) && (captureState == CaptureState.SINGLE_CAPTURE_RUNNING));
+        return ((captureMode == CaptureMode.SINGLE_CAPTURE));
     }
 
     /**
      * 拍照错误是否来自单拍
+     * <p>
+     * 包装回调触发上层错误回调后才切状态为 {@link CaptureState#IDLE}
+     * 因此调时 {@link #captureState} 仍为 {@link CaptureState#SINGLE_CAPTURE_RUNNING}
      *
      * @return 拍照错误是否来自单拍
      */
     public boolean captureErrorFromSingleCapture() {
         return (captureState == CaptureState.SINGLE_CAPTURE_RUNNING);
+    }
+
+    /**
+     * 拍照成功是否来自连拍
+     *
+     * @param captureMode 拍照模式
+     * @return 拍照成功是否来自连拍
+     */
+    public boolean captureSuccessFromBurstCapture(CaptureMode captureMode) {
+        return ((captureMode == CaptureMode.BURST_CAPTURE));
     }
 
     /**
@@ -194,6 +260,7 @@ public class CaptureProcessor {
         sdkCaptureProcessor.release();
         frameCaptureProcessor.release();
         captureState = CaptureState.IDLE;
+        singleCaptureWrapCallback = null;
     }
 
     /**
