@@ -104,6 +104,8 @@ public class FrameCaptureProcessor {
         isSingleActive.set(true);
         // 连拍状态锁
         isBurstActive.set(false);
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 通知开始
         CaptureHelper.notifyBegin(handler, onCaptureCallBack);
     }
@@ -130,8 +132,8 @@ public class FrameCaptureProcessor {
         isBurstActive.set(true);
         // 单拍状态锁
         isSingleActive.set(false);
-        // 重置连拍序号
-        CaptureHelper.resetBurstSequence();
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
         // 连拍间隔毫秒
@@ -262,7 +264,7 @@ public class FrameCaptureProcessor {
             }
             handler.post(() -> {
                 if (onCaptureCallBack != null) {
-                    Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                    Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
                     onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
                 }
             });
