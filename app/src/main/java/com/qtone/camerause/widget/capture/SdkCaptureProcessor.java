@@ -94,6 +94,8 @@ public class SdkCaptureProcessor {
         currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(false);
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 线程消息调度器
         handler.removeCallbacks(sdkBurstRunnable);
         // 相机实例
@@ -126,8 +128,8 @@ public class SdkCaptureProcessor {
         currentCaptureMode = CaptureMode.BURST_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(true);
-        // 重置连拍序号
-        CaptureHelper.resetBurstSequence();
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
         burstIntervalMs = Math.max(150L, intervalMs);
