@@ -1,11 +1,7 @@
 package com.qtone.camerause.model.main;
 
-import android.content.pm.PackageManager;
-
-import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
 
-import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityMainBinding;
@@ -54,6 +50,8 @@ public class MainActivity extends BasePoolActivity {
         MaterialToolbarKit.getInstance().setMenuOverflowIconSize(this, activityMainBinding.mainActivityMt, R.dimen.dp_24);
         MaterialToolbarKit.getInstance().setMenuOverflowIconTintColor(this, activityMainBinding.mainActivityMt, R.color.white);
         /*MaterialToolbarKit.getInstance().setMenuOverflowIcon(this, activityMainBinding.mainActivityMt, R.drawable.ic_arrows_more_down_cos_24dp);*/
+        MaterialToolbarKit.getInstance().setMenuItemIconMarginRight(this, activityMainBinding.mainActivityMt, R.id.mainActivityMenuDeviceInfo, R.dimen.dp_10);
+        MaterialToolbarKit.getInstance().setMenuItemIconMarginRight(this, activityMainBinding.mainActivityMt, R.id.mainActivityMenuSwitchResolution, R.dimen.dp_10);
     }
 
     /**
@@ -82,31 +80,5 @@ public class MainActivity extends BasePoolActivity {
     protected void startLogic() {
         // 检查并请求权限
         mainActivityKit.checkAndRequestPermission();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MainActivityKit.REQUEST_CAMERA_PERMISSION_CODE) {
-            // 校验申请的常规运行时权限是否均被授予
-            boolean allGranted = true;
-            if (grantResults.length > 0) {
-                for (int grantResult : grantResults) {
-                    if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                        allGranted = false;
-                        break;
-                    }
-                }
-            } else {
-                allGranted = false;
-            }
-            if (allGranted) {
-                // 常规运行时权限均被授予 -> 继续检查所有文件管理权限
-                mainActivityKit.checkAndRequestPermission();
-            } else {
-                // 权限申请被拒
-                ToastUtils.show("需要相机和存储权限才能正常使用");
-            }
-        }
     }
 }
