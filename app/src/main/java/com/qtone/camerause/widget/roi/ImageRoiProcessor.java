@@ -12,10 +12,10 @@ import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
 
-import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
+import com.qtone.camerause.widget.storage.StorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/18.
@@ -36,11 +34,6 @@ import java.util.regex.Pattern;
  * @desc 图片 ROI 处理器
  */
 public class ImageRoiProcessor {
-    /**
-     * 时间戳及序号正则表达式
-     */
-    private static final Pattern TIMESTAMP_WITH_INDEX_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
-
     /**
      * 从图片文件裁剪 ROI
      *
@@ -57,18 +50,7 @@ public class ImageRoiProcessor {
         }
         Bitmap srcBitmap = centerCropTransform.srcBitmap;
         List<RectF> mappedRects = centerCropTransform.mappedRects;
-        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.ROI_CROP);
-        if ((mediaDir != null) && !mediaDir.exists()) {
-            boolean isCreated = mediaDir.mkdirs();
-            if (!isCreated && !mediaDir.exists()) {
-                Log.w(LogKit.TAG, "创建图片 ROI 裁剪保存目录失败 - 图片 ROI 裁剪");
-            }
-        }
         List<String> croppedPaths = new ArrayList<>();
-        // 从源文件名中提取时间戳及序号
-        // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
-        String srcFileName = new File(imagePath).getName();
-        String timeAndIndexKey = extractTimestampAndIndex(srcFileName);
         try {
             // 遍历各个 ROI 区域并执行裁剪
             for (int i = 0; i < mappedRects.size(); i++) {
@@ -86,15 +68,14 @@ public class ImageRoiProcessor {
                 }
                 // 创建裁剪子图 Bitmap
                 Bitmap croppedBitmap = Bitmap.createBitmap(srcBitmap, cropLeft, cropTop, cropWidth, cropHeight);
-                // 生成输出文件路径
-                // ROI_CROP_源文件时间戳及序号_ROI 索引.jpg
-                String fileName = "ROI_CROP_" + timeAndIndexKey + "_" + (i + 1) + ".jpg";
-                String outputPath;
-                if (mediaDir != null) {
-                    outputPath = new File(mediaDir, fileName).getAbsolutePath();
-                } else {
-                    outputPath = new File(new File(imagePath).getParent(), fileName).getAbsolutePath();
+                File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.ROI_CROP, imagePath, i + 1);
+                if (saveFile == null) {
+                    if (!croppedBitmap.isRecycled()) {
+                        croppedBitmap.recycle();
+                    }
+                    continue;
                 }
+                String outputPath = saveFile.getAbsolutePath();
                 // 写入文件
                 try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
                     croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
@@ -176,23 +157,17 @@ public class ImageRoiProcessor {
             // 覆盖原图
             outputPath = imagePath;
         } else {
-            File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.ROI_OVERLAY);
-            if ((mediaDir != null) && !mediaDir.exists()) {
-                boolean isCreated = mediaDir.mkdirs();
-                if (!isCreated && !mediaDir.exists()) {
-                    Log.w(LogKit.TAG, "创建图片 ROI 叠加保存目录失败 - 图片 ROI 覆盖");
+            File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.ROI_OVERLAY, imagePath, -1);
+            if (saveFile == null) {
+                if (!srcBitmap.isRecycled()) {
+                    srcBitmap.recycle();
                 }
+                if (!resultBitmap.isRecycled()) {
+                    resultBitmap.recycle();
+                }
+                return imagePath;
             }
-            // 从源文件名中提取时间戳及序号
-            // 如 IMG_1754294400000_0001.jpg -> 1754294400000_0001
-            String srcFileName = new File(imagePath).getName();
-            String timeAndIndexKey = extractTimestampAndIndex(srcFileName);
-            String overlayFileName = "ROI_OVERLAY_" + timeAndIndexKey + ".jpg";
-            if (mediaDir != null) {
-                outputPath = new File(mediaDir, overlayFileName).getAbsolutePath();
-            } else {
-                outputPath = new File(new File(imagePath).getParent(), overlayFileName).getAbsolutePath();
-            }
+            outputPath = saveFile.getAbsolutePath();
         }
         try (FileOutputStream fileOutputStream = new FileOutputStream(outputPath)) {
             // 将 Bitmap 编码压缩写入文件
@@ -213,26 +188,6 @@ public class ImageRoiProcessor {
             }
         }
         return outputPath;
-    }
-
-    /**
-     * 从文件名提取时间戳及序号
-     *
-     * @param fileName 文件名
-     *                 如 IMG_1754294400000_0001.jpg
-     * @return 时间戳及序号 [如 1754294400000_0001] [未识别到则使用当前时间戳]
-     */
-    private static @NotNull String extractTimestampAndIndex(String fileName) {
-        if (fileName != null) {
-            Matcher matcher = TIMESTAMP_WITH_INDEX_PATTERN.matcher(fileName);
-            if (matcher.find()) {
-                String result = matcher.group();
-                if (!result.isEmpty()) {
-                    return result;
-                }
-            }
-        }
-        return String.valueOf(CurrentTimeMillisClock.getInstance().now());
     }
 
     /**
