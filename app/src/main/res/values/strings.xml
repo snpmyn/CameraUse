@@ -3,7 +3,6 @@
     <string name="singleCapture">单拍</string>
     <string name="burstCapture">连拍</string>
     <string name="scanCode">扫码</string>
-    <string name="stopScanCode">停止\n扫码</string>
     <string name="switchResolution">切分辨率</string>
     <string name="setting">设置</string>
     <string name="gallery">图库</string>
@@ -34,4 +33,12 @@
     <string name="hue">色调</string>
     <string name="sharpness">锐度</string>
     <string name="saturation">饱和度</string>
+    <string name="cameraAreBasedOnThePermission">拍照需要该权限</string>
+    <string name="agree">同意</string>
+    <string name="refuse">拒绝</string>
+    <string name="youNeedToAllowNecessaryPermissionInSettingManually">你需要手动在设置中授予该权限</string>
+    <string name="cameraNotDetected">未检测到摄像头</string>
+    <string name="burstCaptureRunning">连拍进行中</string>
+    <string name="singleCaptureRunning">单拍进行中</string>
+    <string name="noClickRepeat">勿重复点击</string>
 </resources>

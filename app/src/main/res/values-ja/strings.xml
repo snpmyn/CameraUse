@@ -3,7 +3,6 @@
     <string name="singleCapture">単写</string>
     <string name="burstCapture">連写</string>
     <string name="scanCode">QRスキャン</string>
-    <string name="stopScanCode">スキャン\n停止</string>
     <string name="switchResolution">解像度切替</string>
     <string name="setting">設定</string>
     <string name="gallery">ギャラリー</string>
@@ -34,4 +33,12 @@
     <string name="hue">色相</string>
     <string name="sharpness">シャープネス</string>
     <string name="saturation">彩度</string>
+    <string name="cameraAreBasedOnThePermission">カメラの利用にはこの権限が必要です</string>
+    <string name="agree">許可する</string>
+    <string name="refuse">許可しない</string>
+    <string name="youNeedToAllowNecessaryPermissionInSettingManually">設定画面から手動で必要な権限を許可してください</string>
+    <string name="cameraNotDetected">カメラが検出されませんでした</string>
+    <string name="burstCaptureRunning">高速連写中</string>
+    <string name="singleCaptureRunning">1枚撮影中</string>
+    <string name="noClickRepeat">連続タップしないでください</string>
 </resources>
