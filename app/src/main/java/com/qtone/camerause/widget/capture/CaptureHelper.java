@@ -4,17 +4,16 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
-import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.widget.camera.CameraController;
+import com.qtone.camerause.widget.storage.MediaFileNameEngine;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
+import com.qtone.camerause.widget.storage.StorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created on 2026/8/8.
@@ -24,17 +23,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class CaptureHelper {
     /**
-     * 连拍序号
-     * <p>
-     * 自动生成 + 规避同毫秒生成文件名冲突覆盖
+     * 重置序号
      */
-    private static final AtomicLong burstSequence = new AtomicLong(0);
-
-    /**
-     * 重置连拍序号
-     */
-    public static void resetBurstSequence() {
-        burstSequence.set(0);
+    public static void resetSequence() {
+        MediaFileNameEngine.resetSequence();
     }
 
     /**
@@ -61,24 +53,21 @@ public class CaptureHelper {
      * @return 保存路径
      */
     public static @Nullable String generateSavePath(Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.CAPTURE);
-        if (mediaDir == null) {
-            notifyError(handler, onCaptureCallBack, "无法获取图片存储目录");
+        File targetFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.CAPTURE, null);
+        if (targetFile == null) {
+            notifyError(handler, onCaptureCallBack, "无法获取照片存储目录");
             return null;
         }
-        if (!mediaDir.exists()) {
-            boolean created = mediaDir.mkdirs();
-            if (!created && !mediaDir.exists()) {
-                Log.e(LogKit.TAG, "创建图片存储目录失败 || " + mediaDir.getAbsolutePath());
-                notifyError(handler, onCaptureCallBack, "创建图片存储目录失败");
+        File parentDir = targetFile.getParentFile();
+        if ((parentDir != null) && !parentDir.exists()) {
+            boolean created = parentDir.mkdirs();
+            if (!created && !parentDir.exists()) {
+                Log.e(LogKit.TAG, "创建照片存储目录失败 || " + parentDir.getAbsolutePath());
+                notifyError(handler, onCaptureCallBack, "创建照片存储目录失败");
                 return null;
             }
         }
-        // 文件名
-        // IMG_时间戳_序号.jpg
-        // 使用 CurrentTimeMillisClock 规避相机高频帧下的系统 JNI 性能开销
-        String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", CurrentTimeMillisClock.getInstance().now(), burstSequence.incrementAndGet());
-        return new File(mediaDir, fileName).getAbsolutePath();
+        return targetFile.getAbsolutePath();
     }
 
     /**
