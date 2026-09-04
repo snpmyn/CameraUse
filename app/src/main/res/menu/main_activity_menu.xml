@@ -7,14 +7,14 @@
         android:icon="@drawable/ic_vacuum_cos_24dp"
         android:title="@string/deviceInfo"
         app:iconTint="@color/white"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/mainActivityMenuSwitchResolution"
         android:contentDescription="@string/switchResolution"
         android:icon="@drawable/ic_image_aspect_ratio_cos_24dp"
         android:title="@string/switchResolution"
         app:iconTint="@color/white"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/mainActivityMenuSwitchCamera"
         android:contentDescription="@string/switchCamera"
