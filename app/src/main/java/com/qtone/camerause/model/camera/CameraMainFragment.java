@@ -13,9 +13,9 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.value.CameraResolution;
-import com.qtone.camerause.widget.button.CaptureButton;
-import com.qtone.camerause.widget.button.CaptureButtonState;
-import com.qtone.camerause.widget.button.OnCaptureButtonCallback;
+import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
+import com.qtone.camerause.widget.button.ShimmerButton;
+import com.qtone.camerause.widget.button.ShimmerButtonState;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 import com.qtone.camerause.widget.scan.ViewFinderView;
 
@@ -31,7 +31,9 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     /**
      * 控件
      */
-    public CaptureButton cameraMainFragmentCbSingleCapture;
+    public ShimmerButton cameraMainFragmentSbSingleCapture;
+    public ShimmerButton cameraMainFragmentSbBurstCapture;
+    public ShimmerButton cameraMainFragmentSbScanCode;
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
@@ -92,63 +94,99 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
-        cameraMainFragmentCbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentCbSingleCapture);
-        cameraMainFragmentCbSingleCapture.setOnCaptureButtonCallback(new OnCaptureButtonCallback() {
+        cameraMainFragmentSbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentSbSingleCapture);
+        cameraMainFragmentSbSingleCapture.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
             @Override
-            public boolean onCaptureButtonPreCheck() {
-                boolean enableHandleSingleCaptureButton = cameraMainFragmentKit.enableHandleSingleCaptureButton();
-                if (!enableHandleSingleCaptureButton) {
-                    ToastUtils.show("先停止连拍");
+            public boolean onShimmerButtonIntercept() {
+                boolean enableHandleSingleCaptureButton = cameraMainFragmentSbSingleCapture.isBusy();
+                if (enableHandleSingleCaptureButton) {
+                    ToastUtils.show(R.string.noClickRepeat);
                 }
                 return enableHandleSingleCaptureButton;
             }
 
             @Override
-            public void onCaptureButtonStart(CaptureButtonState currentCaptureButtonState) {
+            public void onShimmerButtonStart(ShimmerButtonState currentShimmerButtonState) {
+                if (cameraMainFragmentSbBurstCapture.isBusy()) {
+                    ToastUtils.show(R.string.burstCaptureRunning);
+                    cameraMainFragmentSbSingleCapture.stop();
+                    return;
+                }
                 // 单拍按钮点击事件
                 cameraMainFragmentKit.onSingleCaptureClicked();
+                /*File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.CAPTURE);
+                String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", CurrentTimeMillisClock.getInstance().now(), 1);
+                CameraController.getInstance().captureImage(getCurrentCamera(), new ICaptureCallBack() {
+                    @Override
+                    public void onBegin() {
+                        Log.d(LogKit.TAG, "SDK - onBegin");
+                    }
+
+                    @Override
+                    public void onError(@Nullable String error) {
+                        Log.d(LogKit.TAG, "SDK - onError" + error);
+                    }
+
+                    @Override
+                    public void onComplete(@Nullable String path) {
+                        Log.d(LogKit.TAG, "SDK - onComplete" + path);
+                    }
+                }, new File(mediaDir, fileName).getAbsolutePath());*/
             }
 
             @Override
-            public void onCaptureButtonChargeCancel() {
+            public void onShimmerButtonChargeCancel() {
 
             }
 
             @Override
-            public void onCaptureButtonStop() {
+            public void onShimmerButtonStop() {
 
             }
         });
-        CaptureButton cameraMainFragmentCbBurstCapture = rootView.findViewById(R.id.cameraMainFragmentCbBurstCapture);
-        cameraMainFragmentCbBurstCapture.setOnCaptureButtonCallback(new OnCaptureButtonCallback() {
+        cameraMainFragmentSbBurstCapture = rootView.findViewById(R.id.cameraMainFragmentSbBurstCapture);
+        cameraMainFragmentSbBurstCapture.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
             @Override
-            public boolean onCaptureButtonPreCheck() {
-                boolean enableHandleBurstCaptureButton = cameraMainFragmentKit.enableHandleBurstCaptureButton();
-                if (!enableHandleBurstCaptureButton) {
-                    ToastUtils.show("需等单拍结束");
+            public void onShimmerButtonStart(ShimmerButtonState currentShimmerButtonState) {
+                if (cameraMainFragmentSbSingleCapture.isBusy()) {
+                    ToastUtils.show(R.string.singleCaptureRunning);
+                    cameraMainFragmentSbBurstCapture.stop();
+                    return;
                 }
-                return enableHandleBurstCaptureButton;
-            }
-
-            @Override
-            public void onCaptureButtonStart(CaptureButtonState currentCaptureButtonState) {
                 // 连拍按钮点击事件
                 cameraMainFragmentKit.onBurstCaptureClicked(3000);
             }
 
             @Override
-            public void onCaptureButtonChargeCancel() {
+            public void onShimmerButtonChargeCancel() {
 
             }
 
             @Override
-            public void onCaptureButtonStop() {
+            public void onShimmerButtonStop() {
                 // 停止连拍按钮点击事件
                 cameraMainFragmentKit.onStopBurstCaptureClicked();
             }
         });
-        rootView.findViewById(R.id.cameraMainFragmentMbScanCode).setOnClickListener(this);
-        rootView.findViewById(R.id.cameraMainFragmentMbStopScanCode).setOnClickListener(this);
+        cameraMainFragmentSbScanCode = rootView.findViewById(R.id.cameraMainFragmentSbScanCode);
+        cameraMainFragmentSbScanCode.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
+            @Override
+            public void onShimmerButtonStart(ShimmerButtonState currentShimmerButtonState) {
+                // 扫码按钮点击事件
+                cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, 1200);
+            }
+
+            @Override
+            public void onShimmerButtonChargeCancel() {
+
+            }
+
+            @Override
+            public void onShimmerButtonStop() {
+                // 停止扫码按钮点击事件
+                cameraMainFragmentKit.onStopScanCodeClicked(cameraMainFragmentVfv);
+            }
+        });
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
     }
 
@@ -198,13 +236,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @Override
     public void onClick(@NotNull View v) {
         int id = v.getId();
-        if (id == R.id.cameraMainFragmentMbScanCode) {
-            // 扫码按钮点击事件
-            cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, 1200);
-        } else if (id == R.id.cameraMainFragmentMbStopScanCode) {
-            // 停止扫码按钮点击事件
-            cameraMainFragmentKit.onStopScanCodeClicked(cameraMainFragmentVfv);
-        } else if (id == R.id.cameraMainFragmentMbGallery) {
+        if (id == R.id.cameraMainFragmentMbGallery) {
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
         }
