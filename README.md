@@ -2,6 +2,11 @@
 
 摄像头应用
 
+## 适配
+
+高扫仪以 base_dp=360 为基准
+匹配使用 sw240dp 文件夹下资源
+
 ## 注解
 
 * @SuppressWarnings("unused")
@@ -10,13 +15,13 @@
 
 ## 介绍
 
-![introduction_1](introduction/introduction_1.png)
-![introduction_2](introduction/introduction_2.png)
-![introduction_3](introduction/introduction_3.png)
-![introduction_4](introduction/introduction_4.png)
-![introduction_5](introduction/introduction_5.png)
-![introduction_6](introduction/introduction_6.png)
-![introduction_7](introduction/introduction_7.png)
+![introduction_1](user/introduction/introduction_1.webp)
+![introduction_2](user/introduction/introduction_2.webp)
+![introduction_3](user/introduction/introduction_3.webp)
+![introduction_4](user/introduction/introduction_4.webp)
+![introduction_5](user/introduction/introduction_5.webp)
+![introduction_6](user/introduction/introduction_6.webp)
+![introduction_7](user/introduction/introduction_7.webp)
 
 ## 视频实时渲染预览控件
 
@@ -73,37 +78,17 @@
 * 特点
   继承自 TextView，内置淡入显示与自动延时淡出隐藏的动画逻辑。
 
-## 切换分辨率本质
+## 像素缓冲区内存溢出
+ 
+![introduction_8](user/introduction/introduction_8.webp)
 
-1. 停止当前视频流
-2. 释放当前帧缓冲区 (Frame Buffer)
-3. 重新协商 USB Endpoint 带宽
-4. 重新分配新的帧缓冲区
-5. 开启新视频流
+## SDK 拍照卡死
 
-### 开始直设 3840 x 2160 正常
+![introduction_9](user/introduction/introduction_9.webp)
 
-因为初始化阶段是从零分配 4K Buffer 且格式正确锁死 MJPEG
+## 待做
 
-### 热切换 (2592 x 1944 -> 3840 x 2160) 导致关闭
-
-因旧 Buffer 没释干净、带宽重新协商失败或格式退化为 YUYV
-导致 Native 层报错强制触发 closeCamera() 从而相机关闭
-
-### 像素缓冲区内存溢出
-
-【厂商 APP 的做法（安全）】
-系统请求: 2400 x 1350
- └─> 硬件/SDK 底层自动向上补齐 (Padding)
- └─> 实际申请内存: 2400 x 1352 (甚至 1360) 
- └─> 解码&写入 Buffer: 数据完全放得下，不会溢出
- └─> 最终渲染: 裁切掉多余的 2 行黑边，正常显示
-
------------------------------------------------------
-
-【开源库 libUVCCamera 的做法（导致 Crash）】
-系统请求: 2400 x 1350
- └─> C++ 严格按公式计算: 2400 * 1350 * 1.5 = 4,860,000 字节
- └─> 实际申请内存: 恰好 4,860,000 字节 (死板分配)
- └─> 硬件/解码器吐出数据: 实际按 1352 高度解压 (约 4,867,200 字节)
- └─> 写入 Buffer: 溢出了 7,200 字节！ 💥 [踩爆内存触发 SIGSEGV]
+* 清理
+* 设置
+* 帧率
+* 帧拍
