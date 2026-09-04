@@ -6,10 +6,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.media.MediaScanKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
+import com.qtone.camerause.widget.storage.StorageType;
 
 import org.jetbrains.annotations.NotNull;
 import org.opencv.android.Utils;
@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created on 2026/8/4.
@@ -31,10 +29,6 @@ import java.util.regex.Pattern;
  * @desc 微信裁剪引擎
  */
 public class WeChatCropEngine {
-    /**
-     * 时间戳及序号正则表达式
-     */
-    private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("\\d{10,13}(_\\d+)?");
     /**
      * 单例
      */
@@ -136,7 +130,7 @@ public class WeChatCropEngine {
                 }
                 // 2. 针对每一个定位到的目标分别做处理
                 for (Mat cropMat : cropMatList) {
-                    if (cropMat == null || cropMat.empty()) {
+                    if ((cropMat == null) || cropMat.empty()) {
                         continue;
                     }
                     Mat processedMat = cropMat;
@@ -161,28 +155,12 @@ public class WeChatCropEngine {
                 // 4. 自动保存结果
                 // 多图依次拼接 _1 _2 等后缀
                 if (autoSaveResult && (appContext != null)) {
-                    File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.WE_CHAT_CROP);
-                    if ((mediaDir != null) && !mediaDir.exists()) {
-                        boolean created = mediaDir.mkdirs();
-                        if (!created && !mediaDir.exists()) {
-                            Log.e(LogKit.TAG, "微信裁剪图片保存目录创建失败 || " + mediaDir.getAbsolutePath());
-                        }
-                    }
-                    if (mediaDir != null && mediaDir.exists()) {
-                        String originalFileName = file.getName();
-                        String timestampStr = null;
-                        Matcher matcher = TIMESTAMP_PATTERN.matcher(originalFileName);
-                        if (matcher.find()) {
-                            timestampStr = matcher.group();
-                        }
-                        if ((timestampStr == null) || timestampStr.isEmpty()) {
-                            timestampStr = String.valueOf(CurrentTimeMillisClock.getInstance().now());
-                        }
-                        for (int i = 0; i < finalMatList.size(); i++) {
-                            // 1, 2, 3...
-                            int index = i + 1;
-                            File outputFile = new File(mediaDir, "WECHAT_CROP_" + timestampStr + "_" + index + ".jpg");
-                            String savePath = outputFile.getAbsolutePath();
+                    for (int i = 0; i < finalMatList.size(); i++) {
+                        // 1, 2, 3...
+                        int index = i + 1;
+                        File saveFile = MediaStorageConfig.getInstance().generateSaveFile(StorageType.WE_CHAT_CROP, imagePath, index);
+                        if (saveFile != null) {
+                            String savePath = saveFile.getAbsolutePath();
                             boolean saved = Imgcodecs.imwrite(savePath, finalMatList.get(i));
                             if (saved) {
                                 MediaScanKit.scanSingleFile(appContext, savePath, "image/jpeg");
@@ -199,14 +177,18 @@ public class WeChatCropEngine {
             } catch (Exception e) {
                 notifyError(onWeChatCropCallback, "图像处理异常 - 微信裁剪 || " + e.getMessage());
             } finally {
-                if (srcMat != null) srcMat.release();
+                if (srcMat != null) {
+                    srcMat.release();
+                }
                 if (cropMatList != null) {
                     for (Mat mat : cropMatList) {
-                        if (mat != null) mat.release();
+                        if (mat != null) {
+                            mat.release();
+                        }
                     }
                 }
                 for (Mat mat : finalMatList) {
-                    if ((mat != null) && ((cropMatList == null) || !cropMatList.contains(mat))) {
+                    if ((mat != null) && !cropMatList.contains(mat)) {
                         mat.release();
                     }
                 }
