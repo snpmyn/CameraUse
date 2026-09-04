@@ -1,20 +1,10 @@
 package com.qtone.camerause.model.main.kit;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.MenuItem;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -24,6 +14,7 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.main.MainActivity;
 import com.qtone.camerause.model.setting.SettingActivity;
+import com.qtone.camerause.util.data.StringUtils;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.widget.camera.CameraController;
@@ -32,6 +23,9 @@ import com.qtone.camerause.widget.camera.CameraSwitchKit;
 import com.qtone.camerause.widget.dialog.camerasetting.CameraSettingDialog;
 import com.qtone.camerause.widget.dialog.camerasetting.listener.CameraSettingDialogClickListener;
 import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
+import com.qtone.camerause.widget.permissionx.kit.PermissionKit;
+import com.qtone.camerause.widget.permissionx.kit.PermissionxKit;
+import com.qtone.camerause.widget.permissionx.listener.PermissionxKitListener;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -48,17 +42,9 @@ import kotlin.jvm.functions.Function2;
  */
 public class MainActivityKit {
     /**
-     * 请求相机权限码
-     */
-    public static final int REQUEST_CAMERA_PERMISSION_CODE = 100;
-    /**
      * 主页
      */
     private final MainActivity mainActivity;
-    /**
-     * 管理应用所有文件权限活动结果启动器
-     */
-    private final ActivityResultLauncher<Intent> manageAppAllFilesAccessPermissionActivityResultLauncher;
 
     /**
      * constructor
@@ -66,20 +52,7 @@ public class MainActivityKit {
      * @param mainActivity 主页
      */
     public MainActivityKit(@NotNull MainActivity mainActivity) {
-        // 主页
         this.mainActivity = mainActivity;
-        // 管理应用所有文件权限活动结果启动器
-        this.manageAppAllFilesAccessPermissionActivityResultLauncher = mainActivity.registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (!Environment.isExternalStorageManager()) {
-                    // 用户未授权
-                    ToastUtils.show("需要所有文件管理权限才能存储文件");
-                } else {
-                    // 加载相机主碎片
-                    loadCameraMainFragment();
-                }
-            }
-        });
     }
 
     /**
@@ -117,38 +90,18 @@ public class MainActivityKit {
      * 检查并请求权限
      */
     public void checkAndRequestPermission() {
-        // 1. 检查常规运行时权限
-        boolean hasCameraPermission = ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        boolean hasStoragePermission = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                || (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
-        if (!hasCameraPermission || !hasStoragePermission) {
-            List<String> permissionsNeeded = new ArrayList<>();
-            if (!hasCameraPermission) {
-                permissionsNeeded.add(Manifest.permission.CAMERA);
+        PermissionxKit.execute(mainActivity, true, ListUtils.mergeLists(PermissionKit.storage(), PermissionKit.camera()), R.string.cameraAreBasedOnThePermission, R.string.youNeedToAllowNecessaryPermissionInSettingManually, R.string.agree, R.string.refuse, new PermissionxKitListener() {
+            @Override
+            public void allGranted() {
+                // 加载相机主碎片
+                loadCameraMainFragment();
             }
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                }
+
+            @Override
+            public void allGrantedContrary() {
+                mainActivity.finish();
             }
-            ActivityCompat.requestPermissions(
-                    mainActivity,
-                    permissionsNeeded.toArray(new String[0]),
-                    REQUEST_CAMERA_PERMISSION_CODE
-            );
-            return;
-        }
-        // 2. 检查所有文件管理权限
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                intent.setData(Uri.parse("package:" + mainActivity.getPackageName()));
-                manageAppAllFilesAccessPermissionActivityResultLauncher.launch(intent);
-                return;
-            }
-        }
-        // 加载相机主碎片
-        loadCameraMainFragment();
+        });
     }
 
     /**
@@ -163,7 +116,7 @@ public class MainActivityKit {
             deviceInfo();
         } else if (itemId == R.id.mainActivityMenuSwitchResolution) {
             // 切分辨率
-            switchResolution();
+            switchResolution(true);
         } else if (itemId == R.id.mainActivityMenuSwitchCamera) {
             // 切换相机
             switchCamera();
@@ -182,18 +135,28 @@ public class MainActivityKit {
     private void deviceInfo() {
         UsbDevice usbDevice = CameraController.getInstance().getUsbDevice(getCameraMainFragment().getCurrentCamera());
         if (usbDevice == null) {
-            ToastUtils.show("未检测到摄像头");
+            ToastUtils.show(R.string.cameraNotDetected);
             return;
         }
-        String deviceInfo = "产品名称\t" + usbDevice.getProductName()
-                + "\n厂商 ID (VID)\t" + String.format("0x%04X", usbDevice.getVendorId())
-                + "\n产品 ID (PID)\t" + String.format("0x%04X", usbDevice.getProductId())
-                + "\n生产厂商\t" + usbDevice.getManufacturerName()
-                + "\n固件版本\t" + usbDevice.getVersion()
-                + "\n序列号\t" + usbDevice.getSerialNumber()
-                + "\n设备节点\t" + usbDevice.getDeviceName()
-                + "\n设备 ID\t" + usbDevice.getDeviceId();
-        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), deviceInfo, true, mainActivity.getString(R.string.iKonw), null);
+        String productName = usbDevice.getProductName();
+        String manufacturerName = usbDevice.getManufacturerName();
+        String serialNumber = usbDevice.getSerialNumber();
+        String version = usbDevice.getVersion();
+        // 构建信息
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("设备名称：").append(TextUtils.isEmpty(productName) ? "未知设备" : productName).append("\n");
+        stringBuilder.append("生产厂商：").append(StringUtils.areEmptyWithTrim(manufacturerName) ? "未知厂商" : manufacturerName).append("\n");
+        stringBuilder.append("厂商代码 (VID)：").append(String.format("0x%04X", usbDevice.getVendorId())).append("\n");
+        stringBuilder.append("产品代码 (PID)：").append(String.format("0x%04X", usbDevice.getProductId())).append("\n");
+        if (!StringUtils.areEmptyWithTrim(version)) {
+            stringBuilder.append("固件版本：").append(version).append("\n");
+        }
+        if (!StringUtils.areEmptyWithTrim(serialNumber)) {
+            stringBuilder.append("设备序列号 (SN)：").append(serialNumber).append("\n");
+        }
+        stringBuilder.append("系统路径：").append(usbDevice.getDeviceName()).append("\n");
+        stringBuilder.append("系统分配 ID：").append(usbDevice.getDeviceId());
+        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), stringBuilder.toString(), true, mainActivity.getString(R.string.iKonw), null);
     }
 
     /**
@@ -217,15 +180,35 @@ public class MainActivityKit {
      * 相机关闭原因说明
      * - 若 MJPEG 与 YUYV 两次 setPreviewSize 均抛异常，说明摄像头固件 (UVC Firmware) 根本不支持该目标分辨率或底层 USB 管道 (Pipe) 配流失败。
      * - 此时由于在尝试切换前已调 stopPreview() 停流，若不及时拦截抛出失败，系统将无法继续渲染后续帧，表现为预览画面黑屏 / 挂起 (即相机预览被迫关闭)。
+     *
+     * @param enableFilter 是否允许过滤
      */
-    private void switchResolution() {
+    @SuppressWarnings("SameParameterValue")
+    private void switchResolution(boolean enableFilter) {
         if (getCameraMainFragment().getCurrentCamera() == null) {
-            ToastUtils.show("未检测到摄像头");
+            ToastUtils.show(R.string.cameraNotDetected);
             return;
         }
-        List<PreviewSize> previewSizes = CameraController.getInstance().getAllPreviewSizes(getCameraMainFragment().getCurrentCamera(), null);
+        // 1. 获取原始预览分辨率
+        List<PreviewSize> originalPreviewSizes = CameraController.getInstance().getAllPreviewSizes(getCameraMainFragment().getCurrentCamera(), null);
+        if (ListUtils.listIsEmpty(originalPreviewSizes)) {
+            ToastUtils.show("获取原始预览分辨率失败");
+            return;
+        }
+        // 2. 过滤原始预览分辨率
+        List<PreviewSize> previewSizes = new ArrayList<>();
+        for (PreviewSize previewSize : originalPreviewSizes) {
+            int width = previewSize.getWidth();
+            int height = previewSize.getHeight();
+            // 16 字节对齐拦截
+            // 宽 / 高必须都能被 16 整除，防止内存跨度 (Stride) 踩爆。
+            if (enableFilter && ((width % 16 != 0) || (height % 16 != 0))) {
+                continue;
+            }
+            previewSizes.add(previewSize);
+        }
         if (ListUtils.listIsEmpty(previewSizes)) {
-            ToastUtils.show("获取预览分辨率失败");
+            ToastUtils.show("获取安全预览分辨率失败");
             return;
         }
         int selectedIndex = -1;
@@ -282,12 +265,12 @@ public class MainActivityKit {
      */
     private void cameraSetting() {
         if (getCameraMainFragment().getCurrentCamera() == null) {
-            ToastUtils.show("未检测到摄像头");
+            ToastUtils.show(R.string.cameraNotDetected);
             return;
         }
         CameraSettingDialog cameraSettingDialog = new CameraSettingDialog(mainActivity);
         cameraSettingDialog.setCancelable(false);
-        cameraSettingDialog.setTitle("相机设置")
+        cameraSettingDialog.setTitle(mainActivity.getString(R.string.cameraSetting))
                 .setCameraMainFragment(getCameraMainFragment())
                 .setNegativeText("重置")
                 .setShowNegative(true)
