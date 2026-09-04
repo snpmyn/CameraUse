@@ -9,7 +9,7 @@
     <FrameLayout
         android:layout_width="@dimen/dp_0"
         android:layout_height="match_parent"
-        android:layout_weight="2.5"
+        android:layout_weight="5"
         android:background="@color/black">
 
         <FrameLayout
@@ -53,76 +53,44 @@
         android:orientation="vertical"
         android:padding="@dimen/dp_20">
 
-        <LinearLayout
+        <com.qtone.camerause.widget.button.ShimmerButton
+            android:id="@+id/cameraMainFragmentSbSingleCapture"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
             android:layout_weight="1"
-            tools:ignore="NestedWeights">
+            app:sbPrimaryColor="@color/color_FF9800"
+            app:sbShape="square"
+            app:sbText="@string/singleCapture"
+            app:sbTextColor="@color/white"
+            app:sbTextSize="@dimen/sp_12"
+            app:sbTriggerMode="click"
+            tools:ignore="NestedWeights" />
 
-            <com.qtone.camerause.widget.button.CaptureButton
-                android:id="@+id/cameraMainFragmentCbSingleCapture"
-                android:layout_width="@dimen/dp_0"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                app:cbCaptureMode="singleCapture"
-                app:cbShape="square"
-                app:cbSingleCaptureColor="@color/color_FF9800"
-                app:cbText="@string/singleCapture"
-                app:cbTextColor="@color/white"
-                app:cbTextSize="@dimen/sp_12"
-                app:cbTriggerMode="click" />
-
-            <com.qtone.camerause.widget.button.CaptureButton
-                android:id="@+id/cameraMainFragmentCbBurstCapture"
-                android:layout_width="@dimen/dp_0"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                app:cbBurstCaptureColor="@color/color_7C4DFF"
-                app:cbCaptureMode="burstCapture"
-                app:cbShape="square"
-                app:cbText="@string/burstCapture"
-                app:cbTextColor="@color/white"
-                app:cbTextSize="@dimen/sp_12"
-                app:cbTriggerMode="longPressCharge" />
-        </LinearLayout>
-
-        <LinearLayout
+        <com.qtone.camerause.widget.button.ShimmerButton
+            android:id="@+id/cameraMainFragmentSbBurstCapture"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
             android:layout_marginVertical="@dimen/dp_10"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            app:sbPrimaryColor="@color/color_00BFA5"
+            app:sbShape="square"
+            app:sbText="@string/burstCapture"
+            app:sbTextColor="@color/white"
+            app:sbTextSize="@dimen/sp_12"
+            app:sbTriggerMode="longPressCharge" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/cameraMainFragmentMbScanCode"
-                android:layout_width="@dimen/dp_0"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="@dimen/dp_10"
-                android:layout_weight="1"
-                android:filterTouchesWhenObscured="true"
-                android:insetLeft="@dimen/dp_0"
-                android:insetTop="@dimen/dp_0"
-                android:insetRight="@dimen/dp_0"
-                android:insetBottom="@dimen/dp_0"
-                android:text="@string/scanCode"
-                android:textColor="@color/white"
-                android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_00BFA5" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/cameraMainFragmentMbStopScanCode"
-                android:layout_width="@dimen/dp_0"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:filterTouchesWhenObscured="true"
-                android:insetLeft="@dimen/dp_0"
-                android:insetTop="@dimen/dp_0"
-                android:insetRight="@dimen/dp_0"
-                android:insetBottom="@dimen/dp_0"
-                android:text="@string/stopScanCode"
-                android:textColor="@color/white"
-                android:textSize="@dimen/sp_10"
-                app:backgroundTint="@color/color_00BFA5" />
-        </LinearLayout>
+        <com.qtone.camerause.widget.button.ShimmerButton
+            android:id="@+id/cameraMainFragmentSbScanCode"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_0"
+            android:layout_marginBottom="@dimen/dp_10"
+            android:layout_weight="1"
+            app:sbPrimaryColor="@color/color_7C4DFF"
+            app:sbShape="square"
+            app:sbText="@string/scanCode"
+            app:sbTextColor="@color/white"
+            app:sbTextSize="@dimen/sp_12"
+            app:sbTriggerMode="longPressCharge" />
 
         <!--普通按钮-->
         <!--style="@style/Widget.MaterialComponents.Button"-->
@@ -136,9 +104,11 @@
         <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cameraMainFragmentMbGallery"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
-            android:layout_weight="2"
+            android:layout_marginHorizontal="@dimen/dp_2"
+            android:layout_weight="1"
             android:filterTouchesWhenObscured="true"
             android:insetLeft="@dimen/dp_0"
             android:insetTop="@dimen/dp_0"
@@ -147,6 +117,8 @@
             android:text="@string/gallery"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_10"
-            app:backgroundTint="@color/color_7C4DFF" />
+            app:backgroundTint="@color/basic"
+            app:cornerRadius="@dimen/dp_12"
+            app:rippleColor="@color/color_1D80C7" />
     </LinearLayout>
 </LinearLayout>
