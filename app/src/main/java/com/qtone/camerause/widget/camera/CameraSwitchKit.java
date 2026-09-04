@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.utils.ToastUtils;
+import com.qtone.camerause.R;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.widget.dialog.singleselect.SingleSelectDialog;
 import com.qtone.camerause.widget.dialog.singleselect.bean.SingleSelectDialogBean;
@@ -49,7 +50,7 @@ public class CameraSwitchKit {
      */
     public static void showCameraSelectDialog(AppCompatActivity appCompatActivity, MultiCameraClient.ICamera iCamera, MultiCameraClient multiCameraClient, UsbDevice currentUsbDevice) {
         if ((iCamera == null) || (multiCameraClient == null) || (currentUsbDevice == null)) {
-            ToastUtils.show("未检测到摄像头");
+            ToastUtils.show(R.string.cameraNotDetected);
             return;
         }
         List<UsbDevice> usbDeviceList = CameraController.getInstance().getDeviceList(multiCameraClient);
