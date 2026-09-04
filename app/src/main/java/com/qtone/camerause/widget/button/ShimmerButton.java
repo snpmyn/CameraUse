@@ -35,9 +35,9 @@ import com.qtone.camerause.R;
  * Created on 2026/8/29.
  *
  * @author 郑少鹏
- * @desc 拍照按钮
+ * @desc 流光按钮
  */
-public class CaptureButton extends View {
+public class ShimmerButton extends View {
     private final RectF ringBounds = new RectF();
     private final RectF innerRectBounds = new RectF();
     private final Matrix gradientMatrix = new Matrix();
@@ -62,43 +62,27 @@ public class CaptureButton extends View {
     private SweepGradient sweepGradient;
     private int lastSweepActiveColor = Color.TRANSPARENT;
     /**
-     * 单拍蓝
-     * <p>
-     * 默认颜色标准
+     * 主体色
      */
     private int colorPrimary = Color.parseColor("#29A1F7");
-    /**
-     * 连拍橙
-     * <p>
-     * 默认颜色标准
-     */
-    private int colorBurst = Color.parseColor("#FF9800");
-    /**
-     * 禁用灰
-     * <p>
-     * 默认颜色标准
-     */
-    private int colorDisabled = Color.parseColor("#B0BEC5");
     /**
      * 文本色
      */
     private int textColor = Color.WHITE;
     /**
-     * 当前拍照按钮状态
+     * 当前流光按钮状态
      */
-    private CaptureButtonState currentCaptureButtonState = CaptureButtonState.IDLE_SINGLE_CAPTURE;
+    private ShimmerButtonState currentShimmerButtonState = ShimmerButtonState.IDLE;
     /**
-     * 当前拍照按钮触发模式
+     * 当前流光按钮形状
      */
-    private CaptureButtonTriggerMode currentCaptureButtonTriggerMode = CaptureButtonTriggerMode.CLICK;
+    private ShimmerButtonShape currentShimmerButtonShape = ShimmerButtonShape.CIRCLE;
     /**
-     * 当前拍照按钮形状
+     * 当前流光按钮触发模式
      */
-    private CaptureButtonShape currentCaptureButtonShape = CaptureButtonShape.CIRCLE;
+    private ShimmerButtonTriggerMode currentShimmerButtonTriggerMode = ShimmerButtonTriggerMode.CLICK;
     /**
      * 方形圆角半径
-     * <p>
-     * 默认 12dp
      */
     private float cornerRadius = 0f;
     /**
@@ -108,7 +92,7 @@ public class CaptureButton extends View {
      */
     private float customRingWidth = -1f;
     /**
-     * 自定义中间图像和外环之间的距离
+     * 自定义中间图像与外环间距
      * <p>
      * 默认 -1 表示按比例自适应计算
      */
@@ -137,11 +121,11 @@ public class CaptureButton extends View {
     /**
      * 自定义文本大小
      * <p>
-     * 默认 -1 表示跟随系统按比例计算
+     * 默认 -1 表示按比例自适应计算
      */
     private float customTextSize = -1f;
     /**
-     * 动画控制
+     * 颜色变化控制
      */
     private ValueAnimator colorAnimator;
     private ValueAnimator scaleAnimator;
@@ -150,7 +134,7 @@ public class CaptureButton extends View {
      */
     private ValueAnimator runningAnimator;
     /**
-     * 蓄力 0~360° 动画
+     * 蓄力 0 ~ 360° 动画
      */
     private ValueAnimator chargeAnimator;
     /**
@@ -170,13 +154,13 @@ public class CaptureButton extends View {
     /**
      * 显示文本
      */
-    private String text = "拍摄";
+    private String text = "流光";
     /**
-     * 记录空闲状态下的文本
+     * 记录空闲状态文本
      * <p>
-     * 便于停止时恢复
+     * 便于停止恢复
      */
-    private String idleText = "拍摄";
+    private String idleText = "流光";
     /**
      * 动画时长控制
      * <p>
@@ -199,9 +183,9 @@ public class CaptureButton extends View {
     private boolean isChargedTriggered = false;
     private boolean isTouchDown = false;
     /**
-     * 拍照按钮回调
+     * 流光按钮回调
      */
-    private OnCaptureButtonCallback onCaptureButtonCallback;
+    private OnShimmerButtonCallback onShimmerButtonCallback;
     /**
      * 长按任务
      */
@@ -212,7 +196,7 @@ public class CaptureButton extends View {
      *
      * @param context 上下文
      */
-    public CaptureButton(Context context) {
+    public ShimmerButton(Context context) {
         this(context, null);
     }
 
@@ -222,7 +206,7 @@ public class CaptureButton extends View {
      * @param context 上下文
      * @param attrs   属性集
      */
-    public CaptureButton(Context context, @Nullable AttributeSet attrs) {
+    public ShimmerButton(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
@@ -233,7 +217,7 @@ public class CaptureButton extends View {
      * @param attrs        属性集
      * @param defStyleAttr 默认样式属性
      */
-    public CaptureButton(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ShimmerButton(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
     }
@@ -245,44 +229,46 @@ public class CaptureButton extends View {
      * @param attrs   属性集
      */
     private void init(Context context, @Nullable AttributeSet attrs) {
-        cornerRadius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
+        setCornerRadiusDp(R.dimen.dp_12);
         if (attrs != null) {
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.CaptureButton);
-            if (typedArray.hasValue(R.styleable.CaptureButton_cbText)) {
-                String xmlText = typedArray.getString(R.styleable.CaptureButton_cbText);
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ShimmerButton);
+            if (typedArray.hasValue(R.styleable.ShimmerButton_sbText)) {
+                String xmlText = typedArray.getString(R.styleable.ShimmerButton_sbText);
                 if (xmlText != null) {
                     text = xmlText;
                     idleText = xmlText;
                 }
             }
-            textColor = typedArray.getColor(R.styleable.CaptureButton_cbTextColor, textColor);
-            customTextSize = typedArray.getDimension(R.styleable.CaptureButton_cbTextSize, -1f);
-            colorPrimary = typedArray.getColor(R.styleable.CaptureButton_cbSingleCaptureColor, colorPrimary);
-            colorBurst = typedArray.getColor(R.styleable.CaptureButton_cbBurstCaptureColor, colorBurst);
-            colorDisabled = typedArray.getColor(R.styleable.CaptureButton_cbDisabledColor, colorDisabled);
-            int modeVal = typedArray.getInt(R.styleable.CaptureButton_cbCaptureMode, 0);
-            currentCaptureButtonState = (modeVal == 1) ? CaptureButtonState.IDLE_BURST_CAPTURE : CaptureButtonState.IDLE_SINGLE_CAPTURE;
-            int triggerVal = typedArray.getInt(R.styleable.CaptureButton_cbTriggerMode, 0);
-            currentCaptureButtonTriggerMode = CaptureButtonTriggerMode.fromValue(triggerVal);
-            int shapeVal = typedArray.getInt(R.styleable.CaptureButton_cbShape, 0);
-            currentCaptureButtonShape = CaptureButtonShape.fromValue(shapeVal);
-            cornerRadius = typedArray.getDimension(R.styleable.CaptureButton_cbCornerRadius, cornerRadius);
-            chargeDuration = typedArray.getInt(R.styleable.CaptureButton_cbChargeDuration, (int) chargeDuration);
-            rotateDuration = typedArray.getInt(R.styleable.CaptureButton_cbRotateDuration, (int) rotateDuration);
-            customRingWidth = typedArray.getDimension(R.styleable.CaptureButton_cbRingWidth, -1f);
-            customInnerPadding = typedArray.getDimension(R.styleable.CaptureButton_cbInnerPadding, -1f);
+            textColor = typedArray.getColor(R.styleable.ShimmerButton_sbTextColor, textColor);
+            customTextSize = typedArray.getDimension(R.styleable.ShimmerButton_sbTextSize, -1f);
+            colorPrimary = typedArray.getColor(R.styleable.ShimmerButton_sbPrimaryColor, colorPrimary);
+            currentShimmerButtonState = ShimmerButtonState.IDLE;
+            int triggerVal = typedArray.getInt(R.styleable.ShimmerButton_sbTriggerMode, 0);
+            currentShimmerButtonTriggerMode = ShimmerButtonTriggerMode.fromValue(triggerVal);
+            int shapeVal = typedArray.getInt(R.styleable.ShimmerButton_sbShape, 0);
+            currentShimmerButtonShape = ShimmerButtonShape.fromValue(shapeVal);
+            cornerRadius = typedArray.getDimension(R.styleable.ShimmerButton_sbCornerRadius, cornerRadius);
+            chargeDuration = typedArray.getInt(R.styleable.ShimmerButton_sbChargeDuration, (int) chargeDuration);
+            rotateDuration = typedArray.getInt(R.styleable.ShimmerButton_sbRotateDuration, (int) rotateDuration);
+            customRingWidth = typedArray.getDimension(R.styleable.ShimmerButton_sbRingWidth, -1f);
+            customInnerPadding = typedArray.getDimension(R.styleable.ShimmerButton_sbInnerPadding, -1f);
             typedArray.recycle();
         }
-        currentInnerColor = (currentCaptureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE) ? colorBurst : colorPrimary;
+
+        currentInnerColor = colorPrimary;
+
         outerRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         outerRingPaint.setStyle(Paint.Style.STROKE);
+
         innerCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         innerCirclePaint.setStyle(Paint.Style.FILL);
         innerCirclePaint.setColor(currentInnerColor);
+
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(textColor);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setFakeBoldText(true);
+
         loadingArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         loadingArcPaint.setStyle(Paint.Style.STROKE);
         loadingArcPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -310,10 +296,12 @@ public class CaptureButton extends View {
         centerX = w / 2f;
         centerY = h / 2f;
         float minSize = Math.min(w, h);
+
         // 已自定外环宽度则用自定义值
         // 否则默认按控件大小比例计算
         float strokeWidth = (customRingWidth > 0) ? customRingWidth : (minSize * 0.06f);
         outerRadius = ((minSize / 2f) - (strokeWidth / 2f) - 4f);
+
         // 已自定内边距则使用自定义值
         // 否则默认按线宽计算
         float innerPadding = (customInnerPadding >= 0) ? customInnerPadding : (strokeWidth * 1f);
@@ -321,13 +309,16 @@ public class CaptureButton extends View {
         if (innerRadiusBase < 0) {
             innerRadiusBase = 0;
         }
+
         outerRingPaint.setStrokeWidth(strokeWidth);
         loadingArcPaint.setStrokeWidth(strokeWidth);
+
         if (customTextSize > 0) {
             textPaint.setTextSize(customTextSize);
         } else {
             textPaint.setTextSize(minSize * 0.22f);
         }
+
         ringBounds.set(centerX - outerRadius, centerY - outerRadius, centerX + outerRadius, centerY + outerRadius);
         sweepGradient = null;
         lastSweepActiveColor = Color.TRANSPARENT;
@@ -335,20 +326,30 @@ public class CaptureButton extends View {
     }
 
     /**
-     * 构建外围方形 Path (包含圆角)
+     * 构建外围方形 Path
      */
     private void setupSquarePath() {
-        if (outerRadius <= 0) {
+        if ((getWidth() <= 0) || (getHeight() <= 0)) {
             return;
         }
         outerSquarePath.reset();
         float outerStrokeHalf = outerRingPaint.getStrokeWidth() / 2f;
-        float rectSize = outerRadius - outerStrokeHalf;
-        innerRectBounds.set(centerX - rectSize, centerY - rectSize, centerX + rectSize, centerY + rectSize);
+        float halfW = ((getWidth() / 2f) - outerStrokeHalf - 4f);
+        float halfH = ((getHeight() / 2f) - outerStrokeHalf - 4f);
+        if (halfW < 0) {
+            halfW = 0;
+        }
+        if (halfH < 0) {
+            halfH = 0;
+        }
+
+        innerRectBounds.set(centerX - halfW, centerY - halfH, centerX + halfW, centerY + halfH);
+
         float top = innerRectBounds.top;
         float bottom = innerRectBounds.bottom;
         float left = innerRectBounds.left;
         float right = innerRectBounds.right;
+
         // 顶部中心作为起始点
         outerSquarePath.moveTo(centerX, top);
         // 右上圆角
@@ -365,6 +366,7 @@ public class CaptureButton extends View {
         outerSquarePath.quadTo(left, top, left + cornerRadius, top);
         // 封闭至起始点
         outerSquarePath.close();
+
         pathMeasure.setPath(outerSquarePath, false);
     }
 
@@ -377,7 +379,7 @@ public class CaptureButton extends View {
         // 1. 绘制外层半透明底轨
         int outerRingColor = adjustColorAlpha(currentInnerColor, 0.25f);
         outerRingPaint.setColor(outerRingColor);
-        if (currentCaptureButtonShape == CaptureButtonShape.SQUARE) {
+        if (currentShimmerButtonShape == ShimmerButtonShape.SQUARE) {
             canvas.drawPath(outerSquarePath, outerRingPaint);
         } else {
             canvas.drawCircle(centerX, centerY, outerRadius, outerRingPaint);
@@ -387,7 +389,8 @@ public class CaptureButton extends View {
         if (isCharging) {
             loadingArcPaint.setShader(null);
             loadingArcPaint.setColor(getActiveColor());
-            if (currentCaptureButtonShape == CaptureButtonShape.SQUARE) {
+
+            if (currentShimmerButtonShape == ShimmerButtonShape.SQUARE) {
                 float totalLength = pathMeasure.getLength();
                 float stopD = totalLength * (currentChargeSweepAngle / 360f);
                 segmentPath.reset();
@@ -410,7 +413,7 @@ public class CaptureButton extends View {
             gradientMatrix.setRotate(currentRotateAngle, centerX, centerY);
             sweepGradient.setLocalMatrix(gradientMatrix);
             loadingArcPaint.setShader(sweepGradient);
-            if (currentCaptureButtonShape == CaptureButtonShape.SQUARE) {
+            if (currentShimmerButtonShape == ShimmerButtonShape.SQUARE) {
                 float totalLength = pathMeasure.getLength();
                 float sweepLength = totalLength * (280f / 360f);
                 float startRatio = ((currentRotateAngle + 90f) % 360f + 360f) % 360f / 360f;
@@ -430,13 +433,26 @@ public class CaptureButton extends View {
         }
         // 4. 绘制中间实心区域
         // 圆角矩形或圆形
-        float currentRadius = innerRadiusBase * currentInnerScale;
         innerCirclePaint.setColor(currentInnerColor);
-        if (currentCaptureButtonShape == CaptureButtonShape.SQUARE) {
+        if (currentShimmerButtonShape == ShimmerButtonShape.SQUARE) {
+            float strokeWidth = outerRingPaint.getStrokeWidth();
+            float innerPadding = (customInnerPadding >= 0) ? customInnerPadding : (strokeWidth * 1f);
+            float gap = ((strokeWidth / 2f) + innerPadding);
+            float baseHalfW = ((getWidth() / 2f) - strokeWidth / 2f - 4f - gap);
+            float baseHalfH = ((getHeight() / 2f) - strokeWidth / 2f - 4f - gap);
+            if (baseHalfW < 0) {
+                baseHalfW = 0;
+            }
+            if (baseHalfH < 0) {
+                baseHalfH = 0;
+            }
+            float currentHalfW = baseHalfW * currentInnerScale;
+            float currentHalfH = baseHalfH * currentInnerScale;
             float scaledCornerRadius = cornerRadius * currentInnerScale;
-            innerRectBounds.set(centerX - currentRadius, centerY - currentRadius, centerX + currentRadius, centerY + currentRadius);
+            innerRectBounds.set(centerX - currentHalfW, centerY - currentHalfH, centerX + currentHalfW, centerY + currentHalfH);
             canvas.drawRoundRect(innerRectBounds, scaledCornerRadius, scaledCornerRadius, innerCirclePaint);
         } else {
+            float currentRadius = innerRadiusBase * currentInnerScale;
             canvas.drawCircle(centerX, centerY, currentRadius, innerCirclePaint);
         }
         // 5. 绘制居中文本
@@ -450,9 +466,11 @@ public class CaptureButton extends View {
 
     /**
      * 获取当前状态对应的激活颜色
+     *
+     * @return 当前状态对应的激活颜色
      */
     private int getActiveColor() {
-        return ((currentCaptureButtonState == CaptureButtonState.BURST_CAPTURE_RUNNING) || (currentCaptureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE)) ? colorBurst : colorPrimary;
+        return colorPrimary;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -463,27 +481,30 @@ public class CaptureButton extends View {
         }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if ((currentCaptureButtonState == CaptureButtonState.SINGLE_CAPTURE_RUNNING) || (currentCaptureButtonState == CaptureButtonState.STOPPING)) {
-                    return true;
-                }
-                if (currentCaptureButtonState == CaptureButtonState.BURST_CAPTURE_RUNNING) {
-                    animateInnerScale(0.88f, 100, new DecelerateInterpolator());
-                    return true;
-                }
-                if ((onCaptureButtonCallback != null) && !onCaptureButtonCallback.onCaptureButtonPreCheck()) {
+                if ((onShimmerButtonCallback != null) && onShimmerButtonCallback.onShimmerButtonIntercept()) {
+                    // 拦截事件
                     return false;
                 }
                 isTouchDown = true;
                 isChargedTriggered = false;
                 // 按下缩小效果
                 animateInnerScale(0.88f, 100, new DecelerateInterpolator());
-                if (currentCaptureButtonTriggerMode == CaptureButtonTriggerMode.LONG_PRESS_CHARGE) {
+                if (currentShimmerButtonTriggerMode == ShimmerButtonTriggerMode.LONG_PRESS_CHARGE) {
                     handler.postDelayed(longPressRunnable, ViewConfiguration.getLongPressTimeout());
                 }
                 return true;
+            case MotionEvent.ACTION_MOVE:
+                if (!isTouchDown) {
+                    return true;
+                }
+                float x = event.getX();
+                float y = event.getY();
+                if ((x < 0) || (x > getWidth()) || (y < 0) || (y > getHeight())) {
+                    resetTouchState();
+                }
+                return true;
             case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                if ((currentCaptureButtonState == CaptureButtonState.SINGLE_CAPTURE_RUNNING) || (currentCaptureButtonState == CaptureButtonState.STOPPING)) {
+                if (!isTouchDown) {
                     return true;
                 }
                 // 松开弹回效果
@@ -493,25 +514,43 @@ public class CaptureButton extends View {
                     isTouchDown = false;
                     return true;
                 }
-                if (currentCaptureButtonState == CaptureButtonState.BURST_CAPTURE_RUNNING) {
-                    setCaptureButtonState(CaptureButtonState.IDLE_BURST_CAPTURE, idleText);
-                    if (onCaptureButtonCallback != null) {
-                        onCaptureButtonCallback.onCaptureButtonStop();
-                    }
-                    return true;
-                }
                 isTouchDown = false;
-                if (currentCaptureButtonTriggerMode == CaptureButtonTriggerMode.LONG_PRESS_CHARGE) {
+                if (currentShimmerButtonTriggerMode == ShimmerButtonTriggerMode.LONG_PRESS_CHARGE) {
                     handler.removeCallbacks(longPressRunnable);
                     if (isCharging) {
                         cancelChargingAnimation();
+                    } else if (isBusy()) {
+                        stop();
                     }
-                } else if ((currentCaptureButtonTriggerMode == CaptureButtonTriggerMode.CLICK) && !isBusy() && (event.getAction() == MotionEvent.ACTION_UP)) {
-                    triggerCapture();
+                } else if (currentShimmerButtonTriggerMode == ShimmerButtonTriggerMode.CLICK) {
+                    if (isBusy()) {
+                        stop();
+                    } else {
+                        trigger();
+                    }
                 }
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                resetTouchState();
                 return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    /**
+     * 重置按压与蓄力状态
+     */
+    private void resetTouchState() {
+        if (isTouchDown) {
+            isTouchDown = false;
+            animateInnerScale(1.0f, 200, new OvershootInterpolator(2.0f));
+            if (currentShimmerButtonTriggerMode == ShimmerButtonTriggerMode.LONG_PRESS_CHARGE) {
+                handler.removeCallbacks(longPressRunnable);
+                if (isCharging) {
+                    cancelChargingAnimation();
+                }
+            }
+        }
     }
 
     /**
@@ -540,7 +579,7 @@ public class CaptureButton extends View {
                     isCharging = false;
                     isChargedTriggered = true;
                     currentChargeSweepAngle = 0f;
-                    triggerCapture();
+                    trigger();
                 }
             }
         });
@@ -557,29 +596,28 @@ public class CaptureButton extends View {
         }
         currentChargeSweepAngle = 0f;
         invalidate();
-        if (onCaptureButtonCallback != null) {
-            onCaptureButtonCallback.onCaptureButtonChargeCancel();
+        if (onShimmerButtonCallback != null) {
+            onShimmerButtonCallback.onShimmerButtonChargeCancel();
         }
     }
 
     /**
-     * 内部触发拍照逻辑
+     * 触发
      */
-    private void triggerCapture() {
-        CaptureButtonState targetCaptureButtonState = (currentCaptureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE) ? CaptureButtonState.BURST_CAPTURE_RUNNING : CaptureButtonState.SINGLE_CAPTURE_RUNNING;
-        setCaptureButtonState(targetCaptureButtonState, this.text);
-        if (onCaptureButtonCallback != null) {
-            onCaptureButtonCallback.onCaptureButtonStart(targetCaptureButtonState);
+    private void trigger() {
+        setShimmerButtonStateAndText(ShimmerButtonState.RUNNING, this.text);
+        if (onShimmerButtonCallback != null) {
+            onShimmerButtonCallback.onShimmerButtonStart(currentShimmerButtonState);
         }
     }
 
     /**
-     * 判断当前是否正在运行拍照/处理中
+     * 是否忙碌中
      *
-     * @return boolean
+     * @return 是否忙碌中
      */
     public boolean isBusy() {
-        return ((currentCaptureButtonState == CaptureButtonState.SINGLE_CAPTURE_RUNNING) || (currentCaptureButtonState == CaptureButtonState.BURST_CAPTURE_RUNNING) || (currentCaptureButtonState == CaptureButtonState.STOPPING));
+        return (currentShimmerButtonState == ShimmerButtonState.RUNNING);
     }
 
     /**
@@ -630,58 +668,27 @@ public class CaptureButton extends View {
     }
 
     /**
-     * 触发连拍一次脉冲缩放效果 (供外部在每拍完一张照片时调用)
-     */
-    public void triggerBurstPulse() {
-        animateInnerScale(0.82f, 80, new DecelerateInterpolator());
-        postDelayed(() -> animateInnerScale(1.0f, 120, new OvershootInterpolator(1.5f)), 80);
-    }
-
-    /**
-     * 获取当前按钮状态
+     * 设置流光按钮状态与文本
      *
-     * @return 按钮状态
+     * @param shimmerButtonState 流光按钮状态
+     * @param text               文本
      */
-    public CaptureButtonState getCaptureButtonState() {
-        return currentCaptureButtonState;
-    }
-
-    /**
-     * 设置按钮状态与文字
-     *
-     * @param captureButtonState 按钮状态
-     * @param buttonText         按钮文本
-     */
-    public void setCaptureButtonState(CaptureButtonState captureButtonState, String buttonText) {
+    public void setShimmerButtonStateAndText(ShimmerButtonState shimmerButtonState, String text) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            post(() -> setCaptureButtonState(captureButtonState, buttonText));
+            post(() -> setShimmerButtonStateAndText(shimmerButtonState, text));
             return;
         }
-        this.text = buttonText;
-        if ((captureButtonState == CaptureButtonState.IDLE_SINGLE_CAPTURE) || (captureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE)) {
-            this.idleText = buttonText;
+        this.text = text;
+        if (shimmerButtonState == ShimmerButtonState.IDLE) {
+            this.idleText = text;
         }
-        if (this.currentCaptureButtonState == captureButtonState) {
+        if (this.currentShimmerButtonState == shimmerButtonState) {
             updateLoadingAnimation();
             invalidate();
             return;
         }
-        this.currentCaptureButtonState = captureButtonState;
-        int targetColor;
-        switch (captureButtonState) {
-            case BURST_CAPTURE_RUNNING:
-            case IDLE_BURST_CAPTURE:
-                targetColor = colorBurst;
-                break;
-            case SINGLE_CAPTURE_RUNNING:
-            case IDLE_SINGLE_CAPTURE:
-                targetColor = colorPrimary;
-                break;
-            case STOPPING:
-            default:
-                targetColor = colorDisabled;
-                break;
-        }
+        this.currentShimmerButtonState = shimmerButtonState;
+        int targetColor = colorPrimary;
         if ((colorAnimator != null) && colorAnimator.isRunning()) {
             colorAnimator.cancel();
         }
@@ -768,77 +775,63 @@ public class CaptureButton extends View {
     }
 
     /**
-     * 设置单拍主体颜色
+     * 设置主体颜色
      *
      * @param color 颜色
      */
-    public void setSingleCaptureColor(int color) {
+    public void setPrimaryColor(int color) {
         this.colorPrimary = color;
-        if (!isBusy() && (currentCaptureButtonState != CaptureButtonState.IDLE_BURST_CAPTURE)) {
+        if (!isBusy()) {
             this.currentInnerColor = color;
         }
         invalidate();
     }
 
     /**
-     * 设置连拍主体颜色
+     * 获取当前流光按钮状态
      *
-     * @param color 颜色
+     * @return 当前流光按钮状态
      */
-    public void setBurstCaptureColor(int color) {
-        this.colorBurst = color;
-        if (!isBusy() && (currentCaptureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE)) {
-            this.currentInnerColor = color;
-        }
-        invalidate();
+    public ShimmerButtonState getCurrentShimmerButtonState() {
+        return currentShimmerButtonState;
     }
 
     /**
-     * 设置停止中主体颜色
+     * 获取当前流光按钮形状
      *
-     * @param color 颜色
+     * @return 当前流光按钮形状
      */
-    public void setDisabledColor(int color) {
-        this.colorDisabled = color;
-        invalidate();
+    public ShimmerButtonShape getCurrentShimmerButtonShape() {
+        return currentShimmerButtonShape;
     }
 
     /**
-     * 获取当前拍照按钮触发模式
+     * 设置当前流光按钮形状
      *
-     * @return 当前拍照按钮触发模式
+     * @param shimmerButtonShape 流光按钮形状
      */
-    public CaptureButtonTriggerMode getCurrentCaptureButtonTriggerMode() {
-        return currentCaptureButtonTriggerMode;
-    }
-
-    /**
-     * 设置拍照按钮触发模式
-     *
-     * @param captureButtonTriggerMode 拍照按钮触发模式
-     */
-    public void setCurrentCaptureButtonTriggerMode(CaptureButtonTriggerMode captureButtonTriggerMode) {
-        this.currentCaptureButtonTriggerMode = captureButtonTriggerMode;
-    }
-
-    /**
-     * 获取拍照按钮形状
-     *
-     * @return 拍照按钮形状
-     */
-    public CaptureButtonShape getCaptureButtonShape() {
-        return currentCaptureButtonShape;
-    }
-
-    /**
-     * 设置拍照按钮形状
-     *
-     * @param captureButtonShape 拍照按钮形状
-     */
-    public void setCaptureButtonShape(CaptureButtonShape captureButtonShape) {
-        this.currentCaptureButtonShape = captureButtonShape;
+    public void setCurrentShimmerButtonShape(ShimmerButtonShape shimmerButtonShape) {
+        this.currentShimmerButtonShape = shimmerButtonShape;
         setupSquarePath();
         invalidate();
+    }
+
+    /**
+     * 获取当前流光按钮触发模式
+     *
+     * @return 当前流光按钮触发模式
+     */
+    public ShimmerButtonTriggerMode getCurrentShimmerButtonTriggerMode() {
+        return currentShimmerButtonTriggerMode;
+    }
+
+    /**
+     * 设置当前流光按钮触发模式
+     *
+     * @param shimmerButtonTriggerMode 流光按钮触发模式
+     */
+    public void setCurrentShimmerButtonTriggerMode(ShimmerButtonTriggerMode shimmerButtonTriggerMode) {
+        this.currentShimmerButtonTriggerMode = shimmerButtonTriggerMode;
     }
 
     /**
@@ -1022,40 +1015,37 @@ public class CaptureButton extends View {
     }
 
     /**
-     * 设置拍照按钮回调
+     * 设置流光按钮回调
      *
-     * @param onCaptureButtonCallback 拍照按钮回调
+     * @param onShimmerButtonCallback 流光按钮回调
      */
-    public void setOnCaptureButtonCallback(OnCaptureButtonCallback onCaptureButtonCallback) {
-        this.onCaptureButtonCallback = onCaptureButtonCallback;
+    public void setOnShimmerButtonCallback(OnShimmerButtonCallback onShimmerButtonCallback) {
+        this.onShimmerButtonCallback = onShimmerButtonCallback;
     }
 
     /**
-     * 停止拍照
+     * 停止
      *
      * @param resetText 重置文本
      */
-    public void stopCapture(String resetText) {
+    public void stop(String resetText) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            post(() -> stopCapture(resetText));
+            post(() -> stop(resetText));
             return;
         }
-        CaptureButtonState targetCaptureButtonState = ((currentCaptureButtonState == CaptureButtonState.IDLE_BURST_CAPTURE) || (currentCaptureButtonState == CaptureButtonState.BURST_CAPTURE_RUNNING) || (currentInnerColor == colorBurst))
-                ? CaptureButtonState.IDLE_BURST_CAPTURE
-                : CaptureButtonState.IDLE_SINGLE_CAPTURE;
         // 1. 恢复空闲状态与颜色动画
-        setCaptureButtonState(targetCaptureButtonState, resetText);
+        setShimmerButtonStateAndText(ShimmerButtonState.IDLE, resetText);
         // 2. 主动触发拍照停止
-        if (onCaptureButtonCallback != null) {
-            onCaptureButtonCallback.onCaptureButtonStop();
+        if (onShimmerButtonCallback != null) {
+            onShimmerButtonCallback.onShimmerButtonStop();
         }
     }
 
     /**
-     * 停止拍照
+     * 停止
      */
-    public void stopCapture() {
-        stopCapture(this.idleText);
+    public void stop() {
+        stop(this.idleText);
     }
 
     @Override
