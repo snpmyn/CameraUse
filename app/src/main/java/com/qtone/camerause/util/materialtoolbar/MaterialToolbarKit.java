@@ -77,7 +77,7 @@ public class MaterialToolbarKit {
             // 首先当作资源 ID 读取
             sizeInPx = context.getResources().getDimensionPixelSize(sizeInDpOrRes);
         } catch (Resources.NotFoundException e) {
-            // 非资源 ID 时当作纯 dp 值计算
+            // 非资源 ID 时当作纯 DP 值计算
             sizeInPx = DensityUtils.dipToPxByInt(sizeInDpOrRes);
         }
         if (sizeInPx <= 0) {
@@ -123,6 +123,80 @@ public class MaterialToolbarKit {
                 menuItem.setTitle(spannableString);
             }
         }
+    }
+
+    /**
+     * 设置菜单条目图标右边距
+     *
+     * @param context           上下文
+     * @param materialToolbar   材料工具栏
+     * @param menuItemId        菜单条目 ID
+     * @param marginInDpOrResId 边距 DP 值或资源 ID
+     */
+    public void setMenuItemIconMarginRight(@NonNull Context context, @NonNull MaterialToolbar materialToolbar, int menuItemId, int marginInDpOrResId) {
+        if (null == materialToolbar.getMenu()) {
+            return;
+        }
+        MenuItem menuItem = materialToolbar.getMenu().findItem(menuItemId);
+        setMenuItemIconMarginRight(context, menuItem, marginInDpOrResId);
+    }
+
+    /**
+     * 设置所有菜单条目图标右边距
+     *
+     * @param context           上下文
+     * @param materialToolbar   材料工具栏
+     * @param marginInDpOrResId 边距 DP 值或资源 ID
+     */
+    public void setAllMenuItemIconMarginRight(@NonNull Context context, MaterialToolbar materialToolbar, int marginInDpOrResId) {
+        if ((null == materialToolbar) || (null == materialToolbar.getMenu())) {
+            return;
+        }
+        for (int i = 0; i < materialToolbar.getMenu().size(); i++) {
+            MenuItem menuItem = materialToolbar.getMenu().getItem(i);
+            setMenuItemIconMarginRight(context, menuItem, marginInDpOrResId);
+        }
+    }
+
+    /**
+     * 设置菜单条目图标右边距
+     *
+     * @param context           上下文
+     * @param menuItem          材料工具栏
+     * @param marginInDpOrResId 边距 DP 值或资源 ID
+     */
+    public void setMenuItemIconMarginRight(@NonNull Context context, MenuItem menuItem, int marginInDpOrResId) {
+        if ((null == menuItem) || (null == menuItem.getIcon())) {
+            return;
+        }
+        int marginInPx;
+        try {
+            // 首先当作资源 ID 读取
+            marginInPx = context.getResources().getDimensionPixelSize(marginInDpOrResId);
+        } catch (Resources.NotFoundException e) {
+            // 非资源 ID 时当作纯 DP 值计算
+            marginInPx = DensityUtils.dipToPxByInt(marginInDpOrResId);
+        }
+        if (marginInPx <= 0) {
+            return;
+        }
+        Drawable drawableIcon = menuItem.getIcon().mutate();
+        int width = drawableIcon.getIntrinsicWidth();
+        int height = drawableIcon.getIntrinsicHeight();
+        if (width <= 0) {
+            width = DensityUtils.dipToPxByInt(24);
+        }
+        if (height <= 0) {
+            height = DensityUtils.dipToPxByInt(24);
+        }
+        // 创建新 Bitmap
+        // 宽度 = 原图标宽 + 右边距
+        Bitmap bitmap = Bitmap.createBitmap(width + marginInPx, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawableIcon.setBounds(0, 0, width, height);
+        drawableIcon.draw(canvas);
+        Drawable resizedDrawable = new BitmapDrawable(context.getResources(), bitmap);
+        menuItem.setIcon(resizedDrawable);
     }
 
     private static final class InstanceHolder {
