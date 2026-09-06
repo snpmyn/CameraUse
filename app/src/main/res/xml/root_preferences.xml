@@ -57,7 +57,7 @@
             android:max="5000"
             app:defaultValue="3000"
             app:icon="@drawable/ic_timelapse_cos_24dp"
-            app:key="burst_interval"
+            app:key="burst_capture_interval"
             app:min="100"
             app:seekBarIncrement="100"
             app:showSeekBarValue="true"
@@ -68,11 +68,11 @@
             android:max="5000"
             app:defaultValue="1200"
             app:icon="@drawable/ic_timelapse_cos_24dp"
-            app:key="burst_interval"
+            app:key="scan_code_interval"
             app:min="100"
             app:seekBarIncrement="100"
             app:showSeekBarValue="true"
-            app:summary="设置连拍间隔时间 (毫秒)"
+            app:summary="设置扫码间隔时间 (毫秒)"
             app:title="扫码间隔" />
     </PreferenceCategory>
 </PreferenceScreen>
