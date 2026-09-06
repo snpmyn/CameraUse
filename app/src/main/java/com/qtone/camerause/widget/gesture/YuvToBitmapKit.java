@@ -4,6 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.util.Log;
+
+import com.qtone.camerause.util.log.LogKit;
 
 import java.io.ByteArrayOutputStream;
 
@@ -15,27 +18,29 @@ import java.io.ByteArrayOutputStream;
  */
 public class YuvToBitmapKit {
     /**
+     * NV21 转像素数据
+     * <p>
      * 将 NV21 / YUV420SP 格式的数据转为 Bitmap
      *
-     * @param nv21   NV21 字节数组
-     * @param width  图像宽度
-     * @param height 图像高度
-     * @return 转换后的 Bitmap (ARGB_8888)
+     * @param data   图像帧字节数组
+     * @param width  帧物理宽
+     * @param height 帧物理高
+     * @return 像素数据
      */
-    public static Bitmap nv21ToBitmap(byte[] nv21, int width, int height) {
-        if ((nv21 == null) || (width <= 0) || (height <= 0)) {
+    public static Bitmap nv21ToBitmap(byte[] data, int width, int height) {
+        if ((data == null) || (width <= 0) || (height <= 0)) {
             return null;
         }
         try {
-            YuvImage yuvImage = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             // 压缩质量 80% 足以让 AI 识别且能大幅提升转码速率
-            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 80, stream);
-            byte[] imageBytes = stream.toByteArray();
-            stream.close();
+            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 80, byteArrayOutputStream);
+            byte[] imageBytes = byteArrayOutputStream.toByteArray();
+            byteArrayOutputStream.close();
             return android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(LogKit.TAG, "NV21 转像素数据 - 异常 || " + e.getMessage());
             return null;
         }
     }

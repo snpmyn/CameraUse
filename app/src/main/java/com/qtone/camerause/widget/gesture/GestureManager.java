@@ -44,11 +44,11 @@ public class GestureManager implements GestureRecognizerHelper.GestureRecognizer
     }
 
     /**
-     * 传入摄像头预览数据进行识别
+     * 处理预览帧
      *
-     * @param data   原始 NV21 字节数组
-     * @param width  宽
-     * @param height 高
+     * @param data   图像帧字节数组
+     * @param width  帧物理宽
+     * @param height 帧物理高
      */
     public void processPreviewFrame(byte[] data, int width, int height) {
         if ((data == null) || (gestureRecognizerHelper == null) || (gestureRecognizerHelper.isClosed())) {
