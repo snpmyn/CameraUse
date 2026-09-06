@@ -12,6 +12,7 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
+import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
 import com.qtone.camerause.widget.button.ShimmerButton;
@@ -154,7 +155,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
                     return;
                 }
                 // 连拍按钮点击事件
-                cameraMainFragmentKit.onBurstCaptureClicked(3000);
+                safeRun(appCompatActivity -> cameraMainFragmentKit.onBurstCaptureClicked(SharedPreferencesKit.getBurstCaptureInterval(appCompatActivity)));
             }
 
             @Override
@@ -173,7 +174,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             @Override
             public void onShimmerButtonStart(ShimmerButtonState currentShimmerButtonState) {
                 // 扫码按钮点击事件
-                cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, 1200);
+                safeRun(appCompatActivity -> cameraMainFragmentKit.onScanCodeClicked(cameraMainFragmentVfv, SharedPreferencesKit.getScanCodeInterval(appCompatActivity)));
             }
 
             @Override
@@ -199,6 +200,14 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     protected void initData() {
         super.initData();
         cameraMainFragmentKit = new CameraMainFragmentKit(this);
+    }
+
+    /**
+     * 设置监听
+     */
+    @Override
+    protected void setListener() {
+
     }
 
     /**
