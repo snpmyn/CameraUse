@@ -5,20 +5,22 @@
         <!-- Primary brand color. -->
         <!-- 主色调 (colorPrimary) - 核心品牌色 -->
         <item name="colorPrimary">@color/basic</item>
-        <!--<item name="colorPrimary">@color/purple_500</item>-->
         <!-- 主色变体 - 同主色或深色 + 统一控件和过渡状态色 -->
         <item name="colorPrimaryVariant">@color/basic</item>
-        <!--<item name="colorPrimaryVariant">@color/purple_700</item>-->
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <!-- 辅助色 (colorSecondary) 无需强调辅助色时建议与主色一致 -->
         <item name="colorSecondary">@color/basic</item>
         <item name="colorSecondaryVariant">@color/basic</item>
-        <!--<item name="colorSecondary">@color/teal_200</item>-->
-        <!--<item name="colorSecondaryVariant">@color/teal_700</item>-->
         <item name="colorOnSecondary">@color/black</item>
+
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!--设置状态栏文字和图标的颜色-->
+        <!--true 状态栏文字和图标为深色 (适合浅色背景)-->
+        <!--false 状态栏文字和图标为浅色 (适合深色背景)-->
+        <item name="android:windowLightStatusBar">false</item>
+
         <!-- Customize your theme here. -->
         <!--页面切换动画-->
         <item name="android:windowAnimationStyle">@style/AnimationActivity</item>
