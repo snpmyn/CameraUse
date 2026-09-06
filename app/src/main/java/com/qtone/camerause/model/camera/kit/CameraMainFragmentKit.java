@@ -15,7 +15,7 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
-import com.qtone.camerause.application.CameraGestureManager;
+import com.qtone.camerause.widget.gesture.GestureManager;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
@@ -46,7 +46,7 @@ import java.util.function.Consumer;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, CameraGestureManager.OnGestureRecognizedListener {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, GestureManager.OnGestureRecognizedListener {
     /**
      * 允许扫码状态锁
      * <p>
@@ -80,7 +80,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     private final AtomicInteger burstCaptureCount = new AtomicInteger(0);
 
-    private CameraGestureManager cameraGestureManager;
+    private GestureManager gestureManager;
 
     /**
      * constructor
@@ -102,7 +102,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         cameraMainFragment.safeRun(new Consumer<AppCompatActivity>() {
             @Override
             public void accept(AppCompatActivity appCompatActivity) {
-                cameraGestureManager = new CameraGestureManager(appCompatActivity, CameraMainFragmentKit.this);
+                gestureManager = new GestureManager(appCompatActivity, CameraMainFragmentKit.this);
             }
         });
     }
@@ -126,7 +126,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         cameraFpsKit.countFrame();
         // 直接塞入原始数据
         // 内部自动异步转码、丢帧与手势推理
-        cameraGestureManager.processPreviewFrame(data, width, height);
+        gestureManager.processPreviewFrame(data, width, height);
     }
 
     /**
@@ -219,8 +219,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         cameraMainFragment.getMultiRoiOverlayView().clearAllRoi();
 
         // 5. 销毁时释放线程池与 AI 模型内存
-        if (cameraGestureManager != null) {
-            cameraGestureManager.release();
+        if (gestureManager != null) {
+            gestureManager.release();
         }
     }
 
