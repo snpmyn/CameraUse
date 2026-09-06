@@ -1,4 +1,4 @@
-package com.qtone.camerause.application;
+package com.qtone.camerause.widget.gesture;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created on 2026/9/4.
  *
  * @author 郑少鹏
- * @desc 相机手势管理器
+ * @desc 手势管理器
  */
-public class CameraGestureManager implements GestureRecognizerHelper.GestureRecognizerListener {
-    private static final String TAG = CameraGestureManager.class.getSimpleName();
+public class GestureManager implements GestureRecognizerHelper.GestureRecognizerListener {
+    private static final String TAG = GestureManager.class.getSimpleName();
     private final GestureRecognizerHelper gestureRecognizerHelper;
     private final OnGestureRecognizedListener externalListener;
     private final ExecutorService backgroundExecutor;
@@ -31,7 +31,7 @@ public class CameraGestureManager implements GestureRecognizerHelper.GestureReco
      */
     private final AtomicBoolean isProcessingFrame = new AtomicBoolean(false);
 
-    public CameraGestureManager(Context context, OnGestureRecognizedListener listener) {
+    public GestureManager(Context context, OnGestureRecognizedListener listener) {
         this.externalListener = listener;
         this.mainHandler = new Handler(Looper.getMainLooper());
         // 创建单线程池
@@ -62,7 +62,7 @@ public class CameraGestureManager implements GestureRecognizerHelper.GestureReco
         backgroundExecutor.execute(() -> {
             try {
                 // 1. 将 YUV 格式转换成 Bitmap
-                Bitmap frameBitmap = YuvToBitmapUtil.nv21ToBitmap(data, width, height);
+                Bitmap frameBitmap = YuvToBitmapKit.nv21ToBitmap(data, width, height);
                 if ((frameBitmap != null) && !gestureRecognizerHelper.isClosed()) {
                     // 2. 送入识别器开始识别
                     gestureRecognizerHelper.recognizeLiveStream(frameBitmap);

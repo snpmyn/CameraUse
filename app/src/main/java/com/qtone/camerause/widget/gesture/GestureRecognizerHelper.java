@@ -1,4 +1,4 @@
-package com.qtone.camerause.application;
+package com.qtone.camerause.widget.gesture;
 
 import android.content.Context;
 import android.graphics.Bitmap;

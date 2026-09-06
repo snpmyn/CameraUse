@@ -1,4 +1,4 @@
-package com.qtone.camerause.application;
+package com.qtone.camerause.widget.gesture;
 
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -11,9 +11,9 @@ import java.io.ByteArrayOutputStream;
  * Created on 2026/9/4.
  *
  * @author 郑少鹏
- * @desc
+ * @desc YUV 转像素数据配套原价
  */
-public class YuvToBitmapUtil {
+public class YuvToBitmapKit {
     /**
      * 将 NV21 / YUV420SP 格式的数据转为 Bitmap
      *
