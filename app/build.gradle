@@ -96,6 +96,9 @@ dependencies {
     /*immersionbar*/
     implementation 'com.gyf.immersionbar:immersionbar:3.0.0'
 
+    /*mediapipe*/
+    implementation 'com.google.mediapipe:tasks-vision:1.0.0'
+
     /*glide*/
     implementation "com.github.bumptech.glide:glide:4.10.0"
     /*permissionx*/

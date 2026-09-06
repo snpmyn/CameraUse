@@ -4,20 +4,25 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
+import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
+import com.qtone.camerause.application.CameraGestureManager;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.view.ViewUtils;
+import com.qtone.camerause.widget.camera.CameraFpsKit;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
@@ -33,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Created on 2026/8/11.
@@ -40,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, CameraGestureManager.OnGestureRecognizedListener {
     /**
      * 允许扫码状态锁
      * <p>
@@ -64,18 +70,24 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     private final ScanCodeProcessor scanCodeProcessor;
     /**
+     * 相机帧率配套原件
+     */
+    private final CameraFpsKit cameraFpsKit;
+    /**
      * 连拍计数器
      * <p>
      * 使用 AtomicInteger 保证多线程并发环境下的绝对原子性
      */
     private final AtomicInteger burstCaptureCount = new AtomicInteger(0);
 
+    private CameraGestureManager cameraGestureManager;
+
     /**
      * constructor
      *
      * @param cameraMainFragment 相机主碎片
      */
-    public CameraMainFragmentKit(CameraMainFragment cameraMainFragment) {
+    public CameraMainFragmentKit(@NotNull CameraMainFragment cameraMainFragment) {
         // 相机主碎片
         this.cameraMainFragment = cameraMainFragment;
         // 拍照处理器
@@ -84,6 +96,15 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         this.documentCropProcessor = new DocumentCropProcessor();
         // 扫码处理器
         this.scanCodeProcessor = new ScanCodeProcessor(this);
+        // 相机帧率配套原件
+        this.cameraFpsKit = new CameraFpsKit(this);
+
+        cameraMainFragment.safeRun(new Consumer<AppCompatActivity>() {
+            @Override
+            public void accept(AppCompatActivity appCompatActivity) {
+                cameraGestureManager = new CameraGestureManager(appCompatActivity, CameraMainFragmentKit.this);
+            }
+        });
     }
 
     /**
@@ -101,6 +122,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
             // 扫码处理器 - 处理帧
             scanCodeProcessor.processFrame(data, width, height, dataFormat, 0);
         }
+        // 统计帧数
+        cameraFpsKit.countFrame();
+        // 直接塞入原始数据
+        // 内部自动异步转码、丢帧与手势推理
+        cameraGestureManager.processPreviewFrame(data, width, height);
     }
 
     /**
@@ -191,6 +217,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         WeChatCropEngine.getInstance(cameraMainFragment.getContext()).release();
         // MultiRoiOverlayView
         cameraMainFragment.getMultiRoiOverlayView().clearAllRoi();
+
+        // 5. 销毁时释放线程池与 AI 模型内存
+        if (cameraGestureManager != null) {
+            cameraGestureManager.release();
+        }
     }
 
     /**
@@ -237,7 +268,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
         if (captureProcessor.captureSuccessFromBurstCapture(captureMode)) {
             burstCaptureCount.incrementAndGet();
-            cameraMainFragment.cameraMainFragmentSbBurstCapture.setText(String.valueOf(burstCaptureCount.get()));
+            cameraMainFragment.cameraMainFragmentSbBurstCapture.setText(burstCaptureCount.get() + "\n当前已拍");
         }
         cameraMainFragment.safeRun(appCompatActivity -> {
             // 1. 是否允许文档裁剪
@@ -336,6 +367,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onCaptureError(String errorMsg) {
         ToastUtils.show("拍照错误 - " + errorMsg);
+        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
         if (captureProcessor.captureErrorFromSingleCapture()) {
             cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
         }
@@ -359,7 +391,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onDocumentCropError(String errorMsg) {
-        ToastUtils.show("文档裁剪错误");
+        ToastUtils.show("文档裁剪错误 - " + errorMsg);
+        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
     }
 
     /**
@@ -379,7 +412,65 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * @param e 异常
      */
     @Override
-    public void onScanCodeFailure(Exception e) {
+    public void onScanCodeFailure(@NotNull Exception e) {
         ToastUtils.show("扫码失败 - " + e.getMessage());
+    }
+
+    /**
+     * 相机帧率变化
+     *
+     * @param fps 帧率
+     */
+    @Override
+    public void onCameraFpsChange(float fps) {
+        Log.d(LogKit.TAG, "帧率 = " + fps);
+    }
+
+    /**
+     * 识别结果回调 (已自动切换至主线程)
+     *
+     * @param gestureName             手势名称 (如 "Victory", "Open_Palm", "Closed_Fist", "Thumb_Up", "None")
+     * @param gestureRecognizerResult MediaPipe 原始结果对象 (包含手部 21 个关节点坐标)
+     * @param inferenceTimeMs         推理耗时 (毫秒)
+     */
+    @Override
+    public void onGestureRecognized(String gestureName, GestureRecognizerResult gestureRecognizerResult, long inferenceTimeMs) {
+        Log.d("Gesture", gestureName);
+        switch (gestureName) {
+            case "Victory":
+                // 剪刀手 ✌
+                Log.d(LogKit.TAG, "剪刀手 ✌");
+                ToastUtils.show("剪刀手");
+                break;
+            case "Open_Palm":
+                // 张开手掌 🖐
+                Log.d(LogKit.TAG, "张开手掌 \uD83D\uDD90");
+                ToastUtils.show("张开手掌");
+                break;
+            case "Closed_Fist":
+                // 握拳 ✊
+                Log.d(LogKit.TAG, "握拳 ✊");
+                ToastUtils.show("握拳");
+                break;
+            case "Thumb_Up":
+                // 点赞 👍
+                Log.d(LogKit.TAG, "点赞 \uD83D\uDC4D");
+                ToastUtils.show("点赞");
+                break;
+            case "None":
+            default:
+                // 未识别到特定手势
+                break;
+        }
+    }
+
+    /**
+     * 错误回调
+     *
+     * @param error
+     */
+    @Override
+    public void onError(String error) {
+        Log.e("Gesture", "手势识别异常: " + error);
     }
 }
