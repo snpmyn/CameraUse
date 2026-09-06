@@ -13,6 +13,7 @@ import com.google.mediapipe.tasks.core.Delegate;
 import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizer;
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
+import com.qtone.camerause.util.log.LogKit;
 
 /**
  * Created on 2026/9/4.
@@ -23,30 +24,44 @@ import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResu
 public class GestureRecognizerHelper {
     public static final int DELEGATE_CPU = 0;
     public static final int DELEGATE_GPU = 1;
-    private static final String TAG = "GestureRecognizerHelper";
     private static final String MP_RECOGNIZER_TASK = "gesture_recognizer.task";
+    /**
+     * 上下文
+     */
     private final Context context;
-    private final GestureRecognizerListener listener;
+    /**
+     * 手势识别回调
+     */
+    private final GestureRecognizerCallback gestureRecognizerCallback;
+    /**
+     * 手势识别
+     */
     private GestureRecognizer gestureRecognizer;
     private float minHandDetectionConfidence = 0.5f;
     private float minHandTrackingConfidence = 0.5f;
     private float minHandPresenceConfidence = 0.5f;
     private int currentDelegate = DELEGATE_CPU;
 
-    public GestureRecognizerHelper(Context context, GestureRecognizerListener listener) {
+    /**
+     * constructor
+     *
+     * @param context                   上下文
+     * @param gestureRecognizerCallback 手势识别回调
+     */
+    public GestureRecognizerHelper(Context context, GestureRecognizerCallback gestureRecognizerCallback) {
         this.context = context;
-        this.listener = listener;
+        this.gestureRecognizerCallback = gestureRecognizerCallback;
         setupGestureRecognizer();
     }
 
     public GestureRecognizerHelper(Context context,
-                                   GestureRecognizerListener listener,
+                                   GestureRecognizerCallback gestureRecognizerCallback,
                                    float minHandDetectionConfidence,
                                    float minHandTrackingConfidence,
                                    float minHandPresenceConfidence,
                                    int currentDelegate) {
         this.context = context;
-        this.listener = listener;
+        this.gestureRecognizerCallback = gestureRecognizerCallback;
         this.minHandDetectionConfidence = minHandDetectionConfidence;
         this.minHandTrackingConfidence = minHandTrackingConfidence;
         this.minHandPresenceConfidence = minHandPresenceConfidence;
@@ -81,15 +96,15 @@ public class GestureRecognizerHelper {
                             .build();
             gestureRecognizer = GestureRecognizer.createFromOptions(context, options);
         } catch (IllegalStateException e) {
-            if (listener != null) {
-                listener.onError("GestureRecognizer 初始化失败: " + e.getMessage());
+            if (gestureRecognizerCallback != null) {
+                gestureRecognizerCallback.onGestureRecognizerError("GestureRecognizer 初始化失败: " + e.getMessage());
             }
-            Log.e(TAG, "加载任务失败", e);
+            Log.e(LogKit.TAG, "加载任务失败", e);
         } catch (RuntimeException e) {
-            if (listener != null) {
-                listener.onError("GPU/硬件加速错误: " + e.getMessage());
+            if (gestureRecognizerCallback != null) {
+                gestureRecognizerCallback.onGestureRecognizerError("GPU/硬件加速错误: " + e.getMessage());
             }
-            Log.e(TAG, "加载任务失败", e);
+            Log.e(LogKit.TAG, "加载任务失败", e);
         }
     }
 
@@ -125,8 +140,8 @@ public class GestureRecognizerHelper {
             topGestureName = topGesture.categoryName();
         }
         // 回调给外部使用
-        if (listener != null) {
-            listener.onResults(result, topGestureName, inferenceTime);
+        if (gestureRecognizerCallback != null) {
+            gestureRecognizerCallback.onGestureRecognizerResult(result, topGestureName, inferenceTime);
         }
     }
 
@@ -134,8 +149,8 @@ public class GestureRecognizerHelper {
      * 接收识别过程中的异常
      */
     private void returnLivestreamError(RuntimeException error) {
-        if (listener != null) {
-            listener.onError((error != null) ? error.getMessage() : "未知识别错误");
+        if (gestureRecognizerCallback != null) {
+            gestureRecognizerCallback.onGestureRecognizerError((error != null) ? error.getMessage() : "未知识别错误");
         }
     }
 
@@ -156,10 +171,24 @@ public class GestureRecognizerHelper {
         }
     }
 
-    // 回调接口：向外部抛出识别结果
-    public interface GestureRecognizerListener {
-        void onError(String error);
+    /**
+     * 手势识别回调
+     */
+    public interface GestureRecognizerCallback {
+        /**
+         * 手势识别错误
+         *
+         * @param errorMsg 错误消息
+         */
+        void onGestureRecognizerError(String errorMsg);
 
-        void onResults(GestureRecognizerResult result, String topGestureName, long inferenceTime);
+        /**
+         * 手势识别结果
+         *
+         * @param result         结果
+         * @param topGestureName
+         * @param inferenceTime
+         */
+        void onGestureRecognizerResult(GestureRecognizerResult result, String topGestureName, long inferenceTime);
     }
 }
