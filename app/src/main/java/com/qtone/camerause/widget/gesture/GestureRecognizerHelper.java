@@ -170,25 +170,4 @@ public class GestureRecognizerHelper {
             gestureRecognizer = null;
         }
     }
-
-    /**
-     * 手势识别回调
-     */
-    public interface GestureRecognizerCallback {
-        /**
-         * 手势识别错误
-         *
-         * @param errorMsg 错误消息
-         */
-        void onGestureRecognizerError(String errorMsg);
-
-        /**
-         * 手势识别结果
-         *
-         * @param result         结果
-         * @param topGestureName
-         * @param inferenceTime
-         */
-        void onGestureRecognizerResult(GestureRecognizerResult result, String topGestureName, long inferenceTime);
-    }
 }

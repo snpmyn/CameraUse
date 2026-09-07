@@ -15,7 +15,6 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.R;
-import com.qtone.camerause.widget.gesture.GestureRecognizerManager;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
@@ -27,6 +26,8 @@ import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
+import com.qtone.camerause.widget.gesture.GestureRecognizerCallback;
+import com.qtone.camerause.widget.gesture.GestureRecognizerManager;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
 import com.qtone.camerause.widget.scan.ScanCodeProcessor;
@@ -46,7 +47,7 @@ import java.util.function.Consumer;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, GestureRecognizerManager.OnGestureRecognizedListener {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, GestureRecognizerCallback {
     /**
      * 允许扫码状态锁
      * <p>
@@ -427,16 +428,17 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     }
 
     /**
-     * 识别结果回调 (已自动切换至主线程)
+     * 手势识别结果
      *
-     * @param gestureName             手势名称 (如 "Victory", "Open_Palm", "Closed_Fist", "Thumb_Up", "None")
-     * @param gestureRecognizerResult MediaPipe 原始结果对象 (包含手部 21 个关节点坐标)
-     * @param inferenceTimeMs         推理耗时 (毫秒)
+     * @param gestureRecognizerResult 手势识别结果
+     * @param topGestureName          最高置信度的手势名称
+     *                                如 "Victory", "Open_Palm", "None"
+     * @param inferenceTimeMs         推理耗时毫秒
      */
     @Override
-    public void onGestureRecognized(String gestureName, GestureRecognizerResult gestureRecognizerResult, long inferenceTimeMs) {
-        Log.d("Gesture", gestureName);
-        switch (gestureName) {
+    public void onGestureRecognizerResult(GestureRecognizerResult gestureRecognizerResult, String topGestureName, long inferenceTimeMs) {
+        Log.d("Gesture", topGestureName);
+        switch (topGestureName) {
             case "Victory":
                 // 剪刀手 ✌
                 Log.d(LogKit.TAG, "剪刀手 ✌");
@@ -465,12 +467,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     }
 
     /**
-     * 错误回调
+     * 手势识别错误
      *
-     * @param error
+     * @param errorMsg 错误信息
      */
     @Override
-    public void onError(String error) {
-        Log.e("Gesture", "手势识别异常: " + error);
+    public void onGestureRecognizerError(String errorMsg) {
+        Log.e("Gesture", "手势识别异常: " + errorMsg);
     }
 }

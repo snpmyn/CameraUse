@@ -19,11 +19,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author 郑少鹏
  * @desc 手势识别管理器
  */
-public class GestureRecognizerManager implements GestureRecognizerHelper.GestureRecognizerCallback {
-    private final GestureRecognizerHelper gestureRecognizerHelper;
-    private final OnGestureRecognizedListener externalListener;
-    private final ExecutorService executorService;
+public class GestureRecognizerManager implements GestureRecognizerCallback {
+    /**
+     * 线程消息调度器
+     */
     private final Handler handler;
+    /**
+     * 增强实现
+     */
+    private final ExecutorService executorService;
+    /**
+     * 手势识别辅助者
+     */
+    private final GestureRecognizerHelper gestureRecognizerHelper;
+    /**
+     * 手势识别回调
+     */
+    private final GestureRecognizerCallback gestureRecognizerCallback;
     /**
      * 标志当前是否有帧正在处理中
      * <p>
@@ -31,16 +43,24 @@ public class GestureRecognizerManager implements GestureRecognizerHelper.Gesture
      */
     private final AtomicBoolean isProcessingFrame = new AtomicBoolean(false);
 
-    public GestureRecognizerManager(Context context, OnGestureRecognizedListener listener) {
-        this.externalListener = listener;
+    /**
+     * constructor
+     *
+     * @param context                   上下文
+     * @param gestureRecognizerCallback 手势识别回调
+     */
+    public GestureRecognizerManager(Context context, GestureRecognizerCallback gestureRecognizerCallback) {
+        // 线程消息调度器
         this.handler = new Handler(Looper.getMainLooper());
-        // 创建单线程池
-        // 专门用于处理图像转换与 AI 帧识别
+        // 增强实现
+        // 单线程池 + 专门处理图像转换与 AI 帧识别
         this.executorService = Executors.newSingleThreadExecutor();
-        // 初始化辅助类
+        // 手势识别辅助者
         // 默认 CPU 模式
         // 可改为 DELEGATE_GPU
         this.gestureRecognizerHelper = new GestureRecognizerHelper(context, this);
+        // 手势识别回调
+        this.gestureRecognizerCallback = gestureRecognizerCallback;
     }
 
     /**
@@ -77,12 +97,12 @@ public class GestureRecognizerManager implements GestureRecognizerHelper.Gesture
     }
 
     @Override
-    public void onGestureRecognizerResult(GestureRecognizerResult result, String topGestureName, long inferenceTime) {
+    public void onGestureRecognizerResult(GestureRecognizerResult gestureRecognizerResult, String topGestureName, long inferenceTime) {
         // 完成处理，释放标志位，允许处理下一帧。
         isProcessingFrame.set(false);
         // 切回主线程交由外部 UI / 业务处理
-        if (externalListener != null) {
-            handler.post(() -> externalListener.onGestureRecognized(topGestureName, result, inferenceTime));
+        if (gestureRecognizerCallback != null) {
+            handler.post(() -> gestureRecognizerCallback.onGestureRecognizerResult(gestureRecognizerResult, topGestureName, inferenceTime));
         }
     }
 
@@ -90,8 +110,8 @@ public class GestureRecognizerManager implements GestureRecognizerHelper.Gesture
     public void onGestureRecognizerError(String errorMsg) {
         // 出错时同样重置标志位
         isProcessingFrame.set(false);
-        if (externalListener != null) {
-            handler.post(() -> externalListener.onError(errorMsg));
+        if (gestureRecognizerCallback != null) {
+            handler.post(() -> gestureRecognizerCallback.onGestureRecognizerError(errorMsg));
         }
     }
 
@@ -103,27 +123,5 @@ public class GestureRecognizerManager implements GestureRecognizerHelper.Gesture
         if (gestureRecognizerHelper != null) {
             gestureRecognizerHelper.release();
         }
-    }
-
-    /**
-     * 外部业务监听接口
-     */
-    public interface OnGestureRecognizedListener {
-        /**
-         * 识别结果回调
-         * <p>
-         * 已自动切换至主线程
-         *
-         * @param gestureName             手势名称
-         * @param gestureRecognizerResult 手势识别结果
-         *                                如 "Victory", "Open_Palm", "Closed_Fist", "Thumb_Up", "None"
-         * @param inferenceTimeMs         推理耗时毫秒
-         */
-        void onGestureRecognized(String gestureName, GestureRecognizerResult gestureRecognizerResult, long inferenceTimeMs);
-
-        /**
-         * 错误回调
-         */
-        void onError(String error);
     }
 }
