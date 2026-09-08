@@ -199,6 +199,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @Override
     protected void initData() {
         super.initData();
+        // 相机主碎片配套原件
         cameraMainFragmentKit = new CameraMainFragmentKit(this);
     }
 
@@ -226,7 +227,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @NonNull
     @Override
     protected CameraResolution getCameraResolution() {
-        return CameraResolution.RES_1280_720;
+        return CameraResolution.RES_2400_1350;
     }
 
     /**
