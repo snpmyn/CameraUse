@@ -22,6 +22,7 @@ public class SharedPreferencesKit {
     public static final String KEY_BAIDU_OCR = "baidu_ocr";
     public static final String KEY_DOCUMENT_CROP = "document_crop";
     public static final String KEY_WECHAT_CROP = "wechat_crop";
+    public static final String KEY_PHOTO_COMPRESSION = "photo_compression";
     public static final String KEY_BURST_CAPTURE_INTERVAL = "burst_capture_interval";
     public static final String KEY_SCAN_CODE_INTERVAL = "scan_code_interval";
     /**
@@ -34,8 +35,9 @@ public class SharedPreferencesKit {
     private static final boolean DEFAULT_BAIDU_OCR = false;
     private static final boolean DEFAULT_DOCUMENT_CROP = false;
     private static final boolean DEFAULT_WECHAT_CROP = false;
+    private static final boolean DEFAULT_PHOTO_COMPRESSION = true;
     private static final int DEFAULT_BURST_CAPTURE_INTERVAL = 3000;
-    private static final int DEFAULT_SCAN_CODE_INTERVAL = 1200;
+    private static final int DEFAULT_SCAN_CODE_INTERVAL = 1500;
 
     /**
      * 获取 SharedPreferences
@@ -95,6 +97,16 @@ public class SharedPreferencesKit {
      */
     public static boolean isWechatCropEnabled(Context context) {
         return getSharedPreferences(context).getBoolean(KEY_WECHAT_CROP, DEFAULT_WECHAT_CROP);
+    }
+
+    /**
+     * 是否允许拍照压缩
+     *
+     * @param context 上下文
+     * @return 是否允许拍照压缩
+     */
+    public static boolean isPhotoCompressionEnabled(Context context) {
+        return getSharedPreferences(context).getBoolean(KEY_PHOTO_COMPRESSION, DEFAULT_PHOTO_COMPRESSION);
     }
 
     /**
