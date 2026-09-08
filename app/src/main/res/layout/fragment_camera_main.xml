@@ -25,6 +25,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center" />
+
+
         </FrameLayout>
 
         <com.qtone.camerause.widget.scan.ViewFinderView
@@ -43,6 +45,23 @@
             android:id="@+id/cameraMainFragmentMrov"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="left|top"
+            android:layout_margin="@dimen/dp_20"
+            android:background="@color/TRANSPARENT"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/iv_mat_img"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="@dimen/dp_20"
+                android:scaleType="fitCenter" />
+        </FrameLayout>
     </FrameLayout>
 
     <LinearLayout
@@ -124,29 +143,52 @@
                 app:backgroundTint="@color/color_00BFA5" />
         </LinearLayout>
 
-        <!--普通按钮-->
-        <!--style="@style/Widget.MaterialComponents.Button"-->
-        <!--带图标-->
-        <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
-        <!--无背景 + 只有文字-->
-        <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
-        <!--描边按钮-->
-        <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
-        <!--扁平按钮 + 有背景 + 无阴影-->
-        <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/cameraMainFragmentMbGallery"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
-            android:layout_weight="2"
-            android:filterTouchesWhenObscured="true"
-            android:insetLeft="@dimen/dp_0"
-            android:insetTop="@dimen/dp_0"
-            android:insetRight="@dimen/dp_0"
-            android:insetBottom="@dimen/dp_0"
-            android:text="@string/gallery"
-            android:textColor="@color/white"
-            android:textSize="@dimen/sp_10"
-            app:backgroundTint="@color/color_7C4DFF" />
+            android:layout_weight="1"
+            tools:ignore="NestedWeights">
+            <!--普通按钮-->
+            <!--style="@style/Widget.MaterialComponents.Button"-->
+            <!--带图标-->
+            <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
+            <!--无背景 + 只有文字-->
+            <!--style="@style/Widget.MaterialComponents.Button.TextButton"-->
+            <!--描边按钮-->
+            <!--style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
+            <!--扁平按钮 + 有背景 + 无阴影-->
+            <!--style="@style/Widget.MaterialComponents.Button.UnelevatedButton"-->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbGallery"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dp_10"
+
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/gallery"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_10"
+                app:backgroundTint="@color/color_7C4DFF" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cameraMainFragmentMbLed"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:filterTouchesWhenObscured="true"
+                android:insetLeft="@dimen/dp_0"
+                android:insetTop="@dimen/dp_0"
+                android:insetRight="@dimen/dp_0"
+                android:insetBottom="@dimen/dp_0"
+                android:text="@string/led_open"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_10"
+                app:backgroundTint="@color/color_FBC2EB" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -88,12 +88,14 @@ public class CaptureHelper {
      * @param onCaptureCallBack 拍照回调
      */
     public static void notifyBegin(@NotNull Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        handler.post(() -> {
-            if (onCaptureCallBack != null) {
-                Log.d(LogKit.TAG, "拍照开始");
-                onCaptureCallBack.onCaptureBegin();
-            }
-        });
+       if (handler!=null) {
+           handler.post(() -> {
+               if (onCaptureCallBack != null) {
+                   Log.d(LogKit.TAG, "拍照开始");
+                   onCaptureCallBack.onCaptureBegin();
+               }
+           });
+       }
     }
 
     /**
@@ -104,11 +106,13 @@ public class CaptureHelper {
      * @param errorMsg          错误消息
      */
     public static void notifyError(@NotNull Handler handler, CaptureProcessor.OnCaptureCallback onCaptureCallBack, String errorMsg) {
-        handler.post(() -> {
-            if (onCaptureCallBack != null) {
-                Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
-                onCaptureCallBack.onCaptureError(errorMsg);
-            }
-        });
+        if (handler!=null) {
+            handler.post(() -> {
+                if (onCaptureCallBack != null) {
+                    Log.e(LogKit.TAG, "拍照错误 || " + errorMsg);
+                    onCaptureCallBack.onCaptureError(errorMsg);
+                }
+            });
+        }
     }
 }

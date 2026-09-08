@@ -3,6 +3,7 @@ package com.qtone.camerause.model.camera.kit;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
@@ -17,11 +18,13 @@ import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureState;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
+import com.qtone.camerause.widget.capture.DocumentScanner;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
@@ -65,11 +68,19 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     private final ScanCodeProcessor scanCodeProcessor;
 
     /**
+     * 灰度图片预览
+     */
+    private ImageView mMatImgIv;
+
+    /**
      * constructor
      *
      * @param cameraMainFragment 相机主碎片
      */
     public CameraMainFragmentKit(CameraMainFragment cameraMainFragment) {
+
+        LogUtils.d("onMatToBitmapProcessing", "CameraMainFragmentKit");
+
         // 相机主碎片
         this.cameraMainFragment = cameraMainFragment;
         // 拍照处理器
@@ -351,6 +362,33 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
     }
 
+    @Override
+    public void onMatToBitmapProcessing(Bitmap bitmap) {
+
+        if (bitmap == null) {
+            LogUtils.d("onMatToBitmapProcessing", "图片为null");
+            return;
+        }
+//        LogUtils.d("onMatToBitmapProcessing","处理灰度图片"+(mMatImgIv==null));
+//        if (mMatImgIv != null) {
+//            mMatImgIv.setImageBitmap(bitmap);
+//        }
+
+        DocumentScanner scanner = new DocumentScanner();
+        DocumentScanner.ScanResult r = scanner.scan(bitmap);   // 检测+矫正一步完成
+
+        if (r.isSuccess()) {
+            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
+            mMatImgIv.setImageBitmap(r.getCorrection().getBitmap());
+            // 原图坐标 ↔ 矫正图坐标互转
+            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
+        } else {
+            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
+            // 即使失败也能拿到检测结果，便于排查缺哪个角
+            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
+        }
+    }
+
     /**
      * 文档裁剪成功
      *
@@ -391,5 +429,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onScanCodeFailure(Exception e) {
         ToastUtils.show("扫码失败");
+    }
+
+    public void setPreviewMatImg(ImageView matImg) {
+
+        LogUtils.d("onMatToBitmapProcessing", "设置预览图片控件");
+        mMatImgIv = matImg;
     }
 }

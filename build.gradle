@@ -11,6 +11,17 @@ buildscript {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        mavenCentral()
+        maven {
+            url = uri("https://company/com/maven2")
+            url = uri("https://jitpack.io")
+
+        }
+
+        mavenLocal()
+        flatDir {
+            dirs "libs"
+        }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.2.2"
@@ -32,6 +43,17 @@ allprojects {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        mavenCentral()
+        maven {
+            url = uri("https://company/com/maven2")
+            url = uri("https://jitpack.io")
+
+        }
+
+        mavenLocal()
+        flatDir {
+            dirs "libs"
+        }
     }
 }
 

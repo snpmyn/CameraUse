@@ -174,7 +174,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         // 调用父类 CameraFragment 初始逻辑
         // 动态添加 TextureView 进容器并注册 UVC 监听
         initView();
-        initData();
+//        initData();
         startLogic();
     }
 

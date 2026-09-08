@@ -11,6 +11,8 @@ import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityMainBinding;
 import com.qtone.camerause.model.main.kit.MainActivityKit;
 import com.qtone.camerause.util.materialtoolbar.MaterialToolbarKit;
+import org.opencv.android.Camera2Renderer;
+import org.opencv.android.OpenCVLoader;
 
 /**
  * @decs: 主页

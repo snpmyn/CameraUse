@@ -1,11 +1,14 @@
 package com.qtone.camerause.widget.capture;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.util.log.LogKit;
+
+import org.opencv.core.Mat;
 
 /**
  * @decs: 拍照处理器
@@ -36,6 +39,7 @@ public class CaptureProcessor {
      */
     private volatile CaptureState captureState = CaptureState.IDLE;
 
+    private long lastProcessTime=0l;
     /**
      * constructor
      */
@@ -88,6 +92,11 @@ public class CaptureProcessor {
     public void processFrame(byte[] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, OnCaptureCallback onCaptureCallBack) {
         if (captureStrategy == CaptureStrategy.FRAME_CAPTURE) {
             frameCaptureProcessor.processFrame(data, width, height, dataFormat, onCaptureCallBack);
+        }
+
+        if ((System.currentTimeMillis()-lastProcessTime)>2000) {
+            lastProcessTime=System.currentTimeMillis();
+            frameCaptureProcessor.processPaperTestFrame(data, width, height, dataFormat, onCaptureCallBack);
         }
     }
 
@@ -231,5 +240,12 @@ public class CaptureProcessor {
          * @param errorMsg 错误消息
          */
         void onCaptureError(String errorMsg);
+
+
+        /**
+         *回调
+         */
+        void onMatToBitmapProcessing(Bitmap bitmap);
+
     }
 }

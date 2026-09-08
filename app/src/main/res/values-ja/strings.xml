@@ -10,6 +10,8 @@
     <string name="doNotTriggerScanningRepeatedly">連続スキャン不可</string>
     <string name="mediaImageGroup">アルバム</string>
     <string name="mediaImageDetail">画像詳細</string>
+    <string name="led_open">打开补光灯</string>
+    <string name="led_close">关闭补光灯</string>
     <string name="fullScreen">全画面</string>
     <string name="fullScreenExit">全画面表示を解除</string>
     <string name="shrink">縮小</string>

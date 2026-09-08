@@ -10,6 +10,8 @@ import com.baidu.ocr.sdk.OCR;
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.AccessToken;
+import com.common.apiutil.util.SDKUtil;
+import com.common.apiutil.util.SystemUtil;
 import com.jiangdg.ausbc.base.BaseApplication;
 import com.qtone.camerause.util.activity.ActivitySuperviseManager;
 import com.qtone.camerause.util.app.AppListener;
@@ -64,6 +66,10 @@ public class App extends BaseApplication {
                 + " Y DPI = " + DensityUtils.getDpiOnY(getApplicationContext())
                 + " DPI = " + DensityUtils.getDensityDpi(getApplicationContext());
         Log.d(LogKit.TAG, dpi);
+
+
+        //天波SDK初始化
+        SDKUtil.initSDK(this);
     }
 
     /**
