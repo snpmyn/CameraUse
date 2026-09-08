@@ -8,6 +8,7 @@ import android.os.SystemClock;
  * @author 郑少鹏
  * @desc 相机帧率配套原件
  */
+@SuppressWarnings("unused")
 public class CameraFpsKit {
     /**
      * 间隔毫秒
@@ -15,8 +16,6 @@ public class CameraFpsKit {
     private final long intervalMs;
     /**
      * 帧数量
-     * <p>
-     * 当前统计周期内的已接收帧数计数器
      */
     private int frameCount = 0;
     /**
@@ -30,14 +29,12 @@ public class CameraFpsKit {
      */
     private volatile float currentCameraFps = 0.0f;
     /**
-     * 相机帧率回调接口
+     * 相机帧率回调
      */
     private OnCameraFpsCallback onCameraFpsCallback;
 
     /**
      * constructor
-     * <p>
-     * 间隔毫秒 1000 更新一次
      *
      * @param onCameraFpsCallback 相机帧率回调
      */
@@ -53,30 +50,21 @@ public class CameraFpsKit {
      * @param onCameraFpsCallback 相机帧率回调
      */
     public CameraFpsKit(long intervalMs, OnCameraFpsCallback onCameraFpsCallback) {
+        // 间隔毫秒
         this.intervalMs = intervalMs;
-        this.onCameraFpsCallback = onCameraFpsCallback;
-    }
-
-    /**
-     * 设置相机帧率回调
-     *
-     * @param onCameraFpsCallback 相机帧率回调
-     */
-    public void setOnCameraFpsCallback(OnCameraFpsCallback onCameraFpsCallback) {
+        // 相机帧率回调
         this.onCameraFpsCallback = onCameraFpsCallback;
     }
 
     /**
      * 统计帧数
-     *
-     * @return 如果刚好达到统计周期并更新了 FPS 则返 true [否返 false]
      */
-    public boolean countFrame() {
+    public void countFrame() {
         frameCount++;
         long now = SystemClock.elapsedRealtime();
         if (lastCalculateTimestampMs == 0L) {
             lastCalculateTimestampMs = now;
-            return false;
+            return;
         }
         long diff = (now - lastCalculateTimestampMs);
         if (diff >= intervalMs) {
@@ -87,9 +75,7 @@ public class CameraFpsKit {
             if (onCameraFpsCallback != null) {
                 onCameraFpsCallback.onCameraFpsChange(currentCameraFps);
             }
-            return true;
         }
-        return false;
     }
 
     /**
@@ -111,7 +97,16 @@ public class CameraFpsKit {
     }
 
     /**
-     * 相机帧率回调接口
+     * 设置相机帧率回调
+     *
+     * @param onCameraFpsCallback 相机帧率回调
+     */
+    public void setOnCameraFpsCallback(OnCameraFpsCallback onCameraFpsCallback) {
+        this.onCameraFpsCallback = onCameraFpsCallback;
+    }
+
+    /**
+     * 相机帧率回调
      */
     public interface OnCameraFpsCallback {
         /**
