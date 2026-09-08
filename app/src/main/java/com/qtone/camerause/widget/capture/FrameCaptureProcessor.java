@@ -259,15 +259,10 @@ public class FrameCaptureProcessor {
                 }
                 fileOutputStream.flush();
             }
-            if (context != null) {
-                MediaScanKit.scanSingleFile(context, targetFile.getAbsolutePath());
-            }
-            handler.post(() -> {
-                if (onCaptureCallBack != null) {
-                    Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
-                    onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
-                }
-            });
+            // 压缩并覆盖
+            // 内部自检测
+            CaptureCompressHelper.getInstance().compressAndOverwrite(context, savePath, finalPath -> handleCaptureComplete(context, finalPath, width, height, dataFormat, onCaptureCallBack)
+            );
         } catch (Exception e) {
             Log.e(LogKit.TAG, "数据帧写盘异常 - 帧拍照", e);
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常 - 帧拍照");
@@ -275,27 +270,51 @@ public class FrameCaptureProcessor {
     }
 
     /**
+     * 处理拍照完成
+     *
+     * @param context           上下文
+     * @param savePath          保存路径
+     * @param width             帧物理宽
+     * @param height            帧物理高
+     * @param dataFormat        数据格式
+     * @param onCaptureCallBack 拍照回调
+     */
+    private void handleCaptureComplete(Context context, String savePath, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        if ((context != null) && (savePath != null)) {
+            MediaScanKit.scanSingleFile(context, savePath);
+        }
+        handler.post(() -> {
+            if (onCaptureCallBack != null) {
+                Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
+            }
+        });
+    }
+
+    /**
      * 释放
      */
     public void release() {
-        // 1. 单拍状态锁
+        // 单拍状态锁
         isSingleActive.set(false);
-        // 2. 连拍状态锁
+        // 连拍状态锁
         isBurstActive.set(false);
-        // 3. 当前拍照模式
+        // 当前拍照模式
         currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
-        // 4. 连拍模式上次成功捕获预览帧时间戳
+        // 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
-        // 5. 线程消息调度器
+        // 线程消息调度器
         handler.removeCallbacksAndMessages(null);
-        // 6. 增强实现
+        // 增强实现
         if (executorService != null) {
             if (!executorService.isShutdown()) {
                 executorService.shutdownNow();
             }
             executorService = null;
         }
-        // 7. 全局 Application Context
+        // 全局 Application Context
         applicationContext = null;
+        // 拍照压缩辅助者
+        CaptureCompressHelper.getInstance().release();
     }
 }
