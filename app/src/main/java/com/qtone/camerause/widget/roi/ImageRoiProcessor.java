@@ -235,7 +235,7 @@ public class ImageRoiProcessor {
             dx = (viewWidth - imgWidth * scale) / 2f;
         }
         List<RectF> mappedRects = new ArrayList<>();
-        // 将 View 上的触控百分比精准映射回照片真实像素点
+        // 将 View 上的触控百分比精准映射回图片真实像素点
         for (int i = 0; i < percentages.size(); i++) {
             RectF percent = percentages.get(i);
             // ① 先还原为 View 上的物理像素坐标
