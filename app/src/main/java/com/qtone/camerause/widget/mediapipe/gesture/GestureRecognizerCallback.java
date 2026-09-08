@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.gesture;
+package com.qtone.camerause.widget.mediapipe.gesture;
 
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 
