@@ -48,6 +48,19 @@
             app:title="微信裁剪" />
     </PreferenceCategory>
 
+    <!--拍照压缩分组-->
+    <PreferenceCategory
+        app:icon="@drawable/ic_format_image_front_cos_24dp"
+        app:title="拍照压缩">
+        <!--拍照压缩-->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:icon="@drawable/ic_format_image_front_cos_24dp"
+            app:key="photo_compression"
+            app:summary="自动对拍照后的图片进行压缩处理"
+            app:title="拍照压缩" />
+    </PreferenceCategory>
+
     <!--时间间隔分组-->
     <PreferenceCategory
         app:icon="@drawable/ic_time_auto_cos_24dp"
@@ -66,7 +79,7 @@
         <!--扫码间隔-->
         <SeekBarPreference
             android:max="5000"
-            app:defaultValue="1200"
+            app:defaultValue="1500"
             app:icon="@drawable/ic_timelapse_cos_24dp"
             app:key="scan_code_interval"
             app:min="100"
