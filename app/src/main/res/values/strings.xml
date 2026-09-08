@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraUse</string>
+    <string name="app_name">CameraUseTwo</string>
     <string name="singleCapture">单拍</string>
     <string name="burstCapture">连拍</string>
     <string name="scanCode">扫码</string>
@@ -41,4 +41,6 @@
     <string name="burstCaptureRunning">连拍进行中</string>
     <string name="singleCaptureRunning">单拍进行中</string>
     <string name="noClickRepeat">勿重复点击</string>
+    <!-- format -->
+    <string name="formatFFps">%1$.0f fps</string>
 </resources>

@@ -41,4 +41,6 @@
     <string name="burstCaptureRunning">高速連写中</string>
     <string name="singleCaptureRunning">1枚撮影中</string>
     <string name="noClickRepeat">連続タップしないでください</string>
+    <!-- format -->
+    <string name="formatFFps">%1$.0f fps</string>
 </resources>
