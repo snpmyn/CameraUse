@@ -154,6 +154,14 @@ public class SingleSelectDialog extends BaseLifecycleDialog {
     }
 
     /**
+     * 开始逻辑
+     */
+    @Override
+    protected void startLogic() {
+
+    }
+
+    /**
      * 清理资源
      * <p>
      * 对话框从 Window 移除时触发
