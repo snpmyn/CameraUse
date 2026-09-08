@@ -50,7 +50,7 @@
 
     <!--拍照压缩分组-->
     <PreferenceCategory
-        app:icon="@drawable/ic_format_image_front_cos_24dp"
+        app:icon="@drawable/ic_compress_cos_24dp"
         app:title="拍照压缩">
         <!--拍照压缩-->
         <SwitchPreferenceCompat
