@@ -107,6 +107,8 @@ public abstract class BaseLifecycleDialog extends Dialog {
         initData();
         // 初始化事件
         initEvent();
+        // 开始逻辑
+        startLogic();
     }
 
     /**
@@ -131,6 +133,11 @@ public abstract class BaseLifecycleDialog extends Dialog {
      * 初始化事件
      */
     protected abstract void initEvent();
+
+    /**
+     * 开始逻辑
+     */
+    protected abstract void startLogic();
 
     @Override
     public void onDetachedFromWindow() {
