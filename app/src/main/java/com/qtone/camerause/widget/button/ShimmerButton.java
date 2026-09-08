@@ -456,11 +456,29 @@ public class ShimmerButton extends View {
             canvas.drawCircle(centerX, centerY, currentRadius, innerCirclePaint);
         }
         // 5. 绘制居中文本
-        if ((text != null) && !text.isEmpty()) {
+        /*if ((text != null) && !text.isEmpty()) {
             textPaint.setColor(textColor);
             Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
             float baseline = (centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f);
             canvas.drawText(text, centerX, baseline, textPaint);
+        }*/
+        // 5. 绘制多行文本
+        if ((text != null) && !text.isEmpty()) {
+            textPaint.setColor(textColor);
+            // 按 \n 分割文本
+            String[] lines = text.split("\n");
+            Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
+            float fontHeight = fontMetrics.descent - fontMetrics.ascent;
+            // 计算多行文本的总高度
+            float totalHeight = lines.length * fontHeight;
+            // 计算第一行文本 baseline 坐标
+            // 使整体在垂直方向居中
+            float firstBaseline = centerY - (totalHeight / 2f) - fontMetrics.ascent;
+            // 循环绘制每一行
+            for (int i = 0; i < lines.length; i++) {
+                float lineBaseline = firstBaseline + i * fontHeight;
+                canvas.drawText(lines[i], centerX, lineBaseline, textPaint);
+            }
         }
     }
 
