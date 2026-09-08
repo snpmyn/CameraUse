@@ -1,5 +1,7 @@
 package com.qtone.camerause.model.main;
 
+import android.os.Bundle;
+
 import androidx.viewbinding.ViewBinding;
 
 import com.qtone.camerause.R;
@@ -7,6 +9,12 @@ import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityMainBinding;
 import com.qtone.camerause.model.main.kit.MainActivityKit;
 import com.qtone.camerause.util.materialtoolbar.MaterialToolbarKit;
+import com.qtone.camerause.util.rxbus.annotation.Subscribe;
+import com.qtone.camerause.util.rxbus.annotation.Tag;
+import com.qtone.camerause.util.rxbus.thread.EventThread;
+import com.qtone.camerause.value.RxBusConstant;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @decs: 主页
@@ -80,5 +88,13 @@ public class MainActivity extends BasePoolActivity {
     protected void startLogic() {
         // 检查并请求权限
         mainActivityKit.checkAndRequestPermission();
+    }
+
+    @Subscribe(thread = EventThread.MAIN_THREAD, tags = {@Tag(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS)})
+    public void mainActivityRefreshCameraFps(@NotNull Bundle bundle) {
+        if (bundle.getInt(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS_CODE_KEY) == RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS_CODE_VALUE) {
+            // 刷新帧率
+            activityMainBinding.mainActivityTv.setText(String.format(getString(R.string.formatFFps), bundle.getFloat(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS)));
+        }
     }
 }
