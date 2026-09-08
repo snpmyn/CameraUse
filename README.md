@@ -86,9 +86,10 @@
 
 ![introduction_9](user/introduction/introduction_9.webp)
 
+## 低分辨率画面被裁
+
+![introduction_10](user/introduction/introduction_10.webp)
+
 ## 待做
 
 * 清理
-* 设置
-* 帧率
-* 帧拍
