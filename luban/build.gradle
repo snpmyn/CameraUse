@@ -12,11 +12,42 @@ android {
         versionCode 1
         versionName "1.0"
 
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+
+        // 1. 补充 CMake 编译参数
+        // C++17 与 内存页兼容
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+                arguments "-DANDROID_STL=c++_static", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
+
         // consumer-rules.pro 会合并到最终 APK
         // consumer-rules.pro 专门用于传递给主应用 (消费者)。它指定的规则是确保主应用在混淆时，能正确处理这个库的代码。这些规则会被打包到 AAR 中。
         // proguard-rules.pro 仅用于当前 Library 自身构建时的混淆
         // proguard-rules.pro 不会自动传递给引用它的 App
         consumerProguardFiles "consumer-rules.pro"
+    }
+
+    // 2. 指定 CMakeLists.txt 脚本路径与版本
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            // 指定本地 4.1.2 版本
+            version "4.1.2"
+        }
+    }
+
+    // 3. 配置 Native 库打包逻辑
+    // 避免 libc++_shared.so 冲突
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+            excludes += ['lib/**/libc++_shared.so']
+        }
     }
 
     buildTypes {
@@ -43,4 +74,13 @@ dependencies {
     implementation "androidx.core:core-ktx:${androidxCoreVersion}"
     implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
     implementation "com.google.android.material:material:${comGoogleAndroidMaterialVersion}"
+    /*exifinterface*/
+    /*AndroidX Exif 读写库*/
+    implementation "androidx.exifinterface:exifinterface:1.3.7"
+    /*kotlinx-coroutines-core*/
+    /*包含 async, awaitAll, coroutineScope, withContext 等*/
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${orgJetbrainskotlinxKotlinxCoroutinesCoreVersion}"
+    /*kotlinx-coroutines-android*/
+    /*包含 Dispatchers.Main 主线程调度器*/
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${orgJetbrainskotlinxKotlinxCoroutinesAndroidVersion}"
 }
