@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class top.zibin.luban.compression.TurboJpegNative {
+    native <methods>;
+}
