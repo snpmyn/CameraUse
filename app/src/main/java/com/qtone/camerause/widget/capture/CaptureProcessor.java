@@ -220,14 +220,11 @@ public class CaptureProcessor {
 
     /**
      * 拍照错误是否来自单拍
-     * <p>
-     * 包装回调触发上层错误回调后才切状态为 {@link CaptureState#IDLE}
-     * 因此调时 {@link #captureState} 仍为 {@link CaptureState#SINGLE_CAPTURE_RUNNING}
      *
      * @return 拍照错误是否来自单拍
      */
     public boolean captureErrorFromSingleCapture() {
-        return (captureState == CaptureState.SINGLE_CAPTURE_RUNNING);
+        return ((captureState == CaptureState.IDLE) || (captureState == CaptureState.SINGLE_CAPTURE_RUNNING));
     }
 
     /**
