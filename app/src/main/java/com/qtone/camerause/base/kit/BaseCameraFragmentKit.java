@@ -37,5 +37,6 @@ public class BaseCameraFragmentKit {
      */
     public void cameraSetting() {
         CameraSettingKit.cameraSetting(baseCameraFragment.getCurrentCamera());
+        /*CameraSettingKit.restoreBrightness(baseCameraFragment.getCurrentCamera());*/
     }
 }
