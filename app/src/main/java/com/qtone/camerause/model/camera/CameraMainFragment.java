@@ -3,15 +3,22 @@ package com.qtone.camerause.model.camera;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.common.CommonConstants;
+import com.common.apiutil.ResultCode;
+import com.common.apiutil.pos.CommonUtil;
+import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
+import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
@@ -39,10 +46,18 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
+    private ImageView mMatImageIv;
+    private MaterialButton mLedMaterialButton;
+    private int mLedType = CommonConstants.LedType.FILL_LIGHT_1;
+    private int mLedColor = CommonConstants.LedColor.WHITE_LED;
     /**
      * 相机主碎片配套原件
      */
     private CameraMainFragmentKit cameraMainFragmentKit;
+
+    //天波SDK工具类
+    private CommonUtil mLedCommonUtil;
+    private boolean ledIsOpened = false;
 
     /**
      * 获取布局 ID
@@ -95,6 +110,8 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
+        mMatImageIv = rootView.findViewById(R.id.iv_mat_img);
+        mLedMaterialButton = rootView.findViewById(R.id.cameraMainFragmentMbLed);
         cameraMainFragmentSbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentSbSingleCapture);
         cameraMainFragmentSbSingleCapture.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
             @Override
@@ -189,6 +206,13 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             }
         });
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
+        mLedMaterialButton.setOnClickListener(this);
+        LogUtils.d("onMatToBitmapProcessing", "初始化预览图片控件");
+
+        cameraMainFragmentKit.setPreviewMatImg(mMatImageIv);
+
+        mLedCommonUtil = new CommonUtil(getActivity());
+
     }
 
     /**
@@ -227,7 +251,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @NonNull
     @Override
     protected CameraResolution getCameraResolution() {
-        return CameraResolution.RES_2400_1350;
+        return CameraResolution.RES_2592_1944;
     }
 
     /**
@@ -249,6 +273,25 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         if (id == R.id.cameraMainFragmentMbGallery) {
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
+        } else if (id == R.id.cameraMainFragmentMbLed) {
+            int result = ResultCode.ERR_SYS_UNEXPECT;
+            // 闪光灯按钮点击事件
+            if (!ledIsOpened) {//打开
+                ledIsOpened = true;
+                result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 255);
+                mLedMaterialButton.setText("关闭闪光灯");
+            } else {//关闭
+                ledIsOpened = false;
+                mLedMaterialButton.setText("打开闪光灯");
+                result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 0);
+            }
+            if (result == ResultCode.SUCCESS) {
+                Toast.makeText(getActivity(), "补光灯" + (ledIsOpened ? "开启" : "关闭") + "成功", Toast.LENGTH_SHORT).show();
+            } else if (result == ResultCode.ERR_SYS_NOT_SUPPORT) {
+                Toast.makeText(getActivity(), "不支持", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), "补光灯操作失败", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
