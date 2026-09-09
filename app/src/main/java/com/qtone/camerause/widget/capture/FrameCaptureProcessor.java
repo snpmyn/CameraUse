@@ -16,8 +16,10 @@ import com.jiangdg.ausbc.utils.ToastUtils;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.media.MediaScanKit;
+import com.qtone.camerause.widget.scan.one.ImageProcessor;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -34,8 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
-
 /**
  * Created on 2026/8/8.
  *
@@ -43,9 +43,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @desc 帧拍照处理器
  */
 public class FrameCaptureProcessor {
-
-    public  final String TAG = "CU";
-
     /**
      * 单拍状态锁
      * <p>
@@ -88,11 +85,14 @@ public class FrameCaptureProcessor {
      * 增强实现
      */
     private ExecutorService executorService;
-    // 状态
+    /**
+     * 状态
+     */
     private volatile boolean isProcessing = false;
+    /**
+     * ImageProcessor
+     */
     private ImageProcessor imageProcessor;
-
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /**
      * constructor
@@ -100,7 +100,18 @@ public class FrameCaptureProcessor {
     public FrameCaptureProcessor() {
         executorService = Executors.newSingleThreadExecutor();
         imageProcessor = new ImageProcessor();
+    }
 
+    public static Mat nv21ToMat(byte[] nv21, int width, int height) {
+        // 把整个 NV21 当成一个 1.5H × W 的单通道 Mat
+        Mat yuv = new Mat(height * 3 / 2, width, CvType.CV_8UC1);
+        yuv.put(0, 0, nv21);
+
+        Mat bgr = new Mat();
+        Imgproc.cvtColor(yuv, bgr, Imgproc.COLOR_YUV2BGR_NV21);
+
+        yuv.release();
+        return bgr;
     }
 
     /**
@@ -111,7 +122,7 @@ public class FrameCaptureProcessor {
      * @param onCaptureCallBack 拍照回调
      */
     public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        Log.d(TAG, "开始单拍 - 帧拍照");
+        Log.d(LogKit.TAG, "开始单拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -139,7 +150,7 @@ public class FrameCaptureProcessor {
      * @param onCaptureCallBack 拍照回调
      */
     public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        Log.d(TAG, "开始连拍 - 帧拍照");
+        Log.d(LogKit.TAG, "开始连拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -159,7 +170,7 @@ public class FrameCaptureProcessor {
         // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
         burstIntervalMs = Math.max(150L, intervalMs);
-        Log.d(TAG, "连拍间隔毫秒 - 帧拍照 || " + burstIntervalMs);
+        Log.d(LogKit.TAG, "连拍间隔毫秒 - 帧拍照 || " + burstIntervalMs);
         // 通知开始
         CaptureHelper.notifyBegin(handler, onCaptureCallBack);
     }
@@ -168,7 +179,7 @@ public class FrameCaptureProcessor {
      * 停止连拍
      */
     public void stopBurstCapture() {
-        Log.d(TAG, "停止连拍 - 帧拍照");
+        Log.d(LogKit.TAG, "停止连拍 - 帧拍照");
         // 连拍状态锁
         isBurstActive.set(false);
         // 当前拍照模式
@@ -227,11 +238,11 @@ public class FrameCaptureProcessor {
         // NV21: width * height * 1.5 Byte
         int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断 - 帧拍照");
             return;
         }
-        Log.d(TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+        Log.d(LogKit.TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
@@ -281,11 +292,11 @@ public class FrameCaptureProcessor {
         // NV21: width * height * 1.5 Byte
         int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断 - 帧拍照");
             return;
         }
-        Log.d(TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+        Log.d(LogKit.TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
@@ -308,7 +319,8 @@ public class FrameCaptureProcessor {
     }
 
     /**
-     * 处理单帧图像 —— 完整的图像处理管线
+     * 处理单帧图像 - 完整的图像处理管线
+     * <p>
      * 此方法在后台线程执行
      */
     private void processPaperTest(@NotNull byte @NotNull [] data, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
@@ -317,28 +329,22 @@ public class FrameCaptureProcessor {
             Mat rgbaMat = nv21ToMat(data, width, height);
             LogUtils.w("onMatToBitmapProcessing", " UvcFrame → OpenCV Mat (RGBA)");
 
-            if (rgbaMat == null || rgbaMat.empty()) {
+            if (rgbaMat.empty()) {
                 LogUtils.w("onMatToBitmapProcessing", "Failed to convert UvcFrame to Mat");
                 finishFrame();
                 return;
             }
             Bitmap bitmap = ImageProcessor.nv21ToBitmap(data, width, height);
 
-            if (bitmap!=null) {
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onCaptureCallBack.onMatToBitmapProcessing(bitmap);
-                    }
-                });
-            }else {
+            if (bitmap != null) {
+                handler.post(() -> onCaptureCallBack.onMatToBitmapProcessing(bitmap));
+            } else {
                 LogUtils.w("onMatToBitmapProcessing", "UvcFrame 转图片为空");
             }
 
             // --- Step 2: OpenCV 图像处理管线 ---
             // 灰度 → 高斯模糊 → Canny → 轮廓检测 → 四边形筛选 → 透视变换
             Mat warpedMat = imageProcessor.processFrame(rgbaMat);
-
 
             if (warpedMat != null && !warpedMat.empty()) {
                 // --- Step 3: OCR 预处理 ---
@@ -352,11 +358,9 @@ public class FrameCaptureProcessor {
                         String recognizedText = "OCR识别图像生成成功";
                         // 将识别结果传回主线程更新 UI
                         final String finalText = recognizedText;
-                        mainHandler.post(() -> {
-                            ToastUtils.show(finalText);
-                        });
+                        handler.post(() -> ToastUtils.show(finalText));
 
-                        LogUtils.d(TAG, recognizedText);
+                        LogUtils.d(LogKit.TAG, recognizedText);
                         // 可选：保存识别结果截图
                         saveFrame(ocrMat, "ocr_result");
 
@@ -370,7 +374,7 @@ public class FrameCaptureProcessor {
             rgbaMat.release();
 
         } catch (Exception e) {
-            Log.e(TAG, "Error processing frame: " + e.getMessage(), e);
+            Log.e(LogKit.TAG, "Error processing frame: " + e.getMessage(), e);
         } finally {
             finishFrame();
         }
@@ -409,7 +413,7 @@ public class FrameCaptureProcessor {
             CaptureCompressHelper.getInstance().compressAndOverwrite(context, savePath, finalPath -> handleCaptureComplete(context, finalPath, width, height, dataFormat, onCaptureCallBack)
             );
         } catch (Exception e) {
-            Log.e(TAG, "数据帧写盘异常 - 帧拍照", e);
+            Log.e(LogKit.TAG, "数据帧写盘异常 - 帧拍照", e);
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常 - 帧拍照");
         }
     }
@@ -430,7 +434,7 @@ public class FrameCaptureProcessor {
         }
         handler.post(() -> {
             if (onCaptureCallBack != null) {
-                Log.d(TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
                 onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
             }
         });
@@ -463,18 +467,16 @@ public class FrameCaptureProcessor {
         CaptureCompressHelper.getInstance().release();
     }
 
-
     /**
      * MJPEG 帧解码为 RGBA Mat
      * 使用 Android 的 BitmapFactory 解码 JPEG 数据
      */
-    private Mat decodeMjpegToMat(byte[] mjpegData, int width, int height) {
+    private @Nullable Mat decodeMjpegToMat(byte[] mjpegData, int width, int height) {
         // 将 byte[] 转为 Bitmap
-        Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(
-                mjpegData, 0, mjpegData.length);
+        Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(mjpegData, 0, mjpegData.length);
 
         if (bitmap == null) {
-            Log.e(TAG, "Failed to decode MJPEG frame");
+            Log.e(LogKit.TAG, "Failed to decode MJPEG frame");
             return null;
         }
 
@@ -483,12 +485,11 @@ public class FrameCaptureProcessor {
         Utils.bitmapToMat(bitmap, mat);
         bitmap.recycle();
 
-        // 确保是 4 通道（RGBA）
+        // 确保是 4 通道 (RGBA)
         if (mat.channels() == 3) {
             Mat bgrMat = mat;
             mat = new Mat();
-            org.opencv.imgproc.Imgproc.cvtColor(bgrMat, mat,
-                    org.opencv.imgproc.Imgproc.COLOR_RGB2RGBA);
+            org.opencv.imgproc.Imgproc.cvtColor(bgrMat, mat, org.opencv.imgproc.Imgproc.COLOR_RGB2RGBA);
             bgrMat.release();
         }
 
@@ -500,20 +501,18 @@ public class FrameCaptureProcessor {
      * YUYV → BGR → RGBA
      */
     private Mat convertYuyvToMat(byte[] yuyvData, int width, int height) {
-        // YUYV 每 2 个字节表示一个像素（Y0 U0 Y1 V1）
+        // YUYV 每 2 个字节表示一个像素 (Y0 U0 Y1 V1)
         // 先构建 YUV Mat
         Mat yuvMat = new Mat(height * 2, width, CvType.CV_8UC1);
         yuvMat.put(0, 0, yuyvData);
 
         // YUYV → BGR
         Mat bgrMat = new Mat();
-        org.opencv.imgproc.Imgproc.cvtColor(yuvMat, bgrMat,
-                org.opencv.imgproc.Imgproc.COLOR_YUV2BGR_YUYV);
+        org.opencv.imgproc.Imgproc.cvtColor(yuvMat, bgrMat, org.opencv.imgproc.Imgproc.COLOR_YUV2BGR_YUYV);
 
         // BGR → RGBA
         Mat rgbaMat = new Mat();
-        org.opencv.imgproc.Imgproc.cvtColor(bgrMat, rgbaMat,
-                org.opencv.imgproc.Imgproc.COLOR_BGR2RGBA);
+        org.opencv.imgproc.Imgproc.cvtColor(bgrMat, rgbaMat, org.opencv.imgproc.Imgproc.COLOR_BGR2RGBA);
 
         yuvMat.release();
         bgrMat.release();
@@ -521,21 +520,10 @@ public class FrameCaptureProcessor {
         return rgbaMat;
     }
 
-    public static Mat nv21ToMat(byte[] nv21, int width, int height) {
-        // 把整个 NV21 当成一个 1.5H × W 的单通道 Mat
-        Mat yuv = new Mat(height * 3 / 2, width, CvType.CV_8UC1);
-        yuv.put(0, 0, nv21);
-
-        Mat bgr = new Mat();
-        Imgproc.cvtColor(yuv, bgr, Imgproc.COLOR_YUV2BGR_NV21);
-
-        yuv.release();
-        return bgr;
-    }
-
-
     /**
-     * 保存处理后的帧到本地（调试用）
+     * 保存处理后的帧到本地
+     * <p>
+     * 调试用
      */
     private void saveFrame(Mat mat, String prefix) {
         try {
@@ -553,9 +541,9 @@ public class FrameCaptureProcessor {
             fos.write(bytes);
             fos.close();
 
-            Log.d(TAG, "Frame saved: " + fileName);
+            Log.d(LogKit.TAG, "Frame saved: " + fileName);
         } catch (Exception e) {
-            Log.e(TAG, "Error saving frame: " + e.getMessage(), e);
+            Log.e(LogKit.TAG, "Error saving frame: " + e.getMessage(), e);
         }
     }
 
@@ -565,5 +553,4 @@ public class FrameCaptureProcessor {
     private void finishFrame() {
         isProcessing = false;
     }
-
 }

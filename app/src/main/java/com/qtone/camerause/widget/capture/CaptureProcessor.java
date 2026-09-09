@@ -9,8 +9,6 @@ import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.qtone.camerause.R;
 import com.qtone.camerause.util.log.LogKit;
 
-import org.opencv.core.Mat;
-
 /**
  * @decs: 拍照处理器
  * @author: 郑少鹏
@@ -43,8 +41,8 @@ public class CaptureProcessor {
      * 单拍包装回调
      */
     private volatile OnCaptureCallback singleCaptureWrapCallback;
+    /*private long lastProcessTime = 0l;*/
 
-    private long lastProcessTime=0l;
     /**
      * constructor
      */
@@ -101,7 +99,6 @@ public class CaptureProcessor {
                     : onCaptureCallBack;
             frameCaptureProcessor.processFrame(data, width, height, dataFormat, targetCallback);
         }
-
 //        if ((System.currentTimeMillis()-lastProcessTime)>2000) {
 //            lastProcessTime=System.currentTimeMillis();
 //            frameCaptureProcessor.processPaperTestFrame(data, width, height, dataFormat, onCaptureCallBack);
@@ -310,11 +307,9 @@ public class CaptureProcessor {
          */
         void onCaptureError(String errorMsg);
 
-
         /**
-         *回调
+         * 回调
          */
         void onMatToBitmapProcessing(Bitmap bitmap);
-
     }
 }
