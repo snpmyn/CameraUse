@@ -6,6 +6,22 @@ apply plugin: 'kotlin-kapt'
 // Kotlin - @Parcelize
 apply plugin: 'kotlin-parcelize'
 
+// Creates a variable called keystorePropertiesFile, and initializes it to the keystore.properties file.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+// Initializes a new Properties() object called keystoreProperties.
+def keystoreProperties = new Properties()
+// Loads the keystore.properties file into the keystoreProperties object.
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+// 主版本号
+def MAJOR = 0
+// 次版本号
+def MINOR = 0
+// 阶段版本号
+def PATCH = 1
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -13,8 +29,13 @@ android {
         applicationId "com.qtone.camerause"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // 在签名一致 + 包名一致前提下
+        // versionCode ≥ 都会走覆盖安装（不会卸载 + 直接覆盖）
+        // 但实际开发中最好强制递增
         versionCode 1
-        versionName "1.0"
+        // 1981284353 最大值
+        /*versionCode 1981284353*/
+        versionName "${MAJOR}.${MINOR}.${PATCH}"
 
         multiDexEnabled true
 
@@ -22,6 +43,24 @@ android {
         // UVC native 库通常没有 x86、x86_64
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'//, 'x86', 'x86_64'
+        }
+        /*resConfigs("zh", "en")*/
+    }
+
+    ndkVersion '21.1.6352462'
+
+    signingConfigs {
+        debug {
+            storeFile file('../user/SignatureFile/debug.keystore')
+            storePassword 'android'
+            keyPassword 'android'
+            keyAlias = 'androiddebugkey'
+        }
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyPassword keystoreProperties['keyPassword']
+            keyAlias = keystoreProperties['keyAlias']
         }
     }
 
@@ -32,33 +71,82 @@ android {
 
     buildTypes {
         debug {
-            // 原包名末尾自动加 .debug
-            // 例如 com.example.app -> com.example.app.debug
-            /*applicationIdSuffix ".debug"*/
+            // 签名配置
+            signingConfig signingConfigs.debug
+            // 构建配置字段 / BuildConfig 字段
+            /*buildConfigField "boolean", "PIC_RENAME", "false"*/
         }
         release {
-            minifyEnabled false
+            // 代码缩减和资源缩减需同时启用
+            // 代码缩减 (ProGuard / R8)
+            minifyEnabled rootProject.ext.minifyEnabled
+            // 资源缩减
+            shrinkResources rootProject.ext.shrinkResources
+            // Zipalign 优化
+            zipAlignEnabled rootProject.ext.zipAlignEnabled
+            // 确保有适当的 ProGuard 规则文件配置，因代码缩减可能会移除某些被反射调用的代码。
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // 调试
+            debuggable true
+            // 签名配置
+            signingConfig signingConfigs.release
+            // 构建配置字段 / BuildConfig 字段
+            /*buildConfigField "boolean", "PIC_RENAME", "false"*/
         }
     }
+
+    // 在 Gradle 中 productFlavors 可分组管理
+    // 支持生成更多构建变体
+    // 组名即维度 (dimension)
+    // 每 productFlavor 必属某一维度
+    // 定义一维度即单层分类
+    // 定义多维度即多层组合
+    // flavorDimensions 声明顺序决定最终生成 APK 的命名顺序
+    // 顺序 + 穷举
+    flavorDimensions "mode"
+    productFlavors {
+        // 测试环境
+        app_test {
+            dimension "mode"
+            manifestPlaceholders = [app_icon: "@mipmap/ic_launcher", app_icon_round: "@mipmap/ic_launcher_round", app_name: "CU-测试"]
+            applicationId "com.qtone.camerause.test"
+            buildConfigField "boolean", "IS_OFFICIAL", "false"
+        }
+        // 正式环境
+        app_official {
+            dimension "mode"
+            manifestPlaceholders = [app_icon: "@mipmap/ic_launcher", app_icon_round: "@mipmap/ic_launcher_round", app_name: "CU"]
+            applicationId "com.qtone.camerause"
+            buildConfigField "boolean", "IS_OFFICIAL", "true"
+        }
+    }
+
     compileOptions {
         // 源代码兼容 Java 8 (可按需设)
         sourceCompatibility = rootProject.ext.sourceCompatibility
         // 生成的字节码兼容 Java 8 (可按需设)
         targetCompatibility = rootProject.ext.targetCompatibility
     }
-    ndkVersion '21.1.6352462'
-
 }
 
-repositories {
-    flatDir {
-        dirs 'libs'
+// 移除废弃 repositories { flatDir } 块
+// implementation fileTree 已完整覆盖本地 aar/jar 加载
+//repositories {
+//    flatDir {
+//        dirs 'libs'
+//    }
+//}
+
+android.applicationVariants.all { variant ->
+    // 正式版 CameraUse_v0.0.10.apk
+    // 测试版 CameraUse_v0.0.10_test.apk
+    variant.outputs.all {
+        def suffix = (variant.flavorName == 'app_test') ? '_test' : ''
+        outputFileName = "CameraUse_v${MAJOR}.${MINOR}.${PATCH}${suffix}.apk"
     }
 }
 
 dependencies {
-
     implementation fileTree(dir: "libs", include: ["*.jar","*.aar"])
 
     implementation "androidx.appcompat:appcompat:${androidxAppcompatVersion}"
@@ -73,7 +161,7 @@ dependencies {
     implementation project(':libausbc')
 
     /*BaiDu - ocrsdk*/
-//    implementation(name: 'ocrsdk', ext: 'aar')
+    /*implementation(name: 'ocrsdk', ext: 'aar')*/
 
     /*opencv*/
     /*implementation 'org.opencv:opencv:4.9.0'*/
@@ -117,5 +205,4 @@ dependencies {
     implementation 'com.guolindev.permissionx:permissionx:1.6.1'
     /*okhttp3-integration*/
     implementation "com.github.bumptech.glide:okhttp3-integration:4.10.0"
-
 }
