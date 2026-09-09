@@ -15,6 +15,9 @@ import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizer;
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 import com.qtone.camerause.util.log.LogKit;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Created on 2026/9/4.
  *
@@ -38,6 +41,13 @@ public class GestureRecognizerHelper {
      * mediapipe 识别任务
      */
     private static final String MEDIAPIPE_RECOGNIZER_TASK = "gesture_recognizer.task";
+    /**
+     * 待回收 Bitmap 映射集
+     * <p>
+     * 使用时间戳准确匹配
+     * 规避多线程异步乱序回收错乱
+     */
+    private final Map<Long, Bitmap> pendingBitmapMap = new ConcurrentHashMap<>();
     /**
      * 上下文
      */
@@ -177,10 +187,22 @@ public class GestureRecognizerHelper {
             return;
         }
         long frameTime = SystemClock.uptimeMillis();
-        // 1. 将 Android Bitmap 转为 MediaPipe 的 MPImage 对象
-        MPImage mpImage = new BitmapImageBuilder(bitmap).build();
-        // 2. 异步送入 AI 模型开始推理
-        gestureRecognizer.recognizeAsync(mpImage, frameTime);
+        // 以时间戳为 Key 记录待回收 Bitmap
+        pendingBitmapMap.put(frameTime, bitmap);
+        try {
+            // 1. 将 Android Bitmap 转为 MediaPipe 的 MPImage 对象
+            MPImage mpImage = new BitmapImageBuilder(bitmap).build();
+            // 2. 异步送入 AI 模型开始推理
+            gestureRecognizer.recognizeAsync(mpImage, frameTime);
+        } catch (Exception e) {
+            // 识别过程出现异常
+            // 立即清理回收
+            Bitmap remove = pendingBitmapMap.remove(frameTime);
+            if (remove != null && !remove.isRecycled()) {
+                remove.recycle();
+            }
+            throw e;
+        }
     }
 
     /**
@@ -192,17 +214,26 @@ public class GestureRecognizerHelper {
      * @param mpImage                 输入的 MediaPipe 图像对象
      */
     private void returnLiveStreamResult(GestureRecognizerResult gestureRecognizerResult, MPImage mpImage) {
-        long finishTimeMs = SystemClock.uptimeMillis();
-        long inferenceTime = (finishTimeMs - ((gestureRecognizerResult != null) ? gestureRecognizerResult.timestampMs() : finishTimeMs));
-        String topGestureName = "None";
-        // 解析最高置信度的手势名称
-        if ((gestureRecognizerResult != null) && !gestureRecognizerResult.gestures().isEmpty() && !gestureRecognizerResult.gestures().get(0).isEmpty()) {
-            Category topGesture = gestureRecognizerResult.gestures().get(0).get(0);
-            topGestureName = topGesture.categoryName();
-        }
-        // 回调给外部使用
-        if (gestureRecognizerCallback != null) {
-            gestureRecognizerCallback.onGestureRecognizerResult(gestureRecognizerResult, topGestureName, inferenceTime);
+        try {
+            long finishTimeMs = SystemClock.uptimeMillis();
+            long timestamp = (gestureRecognizerResult != null) ? gestureRecognizerResult.timestampMs() : finishTimeMs;
+            long inferenceTime = finishTimeMs - timestamp;
+            // 根据时间戳精确回收当前帧 Bitmap
+            recycleBitmapByTimestamp(timestamp);
+            String topGestureName = "None";
+            // 解析最高置信度的手势名称
+            if ((gestureRecognizerResult != null) && !gestureRecognizerResult.gestures().isEmpty() && !gestureRecognizerResult.gestures().get(0).isEmpty()) {
+                Category topGesture = gestureRecognizerResult.gestures().get(0).get(0);
+                topGestureName = topGesture.categoryName();
+            }
+            // 回调给外部使用
+            if (gestureRecognizerCallback != null) {
+                gestureRecognizerCallback.onGestureRecognizerResult(gestureRecognizerResult, topGestureName, inferenceTime);
+            }
+        } finally {
+            if (mpImage != null) {
+                mpImage.close();
+            }
         }
     }
 
@@ -212,8 +243,35 @@ public class GestureRecognizerHelper {
      * @param runtimeException 运行异常
      */
     private void returnLiveStreamError(RuntimeException runtimeException) {
+        // 出错时清空并回收所有滞留 Bitmap
+        clearAndRecycleAllBitmap();
         if (gestureRecognizerCallback != null) {
             gestureRecognizerCallback.onGestureRecognizerError((runtimeException != null) ? runtimeException.getMessage() : "未知手势识别错误");
+        }
+    }
+
+    /**
+     * 根据时间戳回收 Bitmap
+     *
+     * @param timestamp 时间戳
+     *                  对应帧时间戳
+     */
+    private void recycleBitmapByTimestamp(long timestamp) {
+        Bitmap bitmap = pendingBitmapMap.remove(timestamp);
+        if (bitmap != null && !bitmap.isRecycled()) {
+            bitmap.recycle();
+        }
+    }
+
+    /**
+     * 清空并回收所有 Bitmap
+     */
+    private void clearAndRecycleAllBitmap() {
+        for (Long timestamp : pendingBitmapMap.keySet()) {
+            Bitmap bitmap = pendingBitmapMap.remove(timestamp);
+            if (bitmap != null && !bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
         }
     }
 
@@ -267,6 +325,7 @@ public class GestureRecognizerHelper {
      * 释放
      */
     public void release() {
+        clearAndRecycleAllBitmap();
         if (gestureRecognizer != null) {
             gestureRecognizer.close();
             gestureRecognizer = null;
