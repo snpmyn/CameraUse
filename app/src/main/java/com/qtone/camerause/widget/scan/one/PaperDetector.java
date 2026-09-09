@@ -1,6 +1,5 @@
-package com.qtone.camerause.widget.ocr;
+package com.qtone.camerause.widget.scan.one;
 
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -11,7 +10,6 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -19,15 +17,14 @@ import java.util.List;
  * 修复：orderPoints 返回值和接收变量统一为 float[][]，解决类型不匹配错误
  */
 public class PaperDetector {
-
     private static final double AREA_THRESHOLD = 0.15;
     private static final double APPROX_POLY_EPSILON = 0.02;
     private static final long COOLDOWN_MS = 1000;
-
     private long lastDetectTime = 0;
 
     /**
      * 主检测方法：传入相机帧，返回裁剪并透视变换后的试卷图像
+     *
      * @param frame 原始相机帧 (RGBA格式)
      * @return 处理后的试卷图像，如果未检测到则返回null
      */
@@ -53,13 +50,10 @@ public class PaperDetector {
         Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
         // 4. 按面积降序排序轮廓
-        Collections.sort(contours, new Comparator<MatOfPoint>() {
-            @Override
-            public int compare(MatOfPoint o1, MatOfPoint o2) {
-                double area1 = Imgproc.contourArea(o1);
-                double area2 = Imgproc.contourArea(o2);
-                return Double.compare(area2, area1);
-            }
+        Collections.sort(contours, (o1, o2) -> {
+            double area1 = Imgproc.contourArea(o1);
+            double area2 = Imgproc.contourArea(o2);
+            return Double.compare(area2, area1);
         });
 
         double frameArea = frame.rows() * frame.cols();
@@ -113,6 +107,7 @@ public class PaperDetector {
 
     /**
      * 对四个顶点进行排序：[左上, 右上, 右下, 左下]
+     *
      * @param points 输入的四个点，格式为 float[4][2]
      * @return 排序后的 4x2 二维数组
      */

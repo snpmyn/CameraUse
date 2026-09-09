@@ -1,12 +1,4 @@
-/**
- * ImageProcessor.java
- * 
- * OpenCV 图像处理管线 —— 封装灰度化、模糊、Canny边缘、轮廓检测、
- * 多边形近似、四边形筛选、顶点排序、透视变换、OCR预处理
- * 
- * 所有方法均为静态工具方法，无状态，线程安全
- */
-package com.qtone.camerause.widget.capture;
+package com.qtone.camerause.widget.scan.one;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,23 +21,42 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * ImageProcessor.java
+ * <p>
+ * OpenCV 图像处理管线 —— 封装灰度化、模糊、Canny边缘、轮廓检测、
+ * 多边形近似、四边形筛选、顶点排序、透视变换、OCR预处理
+ * <p>
+ * 所有方法均为静态工具方法，无状态，线程安全
+ */
 public class ImageProcessor {
-
     private static final String TAG = "ImageProcessor";
 
     // ========== 配置参数（可根据实际效果调优）==========
 
-    /** Canny 边缘检测低阈值 */
+    /**
+     * Canny 边缘检测低阈值
+     */
     private static final int CANNY_LOW = 50;
-    /** Canny 边缘检测高阈值 */
+    /**
+     * Canny 边缘检测高阈值
+     */
     private static final int CANNY_HIGH = 150;
-    /** 高斯模糊核大小 */
+    /**
+     * 高斯模糊核大小
+     */
     private static final int GAUSSIAN_KERNEL = 5;
-    /** 面积阈值比例：屏幕面积的百分比，低于此比例的轮廓被忽略 */
+    /**
+     * 面积阈值比例：屏幕面积的百分比，低于此比例的轮廓被忽略
+     */
     private static final double MIN_AREA_RATIO = 0.10;
-    /** 多边形近似 epsilon 系数：epsilon = coefficient * arcLength */
+    /**
+     * 多边形近似 epsilon 系数：epsilon = coefficient * arcLength
+     */
     private static final double APPROX_EPSILON_COEFF = 0.02;
-    /** 最大近似尝试次数（逐步放宽 epsilon） */
+    /**
+     * 最大近似尝试次数（逐步放宽 epsilon）
+     */
     private static final int MAX_APPROX_TRIALS = 3;
 
     // ========== 公开 API ==========
@@ -255,18 +266,18 @@ public class ImageProcessor {
         // 计算新图像的宽度和高度
         double widthAB = Math.sqrt(
                 Math.pow(pts[1].x - pts[0].x, 2)
-                + Math.pow(pts[1].y - pts[0].y, 2));
+                        + Math.pow(pts[1].y - pts[0].y, 2));
         double widthCD = Math.sqrt(
                 Math.pow(pts[2].x - pts[3].x, 2)
-                + Math.pow(pts[2].y - pts[3].y, 2));
+                        + Math.pow(pts[2].y - pts[3].y, 2));
         int maxWidth = (int) Math.max(widthAB, widthCD);
 
         double heightAD = Math.sqrt(
                 Math.pow(pts[3].x - pts[0].x, 2)
-                + Math.pow(pts[3].y - pts[0].y, 2));
+                        + Math.pow(pts[3].y - pts[0].y, 2));
         double heightBC = Math.sqrt(
                 Math.pow(pts[2].x - pts[1].x, 2)
-                + Math.pow(pts[2].y - pts[1].y, 2));
+                        + Math.pow(pts[2].y - pts[1].y, 2));
         int maxHeight = (int) Math.max(heightAD, heightBC);
 
         // 源顶点（原图四边形）- 使用 OpenCV 的 Point
@@ -345,5 +356,4 @@ public class ImageProcessor {
             return null;
         }
     }
-
 }
