@@ -30,6 +30,13 @@ public class GestureRecognizerManager implements GestureRecognizerCallback {
      */
     private static final int WINDOW_SIZE = 3;
     /**
+     * 输入最大边长像素
+     * <p>
+     * 手势识别输入的缩放最大边长
+     * 避免高分辨率 UVC 图像占用大量内存导致 OOM
+     */
+    private static final int MAX_INPUT_DIMENSION = 640;
+    /**
      * 线程消息调度器
      */
     private final Handler handler;
@@ -91,18 +98,28 @@ public class GestureRecognizerManager implements GestureRecognizerCallback {
             return;
         }
         executorService.execute(() -> {
+            Bitmap scaledBitmap = null;
             try {
-                // 1. 将 YUV 格式转换成 Bitmap
-                Bitmap frameBitmap = YuvToBitmapKit.nv21ToBitmap(data, width, height);
-                if ((frameBitmap != null) && !gestureRecognizerHelper.gestureRecognizerIsClosed()) {
+                // 1. 直接以采样率方式转换为低分辨率 Bitmap
+                // 彻底避免生成原图大内存
+                scaledBitmap = YuvToBitmapKit.nv21ToBitmap(data, width, height, MAX_INPUT_DIMENSION);
+                if ((scaledBitmap != null) && !gestureRecognizerHelper.gestureRecognizerIsClosed()) {
                     // 2. 送入识别器开始识别
-                    gestureRecognizerHelper.recognizeLiveStream(frameBitmap);
+                    // MediaPipe 会持有所需图像资源，直到异步识别完成。
+                    gestureRecognizerHelper.recognizeLiveStream(scaledBitmap);
                 } else {
                     isProcessingFrame.set(false);
+                    if (scaledBitmap != null && !scaledBitmap.isRecycled()) {
+                        scaledBitmap.recycle();
+                    }
                 }
             } catch (Exception e) {
                 Log.e(LogKit.TAG, "手势识别 - 处理帧数据异常", e);
+                // 发生任何同步异常时，重置标志位并回收当前临时 Bitmap，防止标志位死锁与内存泄露。
                 isProcessingFrame.set(false);
+                if (scaledBitmap != null && !scaledBitmap.isRecycled()) {
+                    scaledBitmap.recycle();
+                }
             }
         });
     }

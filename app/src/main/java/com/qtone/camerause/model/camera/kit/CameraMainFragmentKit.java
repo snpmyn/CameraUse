@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
@@ -19,6 +20,7 @@ import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.log.LogKit;
+import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.rxbus.RxBus;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.value.RxBusConstant;
@@ -33,8 +35,8 @@ import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerManager;
 import com.qtone.camerause.widget.mediapipe.hand.HandLeaveScanDetector;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
-import com.qtone.camerause.widget.scan.ScanCodeProcessor;
-import com.qtone.camerause.widget.scan.ViewFinderView;
+import com.qtone.camerause.widget.scancode.ScanCodeProcessor;
+import com.qtone.camerause.widget.scancode.ViewFinderView;
 import com.qtone.camerause.widget.wechat.WeChatCropEngine;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, GestureRecognizerCallback, HandLeaveScanDetector.OnHandLeaveScanCallback {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, HandLeaveScanDetector.OnHandLeaveScanCallback, GestureRecognizerCallback {
     /**
      * 允许扫码状态锁
      * <p>
@@ -90,13 +92,20 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 手势识别管理器
      */
     private GestureRecognizerManager gestureRecognizerManager;
+    /**
+     * 灰度图片预览
+     */
+    private ImageView mMatImgIv;
 
     /**
      * constructor
      *
      * @param cameraMainFragment 相机主碎片
      */
-    public CameraMainFragmentKit(@NotNull CameraMainFragment cameraMainFragment) {
+    public CameraMainFragmentKit(CameraMainFragment cameraMainFragment) {
+
+        LogUtils.d("onMatToBitmapProcessing", "CameraMainFragmentKit");
+
         // 相机主碎片
         this.cameraMainFragment = cameraMainFragment;
         // 拍照处理器
@@ -130,8 +139,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
         // 统计帧数
         cameraFpsKit.countFrame();
-        // 直接塞入原始数据
-        // 内部自动异步转码、丢帧与手势推理
+        // 手势识别管理器 - 处理预览帧
         gestureRecognizerManager.processPreviewFrame(data, width, height);
     }
 
@@ -382,6 +390,33 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
     }
 
+    @Override
+    public void onMatToBitmapProcessing(Bitmap bitmap) {
+        if (bitmap == null) {
+            LogUtils.d("onMatToBitmapProcessing", "图片为 null");
+            return;
+        }
+//        LogUtils.d("onMatToBitmapProcessing", "处理灰度图片" + (mMatImgIv == null));
+//        if (mMatImgIv != null) {
+//            mMatImgIv.setImageBitmap(bitmap);
+//        }
+
+//        DocumentScanner scanner = new DocumentScanner();
+//        // 检测 + 矫正一步完成
+//        DocumentScanner.ScanResult r = scanner.scan(bitmap);
+//
+//        if (r.isSuccess()) {
+//            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
+//            mMatImgIv.setImageBitmap(r.getCorrection().getBitmap());
+//            // 原图坐标 ↔ 矫正图坐标互转
+//            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
+//        } else {
+//            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
+//            // 即使失败也能拿到检测结果，便于排查缺哪个角。
+//            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
+//        }
+    }
+
     /**
      * 文档裁剪成功
      *
@@ -501,5 +536,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onHandRemoved() {
         Log.d(LogKit.TAG, "手完全拿走");
+    }
+
+    public void setPreviewMatImg(ImageView matImg) {
+        LogUtils.d("onMatToBitmapProcessing", "设置预览图片控件");
+        mMatImgIv = matImg;
     }
 }
