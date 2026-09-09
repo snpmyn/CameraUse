@@ -20,6 +20,7 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.mmkv.MmkvKit;
 import com.qtone.camerause.widget.storage.MediaStorageConfig;
+import com.qtone.camerause.widget.storage.MediaStorageMode;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -42,7 +43,7 @@ public class App extends BaseApplication {
         // 应用监听
         AppListener.getInstance().initConfiguration(this);
         // 初始化媒体存储配置
-        MediaStorageConfig.getInstance().init(this, "CU");
+        MediaStorageConfig.getInstance().init(this, "CU", MediaStorageMode.EXTERNAL_PUBLIC);
         // 初始化 OpenCV
         if (OpenCVLoader.initDebug()) {
             Log.d(LogKit.TAG, "OpenCV 初始化成功");

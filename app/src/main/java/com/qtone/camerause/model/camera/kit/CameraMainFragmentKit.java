@@ -1,6 +1,7 @@
 package com.qtone.camerause.model.camera.kit;
 
 import android.graphics.Bitmap;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -9,6 +10,7 @@ import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
+import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
@@ -19,13 +21,19 @@ import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.log.LogUtils;
+import com.qtone.camerause.util.rxbus.RxBus;
 import com.qtone.camerause.util.view.ViewUtils;
+import com.qtone.camerause.value.RxBusConstant;
+import com.qtone.camerause.widget.camera.CameraFpsKit;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
-import com.qtone.camerause.widget.capture.CaptureState;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
 import com.qtone.camerause.widget.capture.DocumentScanner;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
+import com.qtone.camerause.widget.dialog.countdown.kit.CountdownDialogKit;
+import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerCallback;
+import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerManager;
+import com.qtone.camerause.widget.mediapipe.hand.HandLeaveScanDetector;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
 import com.qtone.camerause.widget.scan.ScanCodeProcessor;
@@ -36,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created on 2026/8/11.
@@ -43,7 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author 郑少鹏
  * @desc 相机主碎片配套原件
  */
-public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack {
+public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback, DocumentCropProcessor.OnDocumentCropCallback, ScanCodeProcessor.OnScanCodeCallBack, CameraFpsKit.OnCameraFpsCallback, HandLeaveScanDetector.OnHandLeaveScanCallback, GestureRecognizerCallback {
     /**
      * 允许扫码状态锁
      * <p>
@@ -66,6 +75,24 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 扫码处理器
      */
     private final ScanCodeProcessor scanCodeProcessor;
+    /**
+     * 相机帧率配套原件
+     */
+    private final CameraFpsKit cameraFpsKit;
+    /**
+     * 连拍计数器
+     * <p>
+     * 使用 AtomicInteger 保证多线程并发环境下的绝对原子性
+     */
+    private final AtomicInteger burstCaptureCount = new AtomicInteger(0);
+    /**
+     * 手部离开扫描检测器
+     */
+    private final HandLeaveScanDetector handLeaveScanDetector;
+    /**
+     * 手势识别管理器
+     */
+    private GestureRecognizerManager gestureRecognizerManager;
 
     /**
      * 灰度图片预览
@@ -89,24 +116,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         this.documentCropProcessor = new DocumentCropProcessor();
         // 扫码处理器
         this.scanCodeProcessor = new ScanCodeProcessor(this);
-    }
-
-    /**
-     * 是否允许操作单拍按钮
-     *
-     * @return 是否允许操作单拍按钮
-     */
-    public boolean enableHandleSingleCaptureButton() {
-        return (captureProcessor.getCaptureState() == CaptureState.IDLE);
-    }
-
-    /**
-     * 是否允许操作连拍按钮
-     *
-     * @return 是否允许操作连拍按钮
-     */
-    public boolean enableHandleBurstCaptureButton() {
-        return ((captureProcessor.getCaptureState() == CaptureState.IDLE) || (captureProcessor.getCaptureState() == CaptureState.BURST_CAPTURE_RUNNING));
+        // 相机帧率配套原件
+        this.cameraFpsKit = new CameraFpsKit(this);
+        // 手部离开扫描检测器
+        handLeaveScanDetector = new HandLeaveScanDetector(this);
+        // 手势识别管理器
+        cameraMainFragment.safeRun(appCompatActivity -> gestureRecognizerManager = new GestureRecognizerManager(appCompatActivity, CameraMainFragmentKit.this));
     }
 
     /**
@@ -124,6 +139,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
             // 扫码处理器 - 处理帧
             scanCodeProcessor.processFrame(data, width, height, dataFormat, 0);
         }
+        // 统计帧数
+        cameraFpsKit.countFrame();
+        // 直接塞入原始数据
+        // 内部自动异步转码、丢帧与手势推理
+        gestureRecognizerManager.processPreviewFrame(data, width, height);
     }
 
     /**
@@ -131,7 +151,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onSingleCaptureClicked() {
         // 设置拍照策略
-        captureProcessor.setCaptureStrategy(CaptureStrategy.SDK_CAPTURE);
+        captureProcessor.setCaptureStrategy(CaptureStrategy.FRAME_CAPTURE);
         // 开始单拍
         cameraMainFragment.safeRun(appCompatActivity -> captureProcessor.startSingleCapture(appCompatActivity, cameraMainFragment.getCurrentCamera(), CameraMainFragmentKit.this));
     }
@@ -210,6 +230,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         documentCropProcessor.release();
         // 扫码处理器
         scanCodeProcessor.release();
+        // 手势识别管理器
+        gestureRecognizerManager.release();
         // 微信裁剪引擎
         WeChatCropEngine.getInstance(cameraMainFragment.getContext()).release();
         // MultiRoiOverlayView
@@ -256,8 +278,14 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     public void onCaptureSuccess(String savePath, int width, int height, CaptureMode captureMode) {
         ToastUtils.show("拍照成功");
         if (captureProcessor.captureSuccessFromSingleCapture(captureMode)) {
-            captureProcessor.setCaptureState(CaptureState.IDLE);
-            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+            cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
+        }
+        if (captureProcessor.captureSuccessFromBurstCapture(captureMode)) {
+            burstCaptureCount.incrementAndGet();
+            cameraMainFragment.cameraMainFragmentSbBurstCapture.setText(burstCaptureCount.get() + "\n当前已拍");
+        }
+        if (CountdownDialogKit.getInstance().isTriggered()) {
+            CountdownDialogKit.getInstance().resetTrigger();
         }
         cameraMainFragment.safeRun(appCompatActivity -> {
             // 1. 是否允许文档裁剪
@@ -355,10 +383,13 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        ToastUtils.show("拍照错误");
+        ToastUtils.show("拍照错误 - " + errorMsg);
+        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
         if (captureProcessor.captureErrorFromSingleCapture()) {
-            captureProcessor.setCaptureState(CaptureState.IDLE);
-            cameraMainFragment.cameraMainFragmentCbSingleCapture.stopCapture();
+            cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
+        }
+        if (CountdownDialogKit.getInstance().isTriggered()) {
+            CountdownDialogKit.getInstance().resetTrigger();
         }
     }
 
@@ -374,19 +405,19 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
 //            mMatImgIv.setImageBitmap(bitmap);
 //        }
 
-        DocumentScanner scanner = new DocumentScanner();
-        DocumentScanner.ScanResult r = scanner.scan(bitmap);   // 检测+矫正一步完成
-
-        if (r.isSuccess()) {
-            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
-            mMatImgIv.setImageBitmap(r.getCorrection().getBitmap());
-            // 原图坐标 ↔ 矫正图坐标互转
-            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
-        } else {
-            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
-            // 即使失败也能拿到检测结果，便于排查缺哪个角
-            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
-        }
+//        DocumentScanner scanner = new DocumentScanner();
+//        DocumentScanner.ScanResult r = scanner.scan(bitmap);   // 检测+矫正一步完成
+//
+//        if (r.isSuccess()) {
+//            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
+//            mMatImgIv.setImageBitmap(r.getCorrection().getBitmap());
+//            // 原图坐标 ↔ 矫正图坐标互转
+//            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
+//        } else {
+//            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
+//            // 即使失败也能拿到检测结果，便于排查缺哪个角
+//            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
+//        }
     }
 
     /**
@@ -407,7 +438,8 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onDocumentCropError(String errorMsg) {
-        ToastUtils.show("文档裁剪错误");
+        ToastUtils.show("文档裁剪错误 - " + errorMsg);
+        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
     }
 
     /**
@@ -427,8 +459,86 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * @param e 异常
      */
     @Override
-    public void onScanCodeFailure(Exception e) {
-        ToastUtils.show("扫码失败");
+    public void onScanCodeFailure(@NotNull Exception e) {
+        ToastUtils.show("扫码失败 - " + e.getMessage());
+    }
+
+    /**
+     * 相机帧率变化
+     *
+     * @param fps 帧率
+     */
+    @Override
+    public void onCameraFpsChange(float fps) {
+        Bundle bundle = new Bundle();
+        bundle.putFloat(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS, fps);
+        bundle.putInt(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS_CODE_KEY, RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS_CODE_VALUE);
+        RxBus.get().post(RxBusConstant.MAIN_ACTIVITY_$_REFRESH_CAMERA_FPS, bundle);
+    }
+
+    /**
+     * 手势识别结果
+     *
+     * @param gestureRecognizerResult 手势识别结果
+     * @param topGestureName          最高置信度的手势名称
+     *                                如 "Victory", "Open_Palm", "None"
+     * @param inferenceTimeMs         推理耗时毫秒
+     */
+    @Override
+    public void onGestureRecognizerResult(GestureRecognizerResult gestureRecognizerResult, String topGestureName, long inferenceTimeMs) {
+        handLeaveScanDetector.processGestureRecognizerResult(gestureRecognizerResult);
+        switch (topGestureName) {
+            case "Victory":
+                // 剪刀手 ✌
+                Log.d(LogKit.TAG, "Victory || 剪刀手");
+                break;
+            case "Open_Palm":
+                // 张开手掌 🖐
+                Log.d(LogKit.TAG, "Open_Palm || 张开手掌");
+                break;
+            case "Closed_Fist":
+                // 握拳 ✊
+                Log.d(LogKit.TAG, "Closed_Fist || 握拳");
+                break;
+            case "Thumb_Up":
+                // 点赞 👍
+                Log.d(LogKit.TAG, "Thumb_Up || 点赞");
+                // 单拍按钮点击事件
+                cameraMainFragment.safeRun(appCompatActivity -> CountdownDialogKit.getInstance().showCountdownDialog(appCompatActivity, 3, this::onSingleCaptureClicked));
+                break;
+            case "None":
+                /*Log.d(LogKit.TAG, "None");*/
+                break;
+            default:
+                Log.d(LogKit.TAG, "未识别到特定手势");
+                break;
+        }
+    }
+
+    /**
+     * 手势识别错误
+     *
+     * @param errorMsg 错误信息
+     */
+    @Override
+    public void onGestureRecognizerError(String errorMsg) {
+        Log.e(LogKit.TAG, errorMsg);
+    }
+
+    /**
+     * 手被检测到
+     */
+    @Override
+    public void onHandDetected() {
+        Log.d(LogKit.TAG, "手被检测到");
+    }
+
+    /**
+     * 手完全拿走
+     */
+    @Override
+    public void onHandRemoved() {
+        Log.d(LogKit.TAG, "手完全拿走");
     }
 
     public void setPreviewMatImg(ImageView matImg) {

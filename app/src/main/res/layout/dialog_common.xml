@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="@dimen/dp_270"
+    android:layout_width="@dimen/dp_320"
     android:layout_height="wrap_content"
     android:background="@drawable/white_solid_r12"
     android:gravity="center"
@@ -61,6 +61,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/commonDialogMbPositive"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="@dimen/dp_0"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -71,6 +72,8 @@
             android:insetBottom="@dimen/dp_0"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_10"
+            app:backgroundTint="@color/basic"
+            app:rippleColor="@color/color_1D80C7"
             tools:text="@string/ensure" />
     </LinearLayout>
 </LinearLayout>

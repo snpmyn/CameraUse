@@ -94,6 +94,8 @@ public class SdkCaptureProcessor {
         currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(false);
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 线程消息调度器
         handler.removeCallbacks(sdkBurstRunnable);
         // 相机实例
@@ -126,8 +128,8 @@ public class SdkCaptureProcessor {
         currentCaptureMode = CaptureMode.BURST_CAPTURE;
         // 连拍状态锁
         isBurstActive.set(true);
-        // 重置连拍序号
-        CaptureHelper.resetBurstSequence();
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
         burstIntervalMs = Math.max(150L, intervalMs);
@@ -187,17 +189,30 @@ public class SdkCaptureProcessor {
 
             @Override
             public void onComplete(@Nullable String path) {
-                if ((appContext != null) && (path != null)) {
-                    MediaScanKit.scanSingleFile(appContext, path);
-                }
-                handler.post(() -> {
-                    if (onCaptureCallBack != null) {
-                        Log.d(LogKit.TAG, "SDK 拍照成功\n当前拍照模式 " + currentCaptureMode.name() + "\n保存路径 " + path);
-                        onCaptureCallBack.onCaptureSuccess(path, 0, 0, currentCaptureMode);
-                    }
-                });
+                // 压缩并覆盖
+                // 内部自检测
+                CaptureCompressHelper.getInstance().compressAndOverwrite(appContext, path, finalPath -> handleCaptureComplete(appContext, finalPath, onCaptureCallBack));
             }
         }, savePath);
+    }
+
+    /**
+     * 处理拍照完成
+     *
+     * @param context           上下文
+     * @param savePath          保存路径
+     * @param onCaptureCallBack 拍照回调
+     */
+    private void handleCaptureComplete(Context context, String savePath, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        if ((context != null) && (savePath != null)) {
+            MediaScanKit.scanSingleFile(context, savePath);
+        }
+        handler.post(() -> {
+            if (onCaptureCallBack != null) {
+                Log.d(LogKit.TAG, "SDK 拍照成功\n当前拍照模式 " + currentCaptureMode.name() + "\n保存路径 " + savePath);
+                onCaptureCallBack.onCaptureSuccess(savePath, 0, 0, currentCaptureMode);
+            }
+        });
     }
 
     /**
@@ -217,5 +232,7 @@ public class SdkCaptureProcessor {
         onCaptureCallBack = null;
         // 全局 Application Context
         applicationContext = null;
+        // 拍照压缩辅助者
+        CaptureCompressHelper.getInstance().release();
     }
 }

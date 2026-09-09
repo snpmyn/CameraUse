@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.media.Image
+import android.os.Build
 import androidx.core.content.ContextCompat
 import com.jiangdg.ausbc.R
 import com.jiangdg.usb.DeviceFilter
@@ -114,6 +115,13 @@ object CameraUtils {
     }
 
     fun hasStoragePermission(ctx: Context): Boolean {
+        // Android 10+ (API 29+)
+        // 分区存储 + 直接放行
+        // 使用 MediaStore 保存图片 / 视频到相册无需任何权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return true
+        }
+        // Android 9- (API 28-)
         val locPermission =
             ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         return locPermission == PackageManager.PERMISSION_GRANTED

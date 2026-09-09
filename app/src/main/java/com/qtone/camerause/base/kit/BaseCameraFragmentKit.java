@@ -2,6 +2,7 @@ package com.qtone.camerause.base.kit;
 
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.widget.camera.CameraController;
+import com.qtone.camerause.widget.camera.CameraSettingKit;
 
 /**
  * Created on 2026/8/28.
@@ -29,5 +30,13 @@ public class BaseCameraFragmentKit {
      */
     public void setAutoFocus() {
         CameraController.getInstance().setAutoFocus(baseCameraFragment.getCurrentCamera(), true);
+    }
+
+    /**
+     * 相机设置
+     */
+    public void cameraSetting() {
+        CameraSettingKit.cameraSetting(baseCameraFragment.getCurrentCamera());
+        /*CameraSettingKit.restoreBrightness(baseCameraFragment.getCurrentCamera());*/
     }
 }

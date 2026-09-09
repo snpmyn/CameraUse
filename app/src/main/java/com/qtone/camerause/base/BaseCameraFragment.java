@@ -25,7 +25,6 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.camera.CameraAspectRatioKit;
 import com.qtone.camerause.widget.camera.CameraController;
-import com.qtone.camerause.widget.camera.CameraSettingKit;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,13 +43,13 @@ public abstract class BaseCameraFragment extends CameraFragment {
      */
     protected CameraAspectRatioKit cameraAspectRatioKit;
     /**
-     * 是否首帧
-     */
-    private volatile boolean isFirstFrame = true;
-    /**
      * 相机碎片基类配套原件
      */
     private BaseCameraFragmentKit baseCameraFragmentKit;
+    /**
+     * 是否首帧
+     */
+    private volatile boolean isFirstFrame = true;
     /**
      * 预览数据回调
      */
@@ -65,7 +64,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
                     // 自动对焦
                     baseCameraFragmentKit.setAutoFocus();
                     // 相机设置
-                    CameraSettingKit.cameraSetting(getCurrentCamera());
+                    baseCameraFragmentKit.cameraSetting();
                 }
                 // 实时分发原始数据
                 onPreviewFrame(data, width, height, format);
@@ -137,6 +136,11 @@ public abstract class BaseCameraFragment extends CameraFragment {
     }
 
     /**
+     * 设置监听
+     */
+    protected abstract void setListener();
+
+    /**
      * 开始逻辑
      */
     protected abstract void startLogic();
@@ -174,7 +178,7 @@ public abstract class BaseCameraFragment extends CameraFragment {
         // 调用父类 CameraFragment 初始逻辑
         // 动态添加 TextureView 进容器并注册 UVC 监听
         initView();
-//        initData();
+        setListener();
         startLogic();
     }
 
@@ -200,16 +204,6 @@ public abstract class BaseCameraFragment extends CameraFragment {
     @NotNull
     @Override
     protected CameraRequest getCameraRequest() {
-        /*return new CameraRequest.Builder()
-                .setPreviewWidth(1280)
-                .setPreviewHeight(720)
-                .setRenderMode(CameraRequest.RenderMode.OPENGL)
-                .setDefaultRotateType(RotateType.ANGLE_0)
-                .setAudioSource(CameraRequest.AudioSource.SOURCE_SYS_MIC)
-                .setAspectRatioShow(true)
-                .setCaptureRawImage(false)
-                .setRawPreviewData(false)
-                .create();*/
         return new CameraRequest.Builder()
                 .setPreviewWidth(getCameraResolution().getWidth())
                 .setPreviewHeight(getCameraResolution().getHeight())

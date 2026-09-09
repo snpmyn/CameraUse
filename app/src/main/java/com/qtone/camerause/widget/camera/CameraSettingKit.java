@@ -97,6 +97,32 @@ public class CameraSettingKit {
     }
 
     /**
+     * 恢复亮度
+     * 解锁曝光与 Gamma 状态
+     *
+     * @param iCamera 相机实例
+     */
+    public static void restoreBrightness(MultiCameraClient.ICamera iCamera) {
+        // 1. 重置
+        reset(iCamera);
+        // 2. 尝试切换曝光模式
+        // 解锁 ISP
+        if (CameraController.getInstance() != null) {
+            // 先切 1 (手动)
+            CameraController.getInstance().setExposureMode(iCamera, 1);
+            // 尝试设置更高 Gamma
+            // 如 120 ~ 150
+            Integer gammaMin = CameraController.getInstance().getGammaMin(iCamera);
+            Integer gammaMax = CameraController.getInstance().getGammaMax(iCamera);
+            int validGamma = calculateValidHardwareValue(120, gammaMin, gammaMax);
+            CameraController.getInstance().setGamma(iCamera, validGamma);
+            // 然后 8 (阴影)
+            // 最后 2 (自动)
+            CameraController.getInstance().setExposureMode(iCamera, 8);
+        }
+    }
+
+    /**
      * 计算对齐硬件值
      * <p>
      * 计算对齐目标值到 UVC 合法硬件范围内

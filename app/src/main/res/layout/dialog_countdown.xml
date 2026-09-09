@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/dp_160"
+    android:layout_height="@dimen/dp_160"
+    android:layout_gravity="center"
+    android:background="@drawable/color_80000000_solid_r12"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/countdownDialogTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="@dimen/sp_30"
+        android:textStyle="bold"
+        tools:text="3" />
+</LinearLayout>

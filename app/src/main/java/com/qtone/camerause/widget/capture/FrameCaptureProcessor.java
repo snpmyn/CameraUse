@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.qtone.camerause.util.log.LogKit.TAG;
+
 
 /**
  * Created on 2026/8/8.
@@ -43,6 +43,9 @@ import static com.qtone.camerause.util.log.LogKit.TAG;
  * @desc 帧拍照处理器
  */
 public class FrameCaptureProcessor {
+
+    public  final String TAG = "CU";
+
     /**
      * 单拍状态锁
      * <p>
@@ -108,7 +111,7 @@ public class FrameCaptureProcessor {
      * @param onCaptureCallBack 拍照回调
      */
     public void startSingleCapture(Context context, MultiCameraClient.ICamera iCamera, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        Log.d(LogKit.TAG, "开始单拍 - 帧拍照");
+        Log.d(TAG, "开始单拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -121,6 +124,8 @@ public class FrameCaptureProcessor {
         isSingleActive.set(true);
         // 连拍状态锁
         isBurstActive.set(false);
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 通知开始
         CaptureHelper.notifyBegin(handler, onCaptureCallBack);
     }
@@ -134,7 +139,7 @@ public class FrameCaptureProcessor {
      * @param onCaptureCallBack 拍照回调
      */
     public void startBurstCapture(Context context, MultiCameraClient.ICamera iCamera, long intervalMs, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
-        Log.d(LogKit.TAG, "开始连拍 - 帧拍照");
+        Log.d(TAG, "开始连拍 - 帧拍照");
         if (CaptureHelper.isCameraNotReady(iCamera, handler, onCaptureCallBack)) {
             return;
         }
@@ -147,14 +152,14 @@ public class FrameCaptureProcessor {
         isBurstActive.set(true);
         // 单拍状态锁
         isSingleActive.set(false);
-        // 重置连拍序号
-        CaptureHelper.resetBurstSequence();
+        // 重置序号
+        CaptureHelper.resetSequence();
         // 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
         // 连拍间隔毫秒
         // 硬性限制下限 150ms 规避硬件写盘过载
         burstIntervalMs = Math.max(150L, intervalMs);
-        Log.d(LogKit.TAG, "连拍间隔毫秒 - 帧拍照 || " + burstIntervalMs);
+        Log.d(TAG, "连拍间隔毫秒 - 帧拍照 || " + burstIntervalMs);
         // 通知开始
         CaptureHelper.notifyBegin(handler, onCaptureCallBack);
     }
@@ -163,7 +168,7 @@ public class FrameCaptureProcessor {
      * 停止连拍
      */
     public void stopBurstCapture() {
-        Log.d(LogKit.TAG, "停止连拍 - 帧拍照");
+        Log.d(TAG, "停止连拍 - 帧拍照");
         // 连拍状态锁
         isBurstActive.set(false);
         // 当前拍照模式
@@ -222,11 +227,11 @@ public class FrameCaptureProcessor {
         // NV21: width * height * 1.5 Byte
         int minRequiredSize = (dataFormat == IPreviewDataCallBack.DataFormat.RGBA) ? (width * height * 4) : (width * height * 3 / 2);
         if (data.length < minRequiredSize) {
-            Log.e(LogKit.TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
+            Log.e(TAG, String.format(Locale.CHINA, "数据帧异常 - 帧拍照 || 实际长度 (%d) 小于 %dx%d 所需空间", data.length, width, height));
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧截断 - 帧拍照");
             return;
         }
-        Log.d(LogKit.TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
+        Log.d(TAG, "数据帧捕获成功 - 帧拍照 [" + currentCaptureMode.name() + "] 尺寸 || " + width + "x" + height);
         // 深拷贝隔离内存 Buffer
         // 防止相机底层预览帧覆盖正在处理的数据
         final byte[] processData = Arrays.copyOf(data, data.length);
@@ -399,44 +404,63 @@ public class FrameCaptureProcessor {
                 }
                 fileOutputStream.flush();
             }
-            if (context != null) {
-                MediaScanKit.scanSingleFile(context, targetFile.getAbsolutePath());
-            }
-            handler.post(() -> {
-                if (onCaptureCallBack != null) {
-                    Log.d(LogKit.TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + "x" + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
-                    onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
-                }
-            });
+            // 压缩并覆盖
+            // 内部自检测
+            CaptureCompressHelper.getInstance().compressAndOverwrite(context, savePath, finalPath -> handleCaptureComplete(context, finalPath, width, height, dataFormat, onCaptureCallBack)
+            );
         } catch (Exception e) {
-            Log.e(LogKit.TAG, "数据帧写盘异常 - 帧拍照", e);
+            Log.e(TAG, "数据帧写盘异常 - 帧拍照", e);
             CaptureHelper.notifyError(handler, onCaptureCallBack, "数据帧写盘异常 - 帧拍照");
         }
+    }
+
+    /**
+     * 处理拍照完成
+     *
+     * @param context           上下文
+     * @param savePath          保存路径
+     * @param width             帧物理宽
+     * @param height            帧物理高
+     * @param dataFormat        数据格式
+     * @param onCaptureCallBack 拍照回调
+     */
+    private void handleCaptureComplete(Context context, String savePath, int width, int height, IPreviewDataCallBack.DataFormat dataFormat, CaptureProcessor.OnCaptureCallback onCaptureCallBack) {
+        if ((context != null) && (savePath != null)) {
+            MediaScanKit.scanSingleFile(context, savePath);
+        }
+        handler.post(() -> {
+            if (onCaptureCallBack != null) {
+                Log.d(TAG, "图片生成成功 - 帧拍照\n当前拍照模式 " + currentCaptureMode.name() + "\n分辨率 " + width + " x " + height + "\n数据格式 " + dataFormat.name() + "\n保存路径 " + savePath);
+                onCaptureCallBack.onCaptureSuccess(savePath, width, height, currentCaptureMode);
+            }
+        });
     }
 
     /**
      * 释放
      */
     public void release() {
-        // 1. 单拍状态锁
+        // 单拍状态锁
         isSingleActive.set(false);
-        // 2. 连拍状态锁
+        // 连拍状态锁
         isBurstActive.set(false);
-        // 3. 当前拍照模式
+        // 当前拍照模式
         currentCaptureMode = CaptureMode.SINGLE_CAPTURE;
-        // 4. 连拍模式上次成功捕获预览帧时间戳
+        // 连拍模式上次成功捕获预览帧时间戳
         lastCaptureTimestamp = 0L;
-        // 5. 线程消息调度器
+        // 线程消息调度器
         handler.removeCallbacksAndMessages(null);
-        // 6. 增强实现
+        // 增强实现
         if (executorService != null) {
             if (!executorService.isShutdown()) {
                 executorService.shutdownNow();
             }
             executorService = null;
         }
-        // 7. 全局 Application Context
+        // 全局 Application Context
         applicationContext = null;
+        // 拍照压缩辅助者
+        CaptureCompressHelper.getInstance().release();
     }
 
 

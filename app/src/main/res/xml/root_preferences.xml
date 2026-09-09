@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!--图像处理分组-->
     <PreferenceCategory
         app:icon="@drawable/ic_control_camera_cos_24dp"
         app:title="图像处理">
@@ -44,5 +46,46 @@
             app:key="wechat_crop"
             app:summary="自动检测并裁剪图片中二维码"
             app:title="微信裁剪" />
+    </PreferenceCategory>
+
+    <!--拍照压缩分组-->
+    <PreferenceCategory
+        app:icon="@drawable/ic_compress_cos_24dp"
+        app:title="拍照压缩">
+        <!--拍照压缩-->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:icon="@drawable/ic_format_image_front_cos_24dp"
+            app:key="photo_compression"
+            app:summary="自动对拍照后的图片进行压缩处理"
+            app:title="拍照压缩" />
+    </PreferenceCategory>
+
+    <!--时间间隔分组-->
+    <PreferenceCategory
+        app:icon="@drawable/ic_time_auto_cos_24dp"
+        app:title="时间间隔">
+        <!--连拍间隔-->
+        <SeekBarPreference
+            android:max="5000"
+            app:defaultValue="3000"
+            app:icon="@drawable/ic_timelapse_cos_24dp"
+            app:key="burst_capture_interval"
+            app:min="100"
+            app:seekBarIncrement="100"
+            app:showSeekBarValue="true"
+            app:summary="设置连拍间隔时间 (毫秒)"
+            app:title="连拍间隔" />
+        <!--扫码间隔-->
+        <SeekBarPreference
+            android:max="5000"
+            app:defaultValue="1500"
+            app:icon="@drawable/ic_timelapse_cos_24dp"
+            app:key="scan_code_interval"
+            app:min="100"
+            app:seekBarIncrement="100"
+            app:showSeekBarValue="true"
+            app:summary="设置扫码间隔时间 (毫秒)"
+            app:title="扫码间隔" />
     </PreferenceCategory>
 </PreferenceScreen>
