@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.scan;
+package com.qtone.camerause.widget.scancode;
 
 import android.graphics.Bitmap;
 import android.util.Log;

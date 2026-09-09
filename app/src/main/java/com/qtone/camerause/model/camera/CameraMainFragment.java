@@ -18,14 +18,14 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView;
 import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
-import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
+import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
 import com.qtone.camerause.widget.button.ShimmerButton;
 import com.qtone.camerause.widget.button.ShimmerButtonState;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
-import com.qtone.camerause.widget.scan.ViewFinderView;
+import com.qtone.camerause.widget.scancode.ViewFinderView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +46,7 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
+
     private ImageView mMatImageIv;
     private MaterialButton mLedMaterialButton;
     private int mLedType = CommonConstants.LedType.FILL_LIGHT_1;
@@ -54,10 +55,14 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
      * 相机主碎片配套原件
      */
     private CameraMainFragmentKit cameraMainFragmentKit;
-
-    //天波SDK工具类
-    private CommonUtil mLedCommonUtil;
+    /**
+     * LED 是否已开启
+     */
     private boolean ledIsOpened = false;
+    /**
+     * 天波 SDK 工具类
+     */
+    private CommonUtil mLedCommonUtil;
 
     /**
      * 获取布局 ID
@@ -206,13 +211,11 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             }
         });
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
+
         mLedMaterialButton.setOnClickListener(this);
         LogUtils.d("onMatToBitmapProcessing", "初始化预览图片控件");
-
         cameraMainFragmentKit.setPreviewMatImg(mMatImageIv);
-
         mLedCommonUtil = new CommonUtil(getActivity());
-
     }
 
     /**
@@ -274,13 +277,13 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
         } else if (id == R.id.cameraMainFragmentMbLed) {
-            int result = ResultCode.ERR_SYS_UNEXPECT;
+            int result;
             // 闪光灯按钮点击事件
-            if (!ledIsOpened) {//打开
+            if (!ledIsOpened) { // 打开
                 ledIsOpened = true;
                 result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 255);
                 mLedMaterialButton.setText("关闭闪光灯");
-            } else {//关闭
+            } else { // 关闭
                 ledIsOpened = false;
                 mLedMaterialButton.setText("打开闪光灯");
                 result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 0);

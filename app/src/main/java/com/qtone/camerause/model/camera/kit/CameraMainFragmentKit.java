@@ -28,7 +28,6 @@ import com.qtone.camerause.widget.camera.CameraFpsKit;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
-import com.qtone.camerause.widget.capture.DocumentScanner;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
 import com.qtone.camerause.widget.dialog.countdown.kit.CountdownDialogKit;
 import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerCallback;
@@ -36,8 +35,8 @@ import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerManager;
 import com.qtone.camerause.widget.mediapipe.hand.HandLeaveScanDetector;
 import com.qtone.camerause.widget.ocr.BaiDuOcrHelper;
 import com.qtone.camerause.widget.roi.ImageRoiProcessor;
-import com.qtone.camerause.widget.scan.ScanCodeProcessor;
-import com.qtone.camerause.widget.scan.ViewFinderView;
+import com.qtone.camerause.widget.scancode.ScanCodeProcessor;
+import com.qtone.camerause.widget.scancode.ViewFinderView;
 import com.qtone.camerause.widget.wechat.WeChatCropEngine;
 
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +92,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 手势识别管理器
      */
     private GestureRecognizerManager gestureRecognizerManager;
-
     /**
      * 灰度图片预览
      */
@@ -141,8 +139,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
         // 统计帧数
         cameraFpsKit.countFrame();
-        // 直接塞入原始数据
-        // 内部自动异步转码、丢帧与手势推理
+        // 手势识别管理器 - 处理预览帧
         gestureRecognizerManager.processPreviewFrame(data, width, height);
     }
 
@@ -395,18 +392,18 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
 
     @Override
     public void onMatToBitmapProcessing(Bitmap bitmap) {
-
         if (bitmap == null) {
-            LogUtils.d("onMatToBitmapProcessing", "图片为null");
+            LogUtils.d("onMatToBitmapProcessing", "图片为 null");
             return;
         }
-//        LogUtils.d("onMatToBitmapProcessing","处理灰度图片"+(mMatImgIv==null));
+//        LogUtils.d("onMatToBitmapProcessing", "处理灰度图片" + (mMatImgIv == null));
 //        if (mMatImgIv != null) {
 //            mMatImgIv.setImageBitmap(bitmap);
 //        }
 
 //        DocumentScanner scanner = new DocumentScanner();
-//        DocumentScanner.ScanResult r = scanner.scan(bitmap);   // 检测+矫正一步完成
+//        // 检测 + 矫正一步完成
+//        DocumentScanner.ScanResult r = scanner.scan(bitmap);
 //
 //        if (r.isSuccess()) {
 //            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
@@ -415,7 +412,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
 //            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
 //        } else {
 //            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
-//            // 即使失败也能拿到检测结果，便于排查缺哪个角
+//            // 即使失败也能拿到检测结果，便于排查缺哪个角。
 //            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
 //        }
     }
@@ -542,7 +539,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     }
 
     public void setPreviewMatImg(ImageView matImg) {
-
         LogUtils.d("onMatToBitmapProcessing", "设置预览图片控件");
         mMatImgIv = matImg;
     }
