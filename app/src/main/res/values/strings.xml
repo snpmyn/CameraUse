@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraUseTwo</string>
+    <string name="app_name">CameraUse</string>
     <string name="singleCapture">单拍</string>
     <string name="burstCapture">连拍</string>
     <string name="scanCode">扫码</string>
