@@ -1,16 +1,13 @@
 package com.qtone.camerause.model.camera;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.common.CommonConstants;
-import com.common.apiutil.ResultCode;
-import com.common.apiutil.pos.CommonUtil;
 import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
@@ -19,11 +16,12 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
-import com.qtone.camerause.util.log.LogUtils;
+import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
 import com.qtone.camerause.widget.button.ShimmerButton;
 import com.qtone.camerause.widget.button.ShimmerButtonState;
+import com.qtone.camerause.widget.camera.UvcCameraChecker;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 import com.qtone.camerause.widget.scancode.ViewFinderView;
 
@@ -42,27 +40,17 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     public ShimmerButton cameraMainFragmentSbSingleCapture;
     public ShimmerButton cameraMainFragmentSbBurstCapture;
     public ShimmerButton cameraMainFragmentSbScanCode;
+    public MaterialButton mLedMaterialButton;
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
 
     private ImageView mMatImageIv;
-    private MaterialButton mLedMaterialButton;
-    private int mLedType = CommonConstants.LedType.FILL_LIGHT_1;
-    private int mLedColor = CommonConstants.LedColor.WHITE_LED;
     /**
      * 相机主碎片配套原件
      */
     private CameraMainFragmentKit cameraMainFragmentKit;
-    /**
-     * LED 是否已开启
-     */
-    private boolean ledIsOpened = false;
-    /**
-     * 天波 SDK 工具类
-     */
-    private CommonUtil mLedCommonUtil;
 
     /**
      * 获取布局 ID
@@ -115,8 +103,9 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
+
         mMatImageIv = rootView.findViewById(R.id.iv_mat_img);
-        mLedMaterialButton = rootView.findViewById(R.id.cameraMainFragmentMbLed);
+
         cameraMainFragmentSbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentSbSingleCapture);
         cameraMainFragmentSbSingleCapture.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
             @Override
@@ -212,10 +201,9 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         });
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
 
+        mLedMaterialButton = rootView.findViewById(R.id.cameraMainFragmentMbLed);
         mLedMaterialButton.setOnClickListener(this);
-        LogUtils.d("onMatToBitmapProcessing", "初始化预览图片控件");
         cameraMainFragmentKit.setPreviewMatImg(mMatImageIv);
-        mLedCommonUtil = new CommonUtil(getActivity());
     }
 
     /**
@@ -244,6 +232,22 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @Override
     protected void startLogic() {
         /*String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";*/
+        safeRun(appCompatActivity -> UvcCameraChecker.checkUvcCameraSupport(appCompatActivity, (isSupported, canOpen, cameraId, message) -> {
+            Log.i(LogKit.TAG, "=== 验证结果 ===");
+            Log.i(LogKit.TAG, "支持状态 (isSupported): " + isSupported);
+            Log.i(LogKit.TAG, "打开状态 (canOpen): " + canOpen);
+            Log.i(LogKit.TAG, "设备 ID (cameraId): " + cameraId);
+            Log.i(LogKit.TAG, "诊断详情: " + message);
+            if (isSupported && canOpen) {
+                // 原生 Camera2 可用
+                // 可直接走 Camera2 / CameraX 逻辑
+                Log.i(LogKit.TAG, "原生 Camera2 支持此高拍仪");
+            } else {
+                // 原生不可用
+                // 需退回到 libusb / UVCCamera 方案
+                Log.i(LogKit.TAG, "原生不支持 / 无法打开，请使用 UVCCamera 开源库方案。");
+            }
+        }));
     }
 
     /**
@@ -277,24 +281,8 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
         } else if (id == R.id.cameraMainFragmentMbLed) {
-            int result;
-            // 闪光灯按钮点击事件
-            if (!ledIsOpened) { // 打开
-                ledIsOpened = true;
-                result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 255);
-                mLedMaterialButton.setText("关闭闪光灯");
-            } else { // 关闭
-                ledIsOpened = false;
-                mLedMaterialButton.setText("打开闪光灯");
-                result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 0);
-            }
-            if (result == ResultCode.SUCCESS) {
-                Toast.makeText(getActivity(), "补光灯" + (ledIsOpened ? "开启" : "关闭") + "成功", Toast.LENGTH_SHORT).show();
-            } else if (result == ResultCode.ERR_SYS_NOT_SUPPORT) {
-                Toast.makeText(getActivity(), "不支持", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getActivity(), "补光灯操作失败", Toast.LENGTH_SHORT).show();
-            }
+            // LED 按钮点击事件
+            cameraMainFragmentKit.onLedClicked();
         }
     }
 

@@ -10,6 +10,9 @@ import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
+import com.common.CommonConstants;
+import com.common.apiutil.ResultCode;
+import com.common.apiutil.pos.CommonUtil;
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
@@ -92,10 +95,19 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * 手势识别管理器
      */
     private GestureRecognizerManager gestureRecognizerManager;
+
     /**
      * 灰度图片预览
      */
     private ImageView mMatImgIv;
+    /**
+     * 天波 SDK 工具类
+     */
+    private CommonUtil mLedCommonUtil;
+    /**
+     * LED 是否已开启
+     */
+    private boolean ledIsOpened = false;
 
     /**
      * constructor
@@ -120,6 +132,10 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         handLeaveScanDetector = new HandLeaveScanDetector(this);
         // 手势识别管理器
         cameraMainFragment.safeRun(appCompatActivity -> gestureRecognizerManager = new GestureRecognizerManager(appCompatActivity, CameraMainFragmentKit.this));
+
+        // 天波 SDK 工具类
+        cameraMainFragment.safeRun(appCompatActivity -> mLedCommonUtil = new CommonUtil(appCompatActivity));
+
     }
 
     /**
@@ -213,6 +229,33 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onGalleryClicked() {
         cameraMainFragment.safeRun(appCompatActivity -> IntentJump.getInstance().jumpWithAnimation(null, appCompatActivity, false, GalleryActivity.class, 0, 0));
+    }
+
+    /**
+     * LED 按钮点击事件
+     */
+    public void onLedClicked() {
+        int result;
+        int mLedType = CommonConstants.LedType.FILL_LIGHT_1;
+        int mLedColor = CommonConstants.LedColor.WHITE_LED;
+        if (!ledIsOpened) {
+            // 打开
+            ledIsOpened = true;
+            result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 255);
+            cameraMainFragment.mLedMaterialButton.setText("关闭闪光灯");
+        } else {
+            // 关闭
+            ledIsOpened = false;
+            cameraMainFragment.mLedMaterialButton.setText("打开闪光灯");
+            result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 0);
+        }
+        if (result == ResultCode.SUCCESS) {
+            ToastUtils.show("补光灯" + (ledIsOpened ? "开启" : "关闭") + "成功");
+        } else if (result == ResultCode.ERR_SYS_NOT_SUPPORT) {
+            ToastUtils.show("不支持");
+        } else {
+            ToastUtils.show("补光灯操作失败");
+        }
     }
 
     /**

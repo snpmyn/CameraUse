@@ -11,7 +11,6 @@ buildscript {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-        mavenCentral()
         maven {
             url = uri("https://company/com/maven2")
             url = uri("https://jitpack.io")
@@ -43,7 +42,6 @@ allprojects {
         maven { url 'https://maven.aliyun.com/repository/jcenter' }
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-        mavenCentral()
         maven {
             url = uri("https://company/com/maven2")
             url = uri("https://jitpack.io")
