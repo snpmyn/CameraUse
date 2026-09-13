@@ -14,7 +14,6 @@ buildscript {
         maven {
             url = uri("https://company/com/maven2")
             url = uri("https://jitpack.io")
-
         }
 
         mavenLocal()
@@ -45,7 +44,6 @@ allprojects {
         maven {
             url = uri("https://company/com/maven2")
             url = uri("https://jitpack.io")
-
         }
 
         mavenLocal()
@@ -78,5 +76,5 @@ ext {
     comGoogleAndroidMaterialVersion = '1.4.0'
     androidxConstraintlayoutVersion = '2.0.1'
     orgJetbrainskotlinxKotlinxCoroutinesCoreVersion = '1.5.1'
-    orgJetbrainskotlinxKotlinxCoroutinesAndroidVersion  = '1.5.1'
+    orgJetbrainskotlinxKotlinxCoroutinesAndroidVersion = '1.5.1'
 }
