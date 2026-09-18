@@ -43,6 +43,7 @@
     <string name="burstCaptureRunning">连拍进行中</string>
     <string name="singleCaptureRunning">单拍进行中</string>
     <string name="noClickRepeat">勿重复点击</string>
+    <string name="resetDevice">重置设备</string>
     <!-- format -->
     <string name="formatFFps">%1$.0f fps</string>
 </resources>
