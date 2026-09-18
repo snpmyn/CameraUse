@@ -44,7 +44,7 @@ public class UvcCameraChecker {
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if ((facing != null) && (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)) {
                     externalCameraId = id;
-                    Log.d(LogKit.TAG, "成功识别到外接 UVC 摄像头节点，Camera ID: " + id);
+                    Log.d(LogKit.TAG, "UVC 相机检测 - 成功识别到外接 UVC 摄像头节点 - Camera ID: " + id);
                     break;
                 }
             }
@@ -70,30 +70,29 @@ public class UvcCameraChecker {
                     // 验证成功
                     // 立即释放资源
                     camera.close();
-                    uvcCameraCheckCallback.onResult(true, true, targetId, "原生 Camera2 完美支持！节点 ID 为 [" + targetId + "] 且设备可正常打开通信"
-                    );
+                    uvcCameraCheckCallback.onResult(true, true, targetId, "原生 Camera2 完美支持！节点 ID 为 [" + targetId + "] 且设备可正常打开通信");
                 }
 
                 @Override
                 public void onDisconnected(@NonNull CameraDevice camera) {
                     Log.w(LogKit.TAG, "UVC 相机检测 - Camera2 外接设备已断开连接: " + targetId);
                     camera.close();
-                    uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "]，但设备被断开 (可能供电不足或设备已拨出)。");
+                    uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "] 但设备被断开 (可能供电不足或设备已拨出)");
                 }
 
                 @Override
                 public void onError(@NonNull CameraDevice camera, int error) {
                     Log.e(LogKit.TAG, "UVC 相机检测 - Camera2 打开外接设备失败, error code: " + error);
                     camera.close();
-                    uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "]，但打开失败，错误代码 (onError): " + error);
+                    uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "] 但打开失败，错误代码 (onError): " + error);
                 }
             }, handler);
         } catch (CameraAccessException e) {
             Log.e(LogKit.TAG, "UVC 相机检测 - 调用 openCamera 抛出异常", e);
-            uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "]，但打开抛出异常: " + e.getMessage());
+            uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "] 但打开抛出异常: " + e.getMessage());
         } catch (SecurityException e) {
             Log.e(LogKit.TAG, "UVC 相机检测 - 未获取 CAMERA 动态权限", e);
-            uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "]，但缺少 android.permission.CAMERA 权限。");
+            uvcCameraCheckCallback.onResult(true, false, targetId, "找到外接节点 [" + targetId + "] 但缺少 android.permission.CAMERA 权限");
         }
     }
 
