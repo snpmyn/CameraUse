@@ -1,6 +1,5 @@
 package com.qtone.camerause.model.camera;
 
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -16,12 +15,10 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.base.BaseCameraFragment;
 import com.qtone.camerause.model.camera.kit.CameraMainFragmentKit;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
-import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.value.CameraResolution;
 import com.qtone.camerause.widget.button.OnShimmerButtonCallback;
 import com.qtone.camerause.widget.button.ShimmerButton;
 import com.qtone.camerause.widget.button.ShimmerButtonState;
-import com.qtone.camerause.widget.camera.UvcCameraChecker;
 import com.qtone.camerause.widget.roi.MultiRoiOverlayView;
 import com.qtone.camerause.widget.scancode.ViewFinderView;
 
@@ -232,22 +229,8 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     @Override
     protected void startLogic() {
         /*String filePath = "/storage/emulated/0/Android/data/com.qtone.camerause/files/Pictures/IMG_1786010873667_0001.jpg";*/
-        safeRun(appCompatActivity -> UvcCameraChecker.checkUvcCameraSupport(appCompatActivity, (isSupported, canOpen, cameraId, message) -> {
-            Log.i(LogKit.TAG, "=== 验证结果 ===");
-            Log.i(LogKit.TAG, "支持状态 (isSupported): " + isSupported);
-            Log.i(LogKit.TAG, "打开状态 (canOpen): " + canOpen);
-            Log.i(LogKit.TAG, "设备 ID (cameraId): " + cameraId);
-            Log.i(LogKit.TAG, "诊断详情: " + message);
-            if (isSupported && canOpen) {
-                // 原生 Camera2 可用
-                // 可直接走 Camera2 / CameraX 逻辑
-                Log.i(LogKit.TAG, "原生 Camera2 支持此高拍仪");
-            } else {
-                // 原生不可用
-                // 需退回到 libusb / UVCCamera 方案
-                Log.i(LogKit.TAG, "原生不支持 / 无法打开，请使用 UVCCamera 开源库方案。");
-            }
-        }));
+        // 检测 UVC 相机支持
+        cameraMainFragmentKit.checkUvcCameraSupport();
     }
 
     /**

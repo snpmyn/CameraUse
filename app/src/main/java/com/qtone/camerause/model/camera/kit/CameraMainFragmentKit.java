@@ -28,6 +28,7 @@ import com.qtone.camerause.util.rxbus.RxBus;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.value.RxBusConstant;
 import com.qtone.camerause.widget.camera.CameraFpsKit;
+import com.qtone.camerause.widget.camera.UvcCameraChecker;
 import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
@@ -157,6 +158,29 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         cameraFpsKit.countFrame();
         // 手势识别管理器 - 处理预览帧
         gestureRecognizerManager.processPreviewFrame(data, width, height);
+    }
+
+    /**
+     * 检测 UVC 相机支持
+     */
+    public void checkUvcCameraSupport() {
+        cameraMainFragment.safeRun(appCompatActivity -> UvcCameraChecker.checkUvcCameraSupport(appCompatActivity, (isSupported, canOpen, cameraId, message) -> {
+            Log.i(LogKit.TAG, "========= 验证开始 =========");
+            Log.i(LogKit.TAG, "支持状态 (isSupported): " + isSupported);
+            Log.i(LogKit.TAG, "打开状态 (canOpen): " + canOpen);
+            Log.i(LogKit.TAG, "设备 ID (cameraId): " + cameraId);
+            Log.i(LogKit.TAG, "诊断详情: " + message);
+            Log.i(LogKit.TAG, "========= 验证结束 =========");
+            if (isSupported && canOpen) {
+                // 原生 Camera2 可用
+                // 可直接走 Camera2 / CameraX 逻辑
+                Log.i(LogKit.TAG, "原生 Camera2 支持此高拍仪");
+            } else {
+                // 原生不可用
+                // 需退回到 libusb / UVCCamera 方案
+                Log.i(LogKit.TAG, "原生不支持 / 无法打开，请使用 UVCCamera 开源库方案。");
+            }
+        }));
     }
 
     /**
