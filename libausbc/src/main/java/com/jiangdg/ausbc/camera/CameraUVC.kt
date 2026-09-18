@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbDeviceConnection
 import android.provider.MediaStore
 import android.view.Surface
 import android.view.SurfaceView
@@ -827,6 +828,21 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                 isPreviewed = false
                 mMainHandler.post { onResult?.invoke(false, null) }
             }
+        }
+    }
+
+    /**
+     * 获取底层 UsbDeviceConnection 对象
+     *
+     * @return 底层 UsbDeviceConnection 对象
+     */
+    fun getUsbDeviceConnection(): UsbDeviceConnection? {
+        val camera = mUvcCamera ?: return null
+        return try {
+            camera.usbControlBlock?.connection
+        } catch (e: Exception) {
+            Logger.e(TAG, "getUsbDeviceConnection failed", e)
+            null
         }
     }
 
