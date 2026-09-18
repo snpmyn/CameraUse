@@ -44,7 +44,26 @@ android {
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'//, 'x86', 'x86_64'
         }
+
         /*resConfigs("zh", "en")*/
+
+        // 1. 补充 CMake 编译参数
+        // C++17 与 内存页兼容
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
+    }
+
+    // 2. 指定 CMakeLists.txt 脚本路径与版本
+    externalNativeBuild {
+        cmake {
+            path file("src/main/cpp/CMakeLists.txt")
+            // 指定本地 4.1.2 版本
+            version "4.1.2"
+        }
     }
 
     ndkVersion '21.1.6352462'
