@@ -1,6 +1,7 @@
 package com.qtone.camerause.widget.camera;
 
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
@@ -979,5 +980,18 @@ public class CameraController {
      */
     public Integer getSaturationDef(MultiCameraClient.ICamera iCamera) {
         return (iCamera instanceof CameraUVC) ? ((CameraUVC) iCamera).getSaturationDef() : null;
+    }
+
+    /**
+     * 获取底层 UsbDeviceConnection 对象
+     *
+     * @param iCamera 相机实例
+     * @return 底层 UsbDeviceConnection 对象
+     */
+    public UsbDeviceConnection getUsbDeviceConnection(MultiCameraClient.ICamera iCamera) {
+        if (iCamera instanceof CameraUVC) {
+            return ((CameraUVC) iCamera).getUsbDeviceConnection();
+        }
+        return null;
     }
 }
