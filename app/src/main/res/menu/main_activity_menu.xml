@@ -27,4 +27,8 @@
         android:id="@+id/mainActivityMenuFunctionSetting"
         android:contentDescription="@string/functionSetting"
         android:title="@string/functionSetting" />
+    <item
+        android:id="@+id/mainActivityMenuResetDevice"
+        android:contentDescription="@string/resetDevice"
+        android:title="@string/resetDevice" />
 </menu>
