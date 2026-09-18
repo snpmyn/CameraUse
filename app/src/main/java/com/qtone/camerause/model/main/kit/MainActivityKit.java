@@ -1,6 +1,7 @@
 package com.qtone.camerause.model.main.kit;
 
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
 import android.text.TextUtils;
 import android.view.MenuItem;
 
@@ -14,12 +15,14 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.model.camera.CameraMainFragment;
 import com.qtone.camerause.model.main.MainActivity;
 import com.qtone.camerause.model.setting.SettingActivity;
+import com.qtone.camerause.util.activity.ActivitySuperviseManager;
 import com.qtone.camerause.util.data.StringUtils;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.list.ListUtils;
 import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.camera.CameraSettingKit;
 import com.qtone.camerause.widget.camera.CameraSwitchKit;
+import com.qtone.camerause.widget.cpp.UsbResetHelper;
 import com.qtone.camerause.widget.dialog.camerasetting.CameraSettingDialog;
 import com.qtone.camerause.widget.dialog.camerasetting.listener.CameraSettingDialogClickListener;
 import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
@@ -126,6 +129,14 @@ public class MainActivityKit {
         } else if (itemId == R.id.mainActivityMenuFunctionSetting) {
             // 功能设置
             functionSetting();
+        } else if (itemId == R.id.mainActivityMenuResetDevice) {
+            // 重置设备
+            UsbDeviceConnection usbDeviceConnection = CameraController.getInstance().getUsbDeviceConnection(getCameraMainFragment().getCurrentCamera());
+            UsbResetHelper.resetAndClose(usbDeviceConnection, success -> {
+                if (success) {
+                    ActivitySuperviseManager.getInstance().finishActivity(MainActivity.class);
+                }
+            });
         }
     }
 
