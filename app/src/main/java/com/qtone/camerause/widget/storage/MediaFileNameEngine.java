@@ -2,6 +2,8 @@ package com.qtone.camerause.widget.storage;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.qtone.camerause.util.datetime.CurrentTimeMillisClock;
 
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 /**
  * Created on 2026/9/4.
@@ -24,9 +27,27 @@ public class MediaFileNameEngine {
      */
     private static final String TIME_PATTERN = "yyyyMMdd_HHmmss";
     /**
+     * 日期正则 pattern
+     * <p>
+     * 8位数字
+     */
+    private static final Pattern DATE_PATTERN = Pattern.compile("^\\d{8}$");
+    /**
+     * 时间正则 pattern
+     * <p>
+     * 6位数字
+     */
+    private static final Pattern TIME_FORMAT_PATTERN = Pattern.compile("^\\d{6}$");
+    /**
+     * 线程局部变量持有 SimpleDateFormat 实例
+     * <p>
+     * 规避频繁创建对象引发 GC 压力 + 线程安全
+     */
+    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT_HOLDER = ThreadLocal.withInitial(() -> new SimpleDateFormat(TIME_PATTERN, Locale.CHINA));
+    /**
      * 序号
      * <p>
-     * 原子自增 + 规避同毫秒/同秒生成文件名冲突覆盖
+     * 原子自增 + 规避同毫秒 / 同秒生成文件名冲突覆盖
      */
     private static final AtomicLong sequence = new AtomicLong(0);
 
@@ -47,8 +68,8 @@ public class MediaFileNameEngine {
      */
     public static @NotNull String generateRootKey() {
         long nowMillis = CurrentTimeMillisClock.getInstance().now();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(TIME_PATTERN, Locale.CHINA);
-        String timeStr = simpleDateFormat.format(new Date(nowMillis));
+        SimpleDateFormat simpleDateFormat = DATE_FORMAT_HOLDER.get();
+        String timeStr = (simpleDateFormat != null) ? simpleDateFormat.format(new Date(nowMillis)) : "";
         return String.format(Locale.CHINA, "%s_%04d", timeStr, sequence.incrementAndGet());
     }
 
@@ -71,17 +92,28 @@ public class MediaFileNameEngine {
             // 1. 带前缀母图：IMG_20260904_182251_0001 -> [IMG, 20260904, 182251, 0001] (len = 4)
             // 2. 带前缀派生图：CROP_20260904_182251_0001_01 -> [CROP, 20260904, 182251, 0001, 01] (len = 5)
             // 3. 无前缀根节点：20260904_182251_0001 -> [20260904, 182251, 0001] (len = 3)
-            if (parts.length >= 4) {
+            if ((parts.length >= 4) && isLegalDateTime(parts[1], parts[2])) {
                 // 对应场景 1 和 2
                 // 取第 1、2、3 段拼接成 yyyyMMdd_HHmmss_Seq
-                return parts[1] + "_" + parts[2] + "_" + parts[3];
-            } else if (parts.length == 3) {
+                return (parts[1] + "_" + parts[2] + "_" + parts[3]);
+            } else if ((parts.length == 3) && isLegalDateTime(parts[0], parts[1])) {
                 // 对应场景 3
                 // 无前缀时直接拼接三段
-                return parts[0] + "_" + parts[1] + "_" + parts[2];
+                return (parts[0] + "_" + parts[1] + "_" + parts[2]);
             }
         }
         return generateRootKey();
+    }
+
+    /**
+     * 是否为合法日期时间片段
+     *
+     * @param datePart 日期片段
+     * @param timePart 时间片段
+     * @return 是否为合法日期时间片段
+     */
+    private static boolean isLegalDateTime(String datePart, String timePart) {
+        return DATE_PATTERN.matcher(datePart).matches() && TIME_FORMAT_PATTERN.matcher(timePart).matches();
     }
 
     /**
@@ -99,6 +131,7 @@ public class MediaFileNameEngine {
      * @param subIndex         子下标
      * @return 文件名
      */
+    @NonNull
     public static String generateFileName(MediaStorageType mediaStorageType, String sourcePath, int subIndex) {
         MediaStorageType type = (mediaStorageType != null) ? mediaStorageType : MediaStorageType.CAPTURE;
         String prefix = type.getFileNamePrefix();
