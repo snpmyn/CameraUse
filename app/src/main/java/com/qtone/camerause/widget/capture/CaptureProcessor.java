@@ -1,7 +1,6 @@
 package com.qtone.camerause.widget.capture;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.jiangdg.ausbc.MultiCameraClient;
@@ -41,7 +40,6 @@ public class CaptureProcessor {
      * 单拍包装回调
      */
     private volatile OnCaptureCallback singleCaptureWrapCallback;
-    /*private long lastProcessTime = 0l;*/
 
     /**
      * constructor
@@ -159,11 +157,6 @@ public class CaptureProcessor {
                 if (onCaptureCallBack != null) {
                     onCaptureCallBack.onCaptureError(errorMsg);
                 }
-            }
-
-            @Override
-            public void onMatToBitmapProcessing(Bitmap bitmap) {
-
             }
         };
         this.singleCaptureWrapCallback = wrapCallback;
@@ -306,10 +299,5 @@ public class CaptureProcessor {
          * @param errorMsg 错误消息
          */
         void onCaptureError(String errorMsg);
-
-        /**
-         * 回调
-         */
-        void onMatToBitmapProcessing(Bitmap bitmap);
     }
 }
