@@ -16,8 +16,8 @@ android {
             cmake {
                 cppFlags ""
             }
-            ndk{
-                abiFilters 'armeabi-v7a','arm64-v8a', "x86", "x86_64"
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a', "x86", "x86_64"
             }
         }
 
@@ -51,6 +51,7 @@ android {
     kotlinOptions {
         jvmTarget = rootProject.ext.jvmTarget
     }
+    ndkVersion '21.4.7075529'
 }
 
 dependencies {
