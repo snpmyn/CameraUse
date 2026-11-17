@@ -1,4 +1,4 @@
-package com.qtone.camerause.widget.scan.two;
+package com.qtone.camerause.widget.scan;
 
 import android.os.Handler;
 import android.os.HandlerThread;
