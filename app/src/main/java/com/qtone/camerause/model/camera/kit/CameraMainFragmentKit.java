@@ -4,15 +4,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.baidu.ocr.sdk.OnResultListener;
 import com.baidu.ocr.sdk.exception.OCRError;
 import com.baidu.ocr.sdk.model.GeneralResult;
 import com.baidu.ocr.sdk.model.OcrResponseResult;
-import com.common.CommonConstants;
-import com.common.apiutil.ResultCode;
-import com.common.apiutil.pos.CommonUtil;
 import com.google.mediapipe.tasks.vision.gesturerecognizer.GestureRecognizerResult;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
@@ -23,7 +19,6 @@ import com.qtone.camerause.model.gallery.GalleryActivity;
 import com.qtone.camerause.model.setting.kit.SharedPreferencesKit;
 import com.qtone.camerause.util.intent.IntentJump;
 import com.qtone.camerause.util.log.LogKit;
-import com.qtone.camerause.util.log.LogUtils;
 import com.qtone.camerause.util.rxbus.RxBus;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.value.RxBusConstant;
@@ -98,27 +93,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     private GestureRecognizerManager gestureRecognizerManager;
 
     /**
-     * 灰度图片预览
-     */
-    private ImageView mMatImgIv;
-    /**
-     * 天波 SDK 工具类
-     */
-    private CommonUtil mLedCommonUtil;
-    /**
-     * LED 是否已开启
-     */
-    private boolean ledIsOpened = false;
-
-    /**
      * constructor
      *
      * @param cameraMainFragment 相机主碎片
      */
     public CameraMainFragmentKit(CameraMainFragment cameraMainFragment) {
-
-        LogUtils.d("onMatToBitmapProcessing", "CameraMainFragmentKit");
-
         // 相机主碎片
         this.cameraMainFragment = cameraMainFragment;
         // 拍照处理器
@@ -133,10 +112,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         handLeaveScanDetector = new HandLeaveScanDetector(this);
         // 手势识别管理器
         cameraMainFragment.safeRun(appCompatActivity -> gestureRecognizerManager = new GestureRecognizerManager(appCompatActivity, CameraMainFragmentKit.this));
-
-        // 天波 SDK 工具类
-        cameraMainFragment.safeRun(appCompatActivity -> mLedCommonUtil = new CommonUtil(appCompatActivity));
-
     }
 
     /**
@@ -253,33 +228,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onGalleryClicked() {
         cameraMainFragment.safeRun(appCompatActivity -> IntentJump.getInstance().jumpWithAnimation(null, appCompatActivity, false, GalleryActivity.class, 0, 0));
-    }
-
-    /**
-     * LED 按钮点击事件
-     */
-    public void onLedClicked() {
-        int result;
-        int mLedType = CommonConstants.LedType.FILL_LIGHT_1;
-        int mLedColor = CommonConstants.LedColor.WHITE_LED;
-        if (!ledIsOpened) {
-            // 打开
-            ledIsOpened = true;
-            result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 255);
-            cameraMainFragment.mLedMaterialButton.setText("关闭闪光灯");
-        } else {
-            // 关闭
-            ledIsOpened = false;
-            cameraMainFragment.mLedMaterialButton.setText("打开闪光灯");
-            result = mLedCommonUtil.setColorLed(mLedType, mLedColor, 0);
-        }
-        if (result == ResultCode.SUCCESS) {
-            ToastUtils.show("补光灯" + (ledIsOpened ? "开启" : "关闭") + "成功");
-        } else if (result == ResultCode.ERR_SYS_NOT_SUPPORT) {
-            ToastUtils.show("不支持");
-        } else {
-            ToastUtils.show("补光灯操作失败");
-        }
     }
 
     /**
@@ -457,33 +405,6 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
         }
     }
 
-    @Override
-    public void onMatToBitmapProcessing(Bitmap bitmap) {
-        if (bitmap == null) {
-            LogUtils.d("onMatToBitmapProcessing", "图片为 null");
-            return;
-        }
-//        LogUtils.d("onMatToBitmapProcessing", "处理灰度图片" + (mMatImgIv == null));
-//        if (mMatImgIv != null) {
-//            mMatImgIv.setImageBitmap(bitmap);
-//        }
-
-//        DocumentScanner scanner = new DocumentScanner();
-//        // 检测 + 矫正一步完成
-//        DocumentScanner.ScanResult r = scanner.scan(bitmap);
-//
-//        if (r.isSuccess()) {
-//            LogUtils.d("onMatToBitmapProcessing", "检测到试卷坐标点");
-//            mMatImgIv.setImageBitmap(r.getCorrection().getBitmap());
-//            // 原图坐标 ↔ 矫正图坐标互转
-//            DocumentScanner.PointF p = r.getCorrection().sourceToOutput(500f, 800f);
-//        } else {
-//            Log.w("onMatToBitmapProcessing", r.getErrorType() + ": " + r.getErrorMessage());
-//            // 即使失败也能拿到检测结果，便于排查缺哪个角。
-//            Log.w("onMatToBitmapProcessing", "缺失：" + r.getDetection().getMissingCorners());
-//        }
-    }
-
     /**
      * 文档裁剪成功
      *
@@ -603,10 +524,5 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onHandRemoved() {
         Log.d(LogKit.TAG, "手完全拿走");
-    }
-
-    public void setPreviewMatImg(ImageView matImg) {
-        LogUtils.d("onMatToBitmapProcessing", "设置预览图片控件");
-        mMatImgIv = matImg;
     }
 }

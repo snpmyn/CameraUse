@@ -3,11 +3,9 @@ package com.qtone.camerause.model.camera;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.material.button.MaterialButton;
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack;
 import com.jiangdg.ausbc.utils.ToastUtils;
 import com.jiangdg.ausbc.widget.AspectRatioTextureView;
@@ -37,13 +35,10 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
     public ShimmerButton cameraMainFragmentSbSingleCapture;
     public ShimmerButton cameraMainFragmentSbBurstCapture;
     public ShimmerButton cameraMainFragmentSbScanCode;
-    public MaterialButton mLedMaterialButton;
     private FrameLayout cameraMainFragmentFl;
     private AspectRatioTextureView cameraMainFragmentArtv;
     private ViewFinderView cameraMainFragmentVfv;
     private MultiRoiOverlayView multiRoiOverlayView;
-
-    private ImageView mMatImageIv;
     /**
      * 相机主碎片配套原件
      */
@@ -100,9 +95,6 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         cameraMainFragmentArtv = rootView.findViewById(R.id.cameraMainFragmentArtv);
         cameraMainFragmentVfv = rootView.findViewById(R.id.cameraMainFragmentVfv);
         multiRoiOverlayView = rootView.findViewById(R.id.cameraMainFragmentMrov);
-
-        mMatImageIv = rootView.findViewById(R.id.iv_mat_img);
-
         cameraMainFragmentSbSingleCapture = rootView.findViewById(R.id.cameraMainFragmentSbSingleCapture);
         cameraMainFragmentSbSingleCapture.setOnShimmerButtonCallback(new OnShimmerButtonCallback() {
             @Override
@@ -197,10 +189,6 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
             }
         });
         rootView.findViewById(R.id.cameraMainFragmentMbGallery).setOnClickListener(this);
-
-        mLedMaterialButton = rootView.findViewById(R.id.cameraMainFragmentMbLed);
-        mLedMaterialButton.setOnClickListener(this);
-        cameraMainFragmentKit.setPreviewMatImg(mMatImageIv);
     }
 
     /**
@@ -263,9 +251,6 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
         if (id == R.id.cameraMainFragmentMbGallery) {
             // 图库按钮点击事件
             cameraMainFragmentKit.onGalleryClicked();
-        } else if (id == R.id.cameraMainFragmentMbLed) {
-            // LED 按钮点击事件
-            cameraMainFragmentKit.onLedClicked();
         }
     }
 
