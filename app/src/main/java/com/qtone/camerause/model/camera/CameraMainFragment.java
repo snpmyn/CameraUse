@@ -115,24 +115,6 @@ public class CameraMainFragment extends BaseCameraFragment implements View.OnCli
                 }
                 // 单拍按钮点击事件
                 cameraMainFragmentKit.onSingleCaptureClicked();
-                /*File mediaDir = MediaStorageConfig.getInstance().getDirectoryFileByStorageType(MediaStorageConfig.StorageType.CAPTURE);
-                String fileName = String.format(Locale.CHINA, "IMG_%d_%04d.jpg", CurrentTimeMillisClock.getInstance().now(), 1);
-                CameraController.getInstance().captureImage(getCurrentCamera(), new ICaptureCallBack() {
-                    @Override
-                    public void onBegin() {
-                        Log.d(LogKit.TAG, "SDK - onBegin");
-                    }
-
-                    @Override
-                    public void onError(@Nullable String error) {
-                        Log.d(LogKit.TAG, "SDK - onError" + error);
-                    }
-
-                    @Override
-                    public void onComplete(@Nullable String path) {
-                        Log.d(LogKit.TAG, "SDK - onComplete" + path);
-                    }
-                }, new File(mediaDir, fileName).getAbsolutePath());*/
             }
 
             @Override
