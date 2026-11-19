@@ -16,7 +16,7 @@
         android:layout_marginBottom="@dimen/dp_10"
         android:gravity="center"
         android:textColor="@color/basic"
-        android:textSize="@dimen/sp_14"
+        android:textSize="@dimen/sp_16"
         android:textStyle="bold"
         android:visibility="gone"
         tools:text="标题" />
@@ -31,14 +31,14 @@
         android:lineSpacingExtra="@dimen/dp_3"
         android:minHeight="@dimen/dp_50"
         android:textColor="@color/font_dark"
-        android:textSize="@dimen/sp_12"
+        android:textSize="@dimen/sp_14"
         android:visibility="gone"
         tools:ignore="InefficientWeight"
         tools:text="内容" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_32"
+        android:layout_height="@dimen/dp_40"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
@@ -53,7 +53,7 @@
             android:insetRight="@dimen/dp_0"
             android:insetBottom="@dimen/dp_0"
             android:textColor="@color/basic"
-            android:textSize="@dimen/sp_10"
+            android:textSize="@dimen/sp_12"
             android:visibility="gone"
             app:rippleColor="@color/basic"
             app:strokeColor="@color/basic"
@@ -71,7 +71,7 @@
             android:insetRight="@dimen/dp_0"
             android:insetBottom="@dimen/dp_0"
             android:textColor="@color/white"
-            android:textSize="@dimen/sp_10"
+            android:textSize="@dimen/sp_12"
             app:backgroundTint="@color/basic"
             app:rippleColor="@color/color_1D80C7"
             tools:text="@string/ensure" />
