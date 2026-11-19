@@ -97,10 +97,6 @@ public class CaptureProcessor {
                     : onCaptureCallBack;
             frameCaptureProcessor.processFrame(data, width, height, dataFormat, targetCallback);
         }
-//        if ((System.currentTimeMillis()-lastProcessTime)>2000) {
-//            lastProcessTime=System.currentTimeMillis();
-//            frameCaptureProcessor.processPaperTestFrame(data, width, height, dataFormat, onCaptureCallBack);
-//        }
     }
 
     /**
@@ -220,15 +216,6 @@ public class CaptureProcessor {
      */
     public boolean captureSuccessFromSingleCapture(CaptureMode captureMode) {
         return ((captureMode == CaptureMode.SINGLE_CAPTURE));
-    }
-
-    /**
-     * 拍照错误是否来自单拍
-     *
-     * @return 拍照错误是否来自单拍
-     */
-    public boolean captureErrorFromSingleCapture() {
-        return ((captureState == CaptureState.IDLE) || (captureState == CaptureState.SINGLE_CAPTURE_RUNNING));
     }
 
     /**
