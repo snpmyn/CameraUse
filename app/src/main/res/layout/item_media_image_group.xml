@@ -20,7 +20,7 @@
         android:layout_marginVertical="@dimen/dp_6"
         android:gravity="center"
         android:textColor="@color/font_dark"
-        android:textSize="@dimen/sp_12"
+        android:textSize="@dimen/sp_14"
         android:textStyle="bold"
         tools:text="目录" />
 
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textColor="@color/font_dark"
-        android:textSize="@dimen/sp_12"
+        android:textSize="@dimen/sp_14"
         android:textStyle="bold"
         tools:text="数量" />
 </LinearLayout>
