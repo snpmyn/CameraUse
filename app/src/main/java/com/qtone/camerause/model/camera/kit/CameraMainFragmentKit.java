@@ -22,6 +22,7 @@ import com.qtone.camerause.util.log.LogKit;
 import com.qtone.camerause.util.rxbus.RxBus;
 import com.qtone.camerause.util.view.ViewUtils;
 import com.qtone.camerause.value.RxBusConstant;
+import com.qtone.camerause.widget.camera.CameraController;
 import com.qtone.camerause.widget.camera.CameraFpsKit;
 import com.qtone.camerause.widget.camera.UvcCameraChecker;
 import com.qtone.camerause.widget.capture.CaptureMode;
@@ -97,7 +98,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      *
      * @param cameraMainFragment 相机主碎片
      */
-    public CameraMainFragmentKit(CameraMainFragment cameraMainFragment) {
+    public CameraMainFragmentKit(@NotNull CameraMainFragment cameraMainFragment) {
         // 相机主碎片
         this.cameraMainFragment = cameraMainFragment;
         // 拍照处理器
@@ -193,6 +194,11 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * @param scanIntervalMs 扫描间隔毫秒
      */
     public void onScanCodeClicked(ViewFinderView viewFinderView, long scanIntervalMs) {
+        if (!CameraController.getInstance().isCameraOpened(cameraMainFragment.getCurrentCamera())) {
+            ToastUtils.show("相机未准备就绪");
+            cameraMainFragment.cameraMainFragmentSbScanCode.stop();
+            return;
+        }
         if (isAllowScanCode.get()) {
             ToastUtils.show(R.string.doNotTriggerScanningRepeatedly);
             return;
