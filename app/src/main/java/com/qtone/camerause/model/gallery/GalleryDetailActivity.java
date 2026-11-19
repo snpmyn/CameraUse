@@ -72,6 +72,6 @@ public class GalleryDetailActivity extends BasePoolActivity {
         MediaScanner.FolderItem folderItem = (MediaScanner.FolderItem) IntentVerify.getSerializableExtra(getIntent(), IntentConstant.GALLERY_ACTIVITY_$_FOLDER_ITEM);
         // 图库详情页配套原件
         GalleryDetailActivityKit galleryDetailActivityKit = new GalleryDetailActivityKit();
-        galleryDetailActivityKit.execute(this, activityGalleryDetailBinding.galleryDetailActivityRv, folderItem, 3, 12, 48);
+        galleryDetailActivityKit.execute(this, activityGalleryDetailBinding.galleryDetailActivityRv, folderItem, 2, 12, 36);
     }
 }
