@@ -221,21 +221,20 @@ public class ImageRoiProcessor {
             viewWidth = imgWidth;
             viewHeight = imgHeight;
         }
-        // 计算相机预览画面 (CenterCrop 模式) 在 View 中的真实显示区域与偏移量
-        float viewRatio = (float) viewWidth / (float) viewHeight;
-        float imgRatio = (float) imgWidth / (float) imgHeight;
-        float scale;
-        float dx = 0f;
-        float dy = 0f;
-        if (viewRatio > imgRatio) {
-            scale = (float) viewWidth / (float) imgWidth;
-            dy = (viewHeight - imgHeight * scale) / 2f;
-        } else {
-            scale = (float) viewHeight / (float) imgHeight;
-            dx = (viewWidth - imgWidth * scale) / 2f;
-        }
+        // 直接使用标准 FitCenter 矩阵映射
+        // 不旋转坐标轴
+        // 确保横竖方向完全 1:1 一致
+        RectF srcRect = new RectF(0, 0, imgWidth, imgHeight);
+        RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
+
+        Matrix forwardMatrix = new Matrix();
+        forwardMatrix.setRectToRect(srcRect, viewRect, Matrix.ScaleToFit.CENTER);
+        // 获取逆矩阵
+        // 从 View 坐标精准反算回原图 Bitmap 像素坐标
+        Matrix inverseMatrix = new Matrix();
+        forwardMatrix.invert(inverseMatrix);
         List<RectF> mappedRects = new ArrayList<>();
-        // 将 View 上的触控百分比精准映射回图片真实像素点
+        // 将 View 上的触控区域精准 1:1 映射回图片真实像素点
         for (int i = 0; i < percentages.size(); i++) {
             RectF percent = percentages.get(i);
             // ① 先还原为 View 上的物理像素坐标
@@ -243,17 +242,24 @@ public class ImageRoiProcessor {
             float vTop = percent.top * viewHeight;
             float vRight = percent.right * viewWidth;
             float vBottom = percent.bottom * viewHeight;
-            // ② 逆向消除 CenterCrop 的缩放 scale 以及偏移 dx / dy
-            float left = (vLeft - dx) / scale;
-            float top = (vTop - dy) / scale;
-            float right = (vRight - dx) / scale;
-            float bottom = (vBottom - dy) / scale;
+
+            RectF viewRectF = new RectF(vLeft, vTop, vRight, vBottom);
+
+            // ② 利用逆矩阵将 View 坐标变换为原图 Bitmap 坐标
+            inverseMatrix.mapRect(viewRectF);
+
             // ③ 边界裁剪保护
-            left = Math.max(0f, Math.min(left, imgWidth));
-            top = Math.max(0f, Math.min(top, imgHeight));
-            right = Math.max(0f, Math.min(right, imgWidth));
-            bottom = Math.max(0f, Math.min(bottom, imgHeight));
-            mappedRects.add(new RectF(left, top, right, bottom));
+            float realLeft = Math.max(0f, Math.min(viewRectF.left, imgWidth));
+            float realTop = Math.max(0f, Math.min(viewRectF.top, imgHeight));
+            float realRight = Math.max(0f, Math.min(viewRectF.right, imgWidth));
+            float realBottom = Math.max(0f, Math.min(viewRectF.bottom, imgHeight));
+
+            mappedRects.add(new RectF(
+                    Math.min(realLeft, realRight),
+                    Math.min(realTop, realBottom),
+                    Math.max(realLeft, realRight),
+                    Math.max(realTop, realBottom)
+            ));
         }
         return new CenterCropTransform(srcBitmap, imgWidth, imgHeight, mappedRects);
     }
