@@ -123,6 +123,6 @@
             android:text="@string/gallery"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_14"
-            app:backgroundTint="@color/color_7C4DFF" />
+            app:backgroundTint="@color/color_1FB3E2" />
     </LinearLayout>
 </LinearLayout>
