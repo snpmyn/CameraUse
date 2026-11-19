@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraUse</string>
+    <string name="app_name">CU</string>
     <string name="singleCapture">単写</string>
     <string name="burstCapture">連写</string>
     <string name="scanCode">QRスキャン</string>
