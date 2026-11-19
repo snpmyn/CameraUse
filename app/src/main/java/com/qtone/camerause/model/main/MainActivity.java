@@ -8,7 +8,6 @@ import com.qtone.camerause.R;
 import com.qtone.camerause.base.BasePoolActivity;
 import com.qtone.camerause.databinding.ActivityMainBinding;
 import com.qtone.camerause.model.main.kit.MainActivityKit;
-import com.qtone.camerause.util.materialtoolbar.MaterialToolbarKit;
 import com.qtone.camerause.util.rxbus.annotation.Subscribe;
 import com.qtone.camerause.util.rxbus.annotation.Tag;
 import com.qtone.camerause.util.rxbus.thread.EventThread;
@@ -55,11 +54,7 @@ public class MainActivity extends BasePoolActivity {
      */
     @Override
     protected void stepUi() {
-        MaterialToolbarKit.getInstance().setMenuOverflowIconSize(this, activityMainBinding.mainActivityMt, R.dimen.dp_24);
-        MaterialToolbarKit.getInstance().setMenuOverflowIconTintColor(this, activityMainBinding.mainActivityMt, R.color.white);
-        /*MaterialToolbarKit.getInstance().setMenuOverflowIcon(this, activityMainBinding.mainActivityMt, R.drawable.ic_arrows_more_down_cos_24dp);*/
-        MaterialToolbarKit.getInstance().setMenuItemIconMarginRight(this, activityMainBinding.mainActivityMt, R.id.mainActivityMenuDeviceInfo, R.dimen.dp_10);
-        MaterialToolbarKit.getInstance().setMenuItemIconMarginRight(this, activityMainBinding.mainActivityMt, R.id.mainActivityMenuSwitchResolution, R.dimen.dp_10);
+
     }
 
     /**
