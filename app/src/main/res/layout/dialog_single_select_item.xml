@@ -8,5 +8,5 @@
     android:buttonTint="@color/material_radio_button_tint"
     android:gravity="center"
     android:textColor="@color/font_dark"
-    android:textSize="@dimen/sp_12"
+    android:textSize="@dimen/sp_16"
     tools:text="内容" />
