@@ -2,11 +2,6 @@
 
 摄像头应用
 
-## 适配
-
-高扫仪以 base_dp=360 为基准
-匹配使用 sw240dp 文件夹下资源
-
 ## 注解
 
 * @SuppressWarnings("unused")
