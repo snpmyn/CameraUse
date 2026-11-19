@@ -270,6 +270,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     public void onCaptureProcessing(byte[] data, int width, int height, CaptureMode captureMode) {
         cameraMainFragment.safeRun(appCompatActivity -> {
             try {
+                Log.e(LogKit.TAG, "通过图像帧字节数组处理");
                 // 文档裁剪处理器 - 通过图像帧字节数组处理
                 /*documentCropProcessor.processByData(appCompatActivity, data, width, height, CameraMainFragmentKit.this);*/
             } catch (Exception e) {
@@ -396,9 +397,12 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onCaptureError(String errorMsg) {
         ToastUtils.show("拍照错误 - " + errorMsg);
-        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
-        if (captureProcessor.captureErrorFromSingleCapture()) {
+        /*cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));*/
+        if (cameraMainFragment.cameraMainFragmentSbSingleCapture.isBusy()) {
             cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
+        }
+        if (cameraMainFragment.cameraMainFragmentSbBurstCapture.isBusy()) {
+            cameraMainFragment.cameraMainFragmentSbBurstCapture.stop();
         }
         if (CountdownDialogKit.getInstance().isTriggered()) {
             CountdownDialogKit.getInstance().resetTrigger();
@@ -424,7 +428,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
     @Override
     public void onDocumentCropError(String errorMsg) {
         ToastUtils.show("文档裁剪错误 - " + errorMsg);
-        //cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));
+        /*cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));*/
     }
 
     /**
@@ -470,7 +474,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      * @param inferenceTimeMs         推理耗时毫秒
      */
     @Override
-    public void onGestureRecognizerResult(GestureRecognizerResult gestureRecognizerResult, String topGestureName, long inferenceTimeMs) {
+    public void onGestureRecognizerResult(GestureRecognizerResult gestureRecognizerResult, @NotNull String topGestureName, long inferenceTimeMs) {
         handLeaveScanDetector.processGestureRecognizerResult(gestureRecognizerResult);
         switch (topGestureName) {
             case "Victory":
