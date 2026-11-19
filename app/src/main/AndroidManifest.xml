@@ -57,20 +57,20 @@
         android:roundIcon="${app_icon_round}"
         android:supportsRtl="true"
         android:theme="@style/Theme.CameraUse"
+        tools:ignore="AllowBackup"
         tools:replace="android:theme, android:label">
         <activity
             android:name=".model.gallery.GalleryDetailActivity"
-            android:screenOrientation="landscape" />
+            android:exported="false" />
         <activity
             android:name=".model.gallery.GalleryActivity"
-            android:screenOrientation="landscape" />
+            android:exported="false" />
         <activity
             android:name=".model.setting.SettingActivity"
-            android:screenOrientation="landscape" />
+            android:exported="false" />
         <activity
             android:name=".model.main.MainActivity"
-            android:exported="true"
-            android:screenOrientation="landscape">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
