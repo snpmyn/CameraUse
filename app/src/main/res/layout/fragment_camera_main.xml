@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:baselineAligned="false">
+    android:orientation="vertical">
 
     <FrameLayout
-        android:layout_width="@dimen/dp_0"
-        android:layout_height="match_parent"
-        android:layout_weight="5"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_0"
+        android:layout_weight="2"
         android:background="@color/black">
 
         <FrameLayout
@@ -46,51 +46,58 @@
     </FrameLayout>
 
     <LinearLayout
-        android:layout_width="@dimen/dp_0"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_0"
         android:layout_weight="1"
         android:background="@color/background"
         android:orientation="vertical"
         android:padding="@dimen/dp_20">
 
-        <com.qtone.camerause.widget.button.ShimmerButton
-            android:id="@+id/cameraMainFragmentSbSingleCapture"
+        <!--tools:ignore="NestedWeights"-->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
             android:layout_weight="1"
-            app:sbPrimaryColor="@color/color_FF9800"
-            app:sbShape="square"
-            app:sbText="@string/singleCapture"
-            app:sbTextColor="@color/white"
-            app:sbTextSize="@dimen/sp_12"
-            app:sbTriggerMode="click"
-            tools:ignore="NestedWeights" />
+            tools:ignore="NestedWeights">
 
-        <com.qtone.camerause.widget.button.ShimmerButton
-            android:id="@+id/cameraMainFragmentSbBurstCapture"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/dp_0"
-            android:layout_marginVertical="@dimen/dp_10"
-            android:layout_weight="1"
-            app:sbPrimaryColor="@color/color_00BFA5"
-            app:sbShape="square"
-            app:sbText="@string/burstCapture"
-            app:sbTextColor="@color/white"
-            app:sbTextSize="@dimen/sp_12"
-            app:sbTriggerMode="longPressCharge" />
+            <com.qtone.camerause.widget.button.ShimmerButton
+                android:id="@+id/cameraMainFragmentSbSingleCapture"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:sbPrimaryColor="@color/color_FF9800"
+                app:sbShape="square"
+                app:sbText="@string/singleCapture"
+                app:sbTextColor="@color/white"
+                app:sbTextSize="@dimen/sp_14"
+                app:sbTriggerMode="click"
+                tools:ignore="NestedWeights" />
 
-        <com.qtone.camerause.widget.button.ShimmerButton
-            android:id="@+id/cameraMainFragmentSbScanCode"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/dp_0"
-            android:layout_marginBottom="@dimen/dp_10"
-            android:layout_weight="1"
-            app:sbPrimaryColor="@color/color_7C4DFF"
-            app:sbShape="square"
-            app:sbText="@string/scanCode"
-            app:sbTextColor="@color/white"
-            app:sbTextSize="@dimen/sp_12"
-            app:sbTriggerMode="longPressCharge" />
+            <com.qtone.camerause.widget.button.ShimmerButton
+                android:id="@+id/cameraMainFragmentSbBurstCapture"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="@dimen/dp_10"
+                android:layout_weight="1"
+                app:sbPrimaryColor="@color/color_00BFA5"
+                app:sbShape="square"
+                app:sbText="@string/burstCapture"
+                app:sbTextColor="@color/white"
+                app:sbTextSize="@dimen/sp_14"
+                app:sbTriggerMode="longPressCharge" />
+
+            <com.qtone.camerause.widget.button.ShimmerButton
+                android:id="@+id/cameraMainFragmentSbScanCode"
+                android:layout_width="@dimen/dp_0"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:sbPrimaryColor="@color/color_7C4DFF"
+                app:sbShape="square"
+                app:sbText="@string/scanCode"
+                app:sbTextColor="@color/white"
+                app:sbTextSize="@dimen/sp_14"
+                app:sbTriggerMode="longPressCharge" />
+        </LinearLayout>
 
         <!--普通按钮-->
         <!--style="@style/Widget.MaterialComponents.Button"-->
@@ -106,6 +113,7 @@
             android:id="@+id/cameraMainFragmentMbGallery"
             android:layout_width="match_parent"
             android:layout_height="@dimen/dp_0"
+            android:layout_marginTop="@dimen/dp_10"
             android:layout_weight="1"
             android:filterTouchesWhenObscured="true"
             android:insetLeft="@dimen/dp_0"
@@ -114,7 +122,7 @@
             android:insetBottom="@dimen/dp_0"
             android:text="@string/gallery"
             android:textColor="@color/white"
-            android:textSize="@dimen/sp_10"
+            android:textSize="@dimen/sp_14"
             app:backgroundTint="@color/color_7C4DFF" />
     </LinearLayout>
 </LinearLayout>
