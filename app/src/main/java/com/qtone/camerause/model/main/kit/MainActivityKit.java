@@ -167,7 +167,7 @@ public class MainActivityKit {
         }
         stringBuilder.append("系统路径：").append(usbDevice.getDeviceName()).append("\n");
         stringBuilder.append("系统分配 ID：").append(usbDevice.getDeviceId());
-        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), stringBuilder.toString(), true, mainActivity.getString(R.string.iKonw), null);
+        CommonDialogKit.showInfoDialog(mainActivity, mainActivity.getString(R.string.deviceInfo), stringBuilder.toString(), true, mainActivity.getString(R.string.iKonw), false, null);
     }
 
     /**
