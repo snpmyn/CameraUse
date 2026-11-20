@@ -120,9 +120,11 @@
             android:insetTop="@dimen/dp_0"
             android:insetRight="@dimen/dp_0"
             android:insetBottom="@dimen/dp_0"
+            android:stateListAnimator="@null"
             android:text="@string/gallery"
             android:textColor="@color/white"
             android:textSize="@dimen/sp_14"
-            app:backgroundTint="@color/color_1FB3E2" />
+            app:backgroundTint="@color/color_1FB3E2"
+            app:cornerRadius="@dimen/dp_8" />
     </LinearLayout>
 </LinearLayout>
