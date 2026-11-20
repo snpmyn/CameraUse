@@ -29,6 +29,7 @@ import com.qtone.camerause.widget.capture.CaptureMode;
 import com.qtone.camerause.widget.capture.CaptureProcessor;
 import com.qtone.camerause.widget.capture.CaptureStrategy;
 import com.qtone.camerause.widget.crop.DocumentCropProcessor;
+import com.qtone.camerause.widget.dialog.common.kit.CommonDialogKit;
 import com.qtone.camerause.widget.dialog.countdown.kit.CountdownDialogKit;
 import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerCallback;
 import com.qtone.camerause.widget.mediapipe.gesture.GestureRecognizerManager;
@@ -195,7 +196,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     public void onScanCodeClicked(ViewFinderView viewFinderView, long scanIntervalMs) {
         if (!CameraController.getInstance().isCameraOpened(cameraMainFragment.getCurrentCamera())) {
-            ToastUtils.show("相机未准备就绪");
+            cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "相机未准备就绪", false, true, null));
             cameraMainFragment.cameraMainFragmentSbScanCode.stop();
             return;
         }
@@ -402,8 +403,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onCaptureError(String errorMsg) {
-        ToastUtils.show("拍照错误 - " + errorMsg);
-        /*cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));*/
+        cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "拍照错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), true, null));
         if (cameraMainFragment.cameraMainFragmentSbSingleCapture.isBusy()) {
             cameraMainFragment.cameraMainFragmentSbSingleCapture.stop();
         }
@@ -433,8 +433,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onDocumentCropError(String errorMsg) {
-        ToastUtils.show("文档裁剪错误 - " + errorMsg);
-        /*cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), null));*/
+        cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "文档裁剪错误", errorMsg, false, appCompatActivity.getString(R.string.iKonw), true, null));
     }
 
     /**
@@ -455,7 +454,7 @@ public class CameraMainFragmentKit implements CaptureProcessor.OnCaptureCallback
      */
     @Override
     public void onScanCodeFailure(@NotNull Exception e) {
-        ToastUtils.show("扫码失败 - " + e.getMessage());
+        cameraMainFragment.safeRun(appCompatActivity -> CommonDialogKit.showInfoDialog(appCompatActivity, "扫码失败", e.getMessage(), false, appCompatActivity.getString(R.string.iKonw), true, null));
     }
 
     /**
